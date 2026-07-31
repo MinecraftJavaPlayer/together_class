@@ -1,0 +1,94 @@
+'use client';
+
+import React from 'react';
+// @ts-ignore
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { getCurrentUser, isAllLearningCompleted } from '@dahamkke/shared';
+import { DamiLogoIcon } from './DamiLogoIcon';
+
+export function SidebarNav() {
+  const pathname = usePathname() || '/';
+  const currentUser = getCurrentUser();
+  const isQuizUnlocked = isAllLearningCompleted(currentUser);
+
+  const navItems = [
+    { href: '/', label: '🏠 홈 대시보드' },
+    { href: '/rank', label: '🏆 랭크 & 시즌', highlight: true, color: '#B45309', bg: '#FEF3C7' },
+    {
+      href: isQuizUnlocked ? '/quiz' : '/translate',
+      label: isQuizUnlocked ? '📝 10문항 평가' : '🔒 10문항 평가 (잠김)',
+      highlight: true,
+      color: isQuizUnlocked ? '#BE185D' : '#94A3B8',
+      bg: isQuizUnlocked ? '#FCE7F3' : '#F1F5F9',
+    },
+    { href: '/translate', label: '📷 교과서 번역' },
+    { href: '/interpret', label: '🎙️ 실시간 통역' },
+    { href: '/debate', label: '💬 토론 친구 (민준)' },
+    { href: '/persona', label: '🎭 인물 인터뷰' },
+    { href: '/dictation', label: '✍️ 받아쓰기' },
+    { href: '/notice', label: '📄 가정통신문' },
+    { href: '/records', label: '📚 학습 기록' },
+  ];
+
+  return (
+    <aside className="sidebar">
+      {/* Brand Logo with New Cute 3D HTML SVG Mascot */}
+      <div className="brand-logo" style={{ marginBottom: '28px' }}>
+        <DamiLogoIcon size={46} showText={true} />
+      </div>
+
+      <ul className="nav-list" style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '8px', padding: 0, margin: 0 }}>
+        {navItems.map((item) => {
+          const isActive = pathname === item.href;
+          return (
+            <li
+              key={item.href}
+              className={`nav-item ${isActive ? 'active' : ''}`}
+              style={{
+                borderRadius: '12px',
+                backgroundColor: isActive ? '#CCFBF1' : item.bg || 'transparent',
+              }}
+            >
+              <Link
+                href={item.href}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  fontWeight: isActive || item.highlight ? '800' : '600',
+                  color: isActive ? '#0D9488' : item.color || '#1F2937',
+                  textDecoration: 'none',
+                  width: '100%',
+                  boxSizing: 'border-box',
+                }}
+              >
+                {item.label}
+              </Link>
+            </li>
+          );
+        })}
+
+        <li className="nav-item" style={{ marginTop: 'auto', borderRadius: '12px', backgroundColor: '#EEF2FF' }}>
+          <Link
+            href="/admin"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              padding: '12px 16px',
+              borderRadius: '12px',
+              fontWeight: '700',
+              color: '#4338CA',
+              textDecoration: 'none',
+              width: '100%',
+              boxSizing: 'border-box',
+            }}
+          >
+            👨‍🏫 교사 콘솔 (RAG)
+          </Link>
+        </li>
+      </ul>
+    </aside>
+  );
+}

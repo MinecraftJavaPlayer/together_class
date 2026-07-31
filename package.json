@@ -1,0 +1,11 @@
+{
+  "name": "dahamkke-classroom-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "check-types": "npm run --workspaces check-types --if-present"
+  }
+}
