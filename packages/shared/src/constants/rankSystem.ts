@@ -142,31 +142,31 @@ export const SAMPLE_EVALUATION_QUIZ: QuizQuestion[] = [
   },
   {
     id: 5,
-    question: "이 앱에서 짝꿍이나 친구와 양방향으로 음성을 주고받으며 모국어와 한국어로 통화하듯 대화하는 기능은 무엇인가요?",
+    question: "사계절 중 봄, 여름 다음으로 오며, 선선한 바람이 불고 나뭇잎이 단풍으로 물드는 계절은 언제인가요?",
     type: 'multiple-choice',
     difficulty: '하',
-    options: ["실시간 통역", "교과서 OCR 번역", "받아쓰기 연습", "가정통신문 번역"],
+    options: ["가을", "겨울", "봄", "여름"],
     answerIndex: 0,
-    explanation: "실시간 통역 기능은 짝꿍과의 음성 대화를 실시간 양방향 통역해 줍니다."
+    explanation: "단풍이 들고 선선한 가을입니다."
   },
   {
     id: 6,
-    question: "단원 학습 완료 후 치르는 성취도 평가 퀴즈는 총 몇 문항으로 구성되어 있나요?",
+    question: "'흥부전'에서 심술궂고 욕심이 많아 동생인 흥부를 집에서 쫓아낸 흥부의 형 이름은 무엇인가요?",
     type: 'multiple-choice',
     difficulty: '하',
-    options: ["10문항", "5문항", "20문항", "15문항"],
+    options: ["놀부", "심청이", "춘향이", "홍길동"],
     answerIndex: 0,
-    explanation: "성취도 평가 퀴즈는 총 10문항으로 출제됩니다."
+    explanation: "흥부의 욕심 많은 형은 놀부입니다."
   },
   {
     id: 7,
-    question: "[주관식] 누적 랭크 포인트를 5,000pt 이상 달성하면 도달할 수 있는 최고의 랭크 명칭은 무엇인가요?",
+    question: "[주관식] 하얀 바탕 가운데에 태극 문양이 있고, 네 모퉁이에 건곤감리 4괘가 그려진 우리나라 국기의 이름은 무엇인가요?",
     type: 'short-answer',
     difficulty: '하',
     options: [],
     answerIndex: 0,
-    acceptableAnswers: ["마스터", "마스터 랭크", "Master"],
-    explanation: "5,000pt 이상 달성 시 최고 등급인 '마스터' 랭크가 됩니다."
+    acceptableAnswers: ["태극기"],
+    explanation: "대한민국의 국기는 태극기입니다."
   },
   {
     id: 8,
@@ -189,12 +189,12 @@ export const SAMPLE_EVALUATION_QUIZ: QuizQuestion[] = [
   },
   {
     id: 10,
-    question: "성취도 10문항 평가에서 10문제를 모두 맞혔을 때 얻을 수 있는 최대 랭크 포인트는 얼마인가요?",
+    question: "이순신 장군이 12척의 배로 130여 척의 왜군 배를 물리쳐 세계 해전 역사상 기적으로 불리는 해전의 이름은 무엇인가요?",
     type: 'multiple-choice',
     difficulty: '하',
-    options: ["+20 pt", "+10 pt", "+50 pt", "+5 pt"],
+    options: ["명량 해전", "노량 해전", "사천 해전", "부산포 해전"],
     answerIndex: 0,
-    explanation: "10문제 전원 정답 시 최대 +20pt를 획득할 수 있습니다."
+    explanation: "12척의 배로 크게 이긴 해전은 명량 해전(명량대첩)입니다."
   },
 
   // --- [난이도: 중 (Medium) - 10개] ---
@@ -219,22 +219,22 @@ export const SAMPLE_EVALUATION_QUIZ: QuizQuestion[] = [
   },
   {
     id: 13,
-    question: "교과서 인물 인터뷰에서 RAG(검색 증강 생성) 기술이 AI의 환각(거짓 답변)을 막아주는 핵심 원리는 무엇인가요?",
+    question: "조선 시대 과학 기술 발전에 큰 공을 세운 발명가로, 세종대왕의 명을 받아 해시계(앙부일구), 물시계(자격루) 등을 제작한 인물은 누구인가요?",
     type: 'multiple-choice',
     difficulty: '중',
-    options: ["교과서 지문 원문 출처를 AI 프롬프트에 제공하기 때문", "AI의 답변 속도를 느리게 만들기 때문", "인터넷 접속을 아예 차단하기 때문", "화면 글자 크기를 크게 키워주기 때문"],
+    options: ["장영실", "정약용", "김정호", "이황"],
     answerIndex: 0,
-    explanation: "RAG는 검증된 교과서 원문 출처 데이터를 AI에 직접 주입하여 엉뚱한 거짓 답변을 차단합니다."
+    explanation: "세종대왕의 지지를 받아 뛰어난 과학 기구를 제작한 인물은 장영실입니다."
   },
   {
     id: 14,
-    question: "[주관식] 교과서에 등장하는 어휘를 음성으로 듣고 올바른 맞춤법과 띄어쓰기로 직접 받아 적는 기능의 이름은 무엇인가요?",
+    question: "[주관식] 생각이나 감정을 말로 나타낼 때 쓰는 가장 기본적이고 완결된 말의 단위를 무엇이라고 하나요?",
     type: 'short-answer',
     difficulty: '중',
     options: [],
     answerIndex: 0,
-    acceptableAnswers: ["받아쓰기", "받아쓰기 연습"],
-    explanation: "음성을 듣고 올바르게 적는 학습 기능은 '받아쓰기'입니다."
+    acceptableAnswers: ["문장"],
+    explanation: "마침표나 문장 부호로 완성되는 생각의 기본 단위는 문장입니다."
   },
   {
     id: 15,
@@ -247,13 +247,13 @@ export const SAMPLE_EVALUATION_QUIZ: QuizQuestion[] = [
   },
   {
     id: 16,
-    question: "[주관식] 카메라로 교과서 지문 사진을 찍으면 이미지 속 글자를 텍스트로 인식해 추출하는 광학 문자인식 기술의 영문 약자는 무엇인가요?",
+    question: "[주관식] 조선 후기 지리학자 김정호가 직접 전국을 발로 뛰며 완성한, 우리나라 최초의 정밀한 대형 전국 지도 이름은 무엇인가요?",
     type: 'short-answer',
     difficulty: '중',
     options: [],
     answerIndex: 0,
-    acceptableAnswers: ["OCR", "ocr"],
-    explanation: "이미지 속 글자를 텍스트로 전환하는 기술은 'OCR' (Optical Character Recognition)입니다."
+    acceptableAnswers: ["대동여지도"],
+    explanation: "목판으로 인쇄된 조선 최고의 전국 지도는 대동여지도입니다."
   },
   {
     id: 17,
@@ -276,12 +276,12 @@ export const SAMPLE_EVALUATION_QUIZ: QuizQuestion[] = [
   },
   {
     id: 19,
-    question: "브론즈 3(50~99pt)에서 100pt 이상을 달성했을 때 진급하게 되는 랭크는 무엇인가요?",
+    question: "조선 시대 궁궐 중 하나로, 자연 지형을 훼손하지 않고 아름답게 정원을 꾸민 후원(비원)이 있어 유네스코 세계문화유산에 등재된 곳은 어디인가요?",
     type: 'multiple-choice',
     difficulty: '중',
-    options: ["실버 1", "실버 2", "골드 1", "브론즈 2"],
+    options: ["창덕궁", "경복궁", "덕수궁", "경희궁"],
     answerIndex: 0,
-    explanation: "100pt에 도달하면 브론즈 3에서 '실버 1' 랭크로 승급합니다."
+    explanation: "자연 조화가 돋보여 유네스코 문화유산으로 지정된 궁궐은 창덕궁입니다."
   },
   {
     id: 20,
@@ -344,13 +344,13 @@ export const SAMPLE_EVALUATION_QUIZ: QuizQuestion[] = [
   },
   {
     id: 26,
-    question: "[주관식] 가정통신문에 인쇄된 네모난 모양의 2차원 바코드로, 휴대폰으로 스캔하면 번역 정보를 쉽게 확인하는 코드 이름은 무엇인가요?",
+    question: "[주관식] '널리 인간 세상을 이롭게 한다'라는 뜻을 가진 단군조선의 건국 이념이자 오늘날 대한민국의 교육 이념은 무엇인가요?",
     type: 'short-answer',
     difficulty: '상',
     options: [],
     answerIndex: 0,
-    acceptableAnswers: ["QR코드", "QR 코드", "큐알코드", "QR"],
-    explanation: "정보를 빠르게 스캔해 접속하도록 돕는 2차원 바코드는 'QR코드'입니다."
+    acceptableAnswers: ["홍익인간"],
+    explanation: "단군조선의 건국 이념은 홍익인간(弘益人間)입니다."
   },
   {
     id: 27,
@@ -363,22 +363,22 @@ export const SAMPLE_EVALUATION_QUIZ: QuizQuestion[] = [
   },
   {
     id: 28,
-    question: "[주관식] 학급 랭크 리더보드의 시즌 포인트가 초기화되고 새로운 월간 시즌이 시작되는 날짜는 언제인가요?",
+    question: "[주관식] 나침반이나 방위에서 해가 돋는 동쪽을 바라보고 섰을 때, 나의 오른쪽이 가리키는 방위는 어디인가요?",
     type: 'short-answer',
     difficulty: '상',
     options: [],
     answerIndex: 0,
-    acceptableAnswers: ["매월 1일", "1일", "매달 1일"],
-    explanation: "월간 랭크 시즌은 '매월 1일'에 초기화되어 새 시즌이 시작됩니다."
+    acceptableAnswers: ["남쪽", "남"],
+    explanation: "동쪽을 바라볼 때, 오른쪽은 남쪽, 왼쪽은 북쪽, 등 뒤는 서쪽입니다."
   },
   {
     id: 29,
-    question: "AI에게 특정 역사적 인물(예: 이순신, 흥부) 역할을 부여하여 1인칭 페르소나 대화를 유도하는 지침 문장을 무엇이라 하나요?",
+    question: "세종대왕이 창제하신 한글의 해설서로, 글자를 만든 원리와 사용법을 설명해 주고 있어 유네스코 기록유산으로 등재된 문헌의 이름은 무엇인가요?",
     type: 'multiple-choice',
     difficulty: '상',
-    options: ["페르소나 프롬프트", "비밀번호 시스템", "데이터베이스 테이블", "CSS 스타일시트"],
+    options: ["훈민정음 해례본", "삼국유사", "조선왕조실록", "직지심체요절"],
     answerIndex: 0,
-    explanation: "AI가 특정 인물의 말투와 배경지식으로 대화하도록 설정하는 지침은 '페르소나 프롬프트'입니다."
+    explanation: "한글 창제 원리가 적혀 있어 유네스코 세계기록유산에 등재된 책은 훈민정음 해례본입니다."
   },
   {
     id: 30,
