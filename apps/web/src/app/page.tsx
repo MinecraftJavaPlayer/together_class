@@ -224,73 +224,170 @@ export default function DashboardHome() {
 
           {/* TAB 2: 학습 도우미 (Learning Assistants) */}
           {activeTab === 'learning' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', flex: 1, maxHeight: '360px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', flex: 1, maxHeight: '360px' }}>
               {[
-                { title: '📷 교과서 OCR 번역', desc: '지문 사진 촬영/업로드 텍스트 추출 및 다국어 번역', icon: '📷', href: '/translate', color: '#14B8A6' },
-                { title: '🎙️ 실시간 통역', desc: '교실 짝꿍과의 양방향 실시간 음성 대화 통역', icon: '🎙️', href: '/interpret', color: '#FF7A59' },
-                { title: '💬 토론 친구 (민준)', desc: '초등 눈높이 가상 한국인 친구 민준이와 교과서 토론', icon: '💬', href: '/debate', color: '#3B82F6' },
-                { title: '🎭 인물 인터뷰', desc: '흥부·이순신 등 교과서 인물 페르소나 1인칭 대화 (RAG)', icon: '🎭', href: '/persona', color: '#8B5CF6' },
+                {
+                  title: '교과서 번역',
+                  desc: '지문 사진 촬영/업로드 텍스트 추출 및 번역',
+                  href: '/translate',
+                  icon: (
+                    <div style={{ position: 'relative', width: '100px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
+                      <span style={{ fontSize: '64px' }}>📖</span>
+                      <div style={{ position: 'absolute', bottom: '4px', right: '4px', backgroundColor: '#14B8A6', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px solid white', boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }}>
+                        <span style={{ fontSize: '16px' }}>📷</span>
+                      </div>
+                    </div>
+                  )
+                },
+                {
+                  title: '실시간 통역',
+                  desc: '짝꿍과의 양방향 실시간 음성 대화 통역',
+                  href: '/interpret',
+                  icon: (
+                    <div style={{ position: 'relative', width: '100px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
+                      <span style={{ fontSize: '64px' }}>🎙️</span>
+                      <div style={{ position: 'absolute', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 8px' }}>
+                        <div style={{ width: '4px', height: '24px', backgroundColor: '#FF7A59', borderRadius: '2px' }} />
+                        <div style={{ width: '4px', height: '24px', backgroundColor: '#FF7A59', borderRadius: '2px' }} />
+                      </div>
+                    </div>
+                  )
+                },
+                {
+                  title: '토론 친구 (민준)',
+                  desc: '가상 한국인 친구 민준이와 교과서 토론',
+                  href: '/debate',
+                  icon: (
+                    <div style={{ position: 'relative', width: '100px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
+                      <div style={{ position: 'absolute', top: '15px', left: '10px', width: '50px', height: '42px', backgroundColor: '#93C5FD', borderRadius: '12px', border: '2.5px solid #2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <span style={{ fontSize: '12px', fontWeight: '800', color: '#1E40AF' }}>Hello</span>
+                      </div>
+                      <div style={{ position: 'absolute', bottom: '15px', right: '10px', width: '50px', height: '42px', backgroundColor: '#CCFBF1', borderRadius: '12px', border: '2.5px solid #0D9488', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '2px 4px 10px rgba(0,0,0,0.05)' }}>
+                        <span style={{ fontSize: '12px', fontWeight: '800', color: '#0F766E' }}>안녕</span>
+                      </div>
+                    </div>
+                  )
+                },
+                {
+                  title: '인물 인터뷰',
+                  desc: '교과서 역사 속 인물과의 1인칭 대화',
+                  href: '/persona',
+                  icon: (
+                    <div style={{ position: 'relative', width: '100px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
+                      <div style={{ width: '70px', height: '80px', backgroundColor: '#F3E8FF', border: '3px solid #8B5CF6', borderRadius: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                        <span style={{ fontSize: '36px' }}>🎭</span>
+                      </div>
+                    </div>
+                  )
+                },
               ].map((item, idx) => (
                 <div
                   key={idx}
                   onClick={() => router.push(item.href)}
                   style={{
                     backgroundColor: 'white',
-                    borderRadius: '20px',
+                    borderRadius: '24px',
                     boxShadow: 'var(--shadow-soft)',
                     border: '1.5px solid #E2E8F0',
-                    borderLeft: `6px solid ${item.color}`,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '20px 24px',
-                    transition: 'transform 0.2s ease',
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.transform = 'translateX(4px)'}
-                  onMouseLeave={(e) => e.currentTarget.style.transform = 'translateX(0)'}
-                >
-                  <span style={{ fontSize: '36px', marginRight: '18px' }}>{item.icon}</span>
-                  <div>
-                    <h4 style={{ fontSize: '18px', fontWeight: '900', color: '#0F172A', margin: 0 }}>{item.title}</h4>
-                    <p style={{ fontSize: '13px', color: '#6B7280', margin: '4px 0 0 0' }}>{item.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* TAB 3: 기록 (Records) */}
-          {activeTab === 'records' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', flex: 1, maxHeight: '360px' }}>
-              {[
-                { title: '✍️ 받아쓰기 연습', desc: '듣고 맞히는 한국어 단어 받아쓰기', icon: '✍️', href: '/dictation', color: '#F59E0B' },
-                { title: '📄 가정통신문 번역', desc: '학교 알림장 다국어 번역 및 요약 QR', icon: '📄', href: '/notice', color: '#06B6D4' },
-                { title: '📚 학습 기록 & 복습', desc: '저장된 번역/대화 기록 및 복습 퀴즈', icon: '📚', href: '/records', color: '#10B981' },
-              ].map((item, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => router.push(item.href)}
-                  style={{
-                    backgroundColor: 'white',
-                    borderRadius: '20px',
-                    boxShadow: 'var(--shadow-soft)',
-                    border: '1.5px solid #E2E8F0',
-                    borderTop: `6px solid ${item.color}`,
                     cursor: 'pointer',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
                     padding: '24px',
-                    textAlign: 'center',
-                    transition: 'transform 0.2s ease',
+                    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'}
-                  onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                    e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.08)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'var(--shadow-soft)';
+                  }}
                 >
-                  <span style={{ fontSize: '38px', marginBottom: '12px' }}>{item.icon}</span>
-                  <h4 style={{ fontSize: '17px', fontWeight: '900', color: '#0F172A', margin: 0 }}>{item.title}</h4>
-                  <p style={{ fontSize: '12px', color: '#6B7280', margin: '6px 0 0 0', lineHeight: '1.4' }}>{item.desc}</p>
+                  {item.icon}
+                  <h3 style={{ fontSize: '24px', fontWeight: '900', color: '#0F172A', margin: 0 }}>{item.title}</h3>
+                  <p style={{ fontSize: '13px', color: '#6B7280', marginTop: '6px', textAlign: 'center', padding: '0 12px' }}>{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* TAB 3: 연습 & 기록 (Records) */}
+          {activeTab === 'records' && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '24px', flex: 1, maxHeight: '360px' }}>
+              {[
+                {
+                  title: '받아쓰기 연습',
+                  desc: '듣고 맞히는 한국어 단어 받아쓰기',
+                  href: '/dictation',
+                  icon: (
+                    <div style={{ position: 'relative', width: '100px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
+                      <div style={{ width: '64px', height: '80px', backgroundColor: '#FEF3C7', border: '3px solid #D97706', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                        <span style={{ fontSize: '36px' }}>✍️</span>
+                      </div>
+                    </div>
+                  )
+                },
+                {
+                  title: '가정통신문 번역',
+                  desc: '학교 안내문 번역 및 중요 내용 요약',
+                  href: '/notice',
+                  icon: (
+                    <div style={{ position: 'relative', width: '100px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
+                      <div style={{ width: '64px', height: '80px', backgroundColor: '#ECFEFF', border: '3px solid #0891B2', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                        <span style={{ fontSize: '36px' }}>📄</span>
+                        <span style={{ position: 'absolute', bottom: '4px', right: '4px', fontSize: '12px' }}>🔍</span>
+                      </div>
+                    </div>
+                  )
+                },
+                {
+                  title: '학습 기록 & 복습',
+                  desc: '번역/대화 기록 조회 및 복습 퀴즈',
+                  href: '/records',
+                  icon: (
+                    <div style={{ position: 'relative', width: '100px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+                        <div style={{ width: '64px', height: '14px', backgroundColor: '#34D399', borderRadius: '4px', border: '2px solid #059669' }} />
+                        <div style={{ width: '70px', height: '16px', backgroundColor: '#60A5FA', borderRadius: '4px', border: '2px solid #2563EB' }} />
+                        <div style={{ width: '76px', height: '18px', backgroundColor: '#F87171', borderRadius: '4px', border: '2px solid #DC2626', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <span style={{ fontSize: '8px', color: 'white', fontWeight: '900' }}>RECORDS</span>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                },
+              ].map((item, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => router.push(item.href)}
+                  style={{
+                    backgroundColor: 'white',
+                    borderRadius: '24px',
+                    boxShadow: 'var(--shadow-soft)',
+                    border: '1.5px solid #E2E8F0',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '24px',
+                    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                    e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.08)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'var(--shadow-soft)';
+                  }}
+                >
+                  {item.icon}
+                  <h3 style={{ fontSize: '24px', fontWeight: '900', color: '#0F172A', margin: 0 }}>{item.title}</h3>
+                  <p style={{ fontSize: '13px', color: '#6B7280', marginTop: '6px', textAlign: 'center', padding: '0 8px' }}>{item.desc}</p>
                 </div>
               ))}
             </div>
@@ -304,7 +401,7 @@ export default function DashboardHome() {
                 onClick={() => router.push('/admin')}
                 style={{
                   backgroundColor: 'white',
-                  borderRadius: '20px',
+                  borderRadius: '24px',
                   boxShadow: 'var(--shadow-soft)',
                   border: '1.5px solid #E2E8F0',
                   cursor: 'pointer',
@@ -312,47 +409,62 @@ export default function DashboardHome() {
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  padding: '24px',
-                  transition: 'transform 0.2s ease',
+                  padding: '32px',
+                  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'}
-                onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.08)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'var(--shadow-soft)';
+                }}
               >
-                <span style={{ fontSize: '48px', marginBottom: '12px' }}>👨‍🏫</span>
-                <h4 style={{ fontSize: '20px', fontWeight: '900', color: '#0F172A', margin: 0 }}>교사 콘솔 (RAG)</h4>
-                <p style={{ fontSize: '13px', color: '#6B7280', marginTop: '6px' }}>교안 자료 파일 업로드 및 교실 콘텐츠 관리</p>
+                <div style={{ position: 'relative', width: '100px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
+                  <div style={{ width: '70px', height: '80px', backgroundColor: '#EEF2FF', border: '3px solid #4F46E5', borderRadius: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ fontSize: '36px' }}>👨‍🏫</span>
+                  </div>
+                </div>
+                <h3 style={{ fontSize: '28px', fontWeight: '900', color: '#0F172A', margin: 0 }}>교사 콘솔</h3>
+                <p style={{ fontSize: '14px', color: '#6B7280', marginTop: '6px', textAlign: 'center' }}>교안 파일 업로드 및 학생 콘텐츠 관리</p>
               </div>
 
               {/* User Session card */}
               <div
                 style={{
                   backgroundColor: 'white',
-                  borderRadius: '20px',
+                  borderRadius: '24px',
                   boxShadow: 'var(--shadow-soft)',
                   border: '1.5px solid #E2E8F0',
-                  padding: '24px',
+                  padding: '32px',
                   display: 'flex',
                   flexDirection: 'column',
+                  alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <h4 style={{ fontSize: '18px', fontWeight: '900', color: '#0F172A', marginBottom: '12px' }}>내 정보 및 설정</h4>
-                <div style={{ fontSize: '14px', color: '#334155', lineHeight: '1.8' }}>
-                  <div>👤 <strong>이름:</strong> {currentUser.name.replace(/[()]/g, '')}</div>
-                  <div>✉️ <strong>이메일:</strong> {currentUser.email}</div>
-                  <div>🏆 <strong>현재 등급:</strong> {currentRank.name} ({currentUser.points} pt)</div>
+                <div style={{ position: 'relative', width: '100px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
+                  <div style={{ width: '70px', height: '80px', backgroundColor: '#F8FAFC', border: '3px solid #475569', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                    <span style={{ fontSize: '36px' }}>👤</span>
+                    <div style={{ position: 'absolute', bottom: '2px', right: '2px', fontSize: '14px' }}>⚙️</div>
+                  </div>
+                </div>
+                <h3 style={{ fontSize: '28px', fontWeight: '900', color: '#0F172A', margin: 0 }}>내 정보 & 설정</h3>
+                <div style={{ fontSize: '14px', color: '#334155', lineHeight: '1.8', textAlign: 'center', marginTop: '8px', marginBottom: '12px' }}>
+                  👤 이름: {currentUser.name.replace(/[()]/g, '')} | ✉️ 이메일: {currentUser.email}
                 </div>
                 <button
                   onClick={handleLogout}
                   style={{
-                    marginTop: '16px',
                     backgroundColor: '#EF4444',
                     color: 'white',
-                    padding: '12px',
+                    padding: '8px 24px',
                     borderRadius: '12px',
                     fontWeight: '800',
                     border: 'none',
                     cursor: 'pointer',
+                    fontSize: '13px',
                   }}
                 >
                   🚪 로그아웃 실행
