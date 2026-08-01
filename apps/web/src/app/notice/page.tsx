@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 // @ts-ignore
 import Link from 'next/link';
+import { LANGUAGE_LIST } from '@dahamkke/shared';
 
 export default function WebNoticePage() {
   const [selectedLang, setSelectedLang] = useState('ru');
@@ -36,19 +37,36 @@ export default function WebNoticePage() {
             <h1 style={{ fontSize: '24px', fontWeight: '800', color: '#EC4899' }}>📄 가정통신문 다국어 번역 & 핵심요약 (W7)</h1>
             <p style={{ fontSize: '14px', color: '#6B7280' }}>학부모 및 이주배경 학생을 위해 가정통신문을 자동 번역하고 필수 준비사항을 요약합니다.</p>
           </div>
-          <div>
-            <span style={{ fontSize: '13px', fontWeight: '600', marginRight: '8px' }}>타겟 언어:</span>
-            <select
-              value={selectedLang}
-              onChange={(e) => setSelectedLang(e.target.value)}
-              style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #E5E7EB', fontWeight: '600' }}
-            >
-              <option value="ru">🇷🇺 Русский</option>
-              <option value="zh">🇨🇳 中文</option>
-              <option value="vi">🇻🇳 Tiếng Việt</option>
-              <option value="uz">🇺🇿 O'zbekcha</option>
-              <option value="kk">🇰🇿 Қазақша</option>
-            </select>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '13px', fontWeight: '800', color: '#475569' }}>번역할 언어:</span>
+            <div style={{ position: 'relative', display: 'inline-block' }}>
+              <select
+                value={selectedLang}
+                onChange={(e) => setSelectedLang(e.target.value)}
+                style={{
+                  appearance: 'none',
+                  backgroundColor: '#FFFFFF',
+                  border: '1.5px solid #CBD5E1',
+                  borderRadius: '12px',
+                  padding: '6px 36px 6px 14px',
+                  fontSize: '14px',
+                  fontWeight: '800',
+                  color: '#0F172A',
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                }}
+              >
+                {LANGUAGE_LIST.filter(l => l.code !== 'ko').map((l) => (
+                  <option key={l.code} value={l.code}>
+                    {l.name}
+                  </option>
+                ))}
+              </select>
+              <span style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', fontSize: '12px', color: '#64748B', fontWeight: '900' }}>
+                ∨
+              </span>
+            </div>
           </div>
         </div>
 

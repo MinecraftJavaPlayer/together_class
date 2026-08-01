@@ -98,7 +98,7 @@ export default function DashboardHome() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as TabId)}
                 style={{
-                  backgroundColor: '#FFFFFF',
+                  backgroundColor: 'transparent',
                   border: isActive ? '3.5px solid #00A3FF' : '3.5px solid #000000',
                   borderRadius: '24px',
                   color: isActive ? '#00A3FF' : '#000000',
