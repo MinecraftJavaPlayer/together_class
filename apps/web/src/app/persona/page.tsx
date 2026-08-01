@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 // @ts-ignore
 import Link from 'next/link';
 import { SAMPLE_TEXTBOOKS } from '@dahamkke/shared';
+import { SidebarNav } from '../components/SidebarNav';
 
 export default function WebPersonaPage() {
   const [selectedCharacter, setSelectedCharacter] = useState(SAMPLE_TEXTBOOKS[0].characterName);
@@ -16,6 +17,11 @@ export default function WebPersonaPage() {
       sources: ['국어 5-1 나 2단원 1문단', '국어 5-1 나 2단원 3문단'],
     },
   ]);
+
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  useEffect(() => {
+    setIsDarkMode(localStorage.getItem('dahamkke_dark_mode') === 'true');
+  }, []);
 
   const currentUnit = SAMPLE_TEXTBOOKS.find((t) => t.characterName === selectedCharacter) || SAMPLE_TEXTBOOKS[0];
 
@@ -36,67 +42,58 @@ export default function WebPersonaPage() {
   };
 
   return (
-    <div className="dashboard-container">
-      <aside className="sidebar">
-        <div className="brand-logo">
-          <span style={{ fontSize: '32px' }}>🎭</span>
-          <span className="brand-title">인물 인터뷰</span>
-        </div>
-        <ul className="nav-list">
-          <li className="nav-item"><Link href="/">🏠 홈 대시보드</Link></li>
-          <li className="nav-item"><Link href="/translate">📷 교과서 번역</Link></li>
-          <li className="nav-item"><Link href="/interpret">🎙️ 실시간 통역</Link></li>
-          <li className="nav-item"><Link href="/debate">💬 토론 친구</Link></li>
-          <li className="nav-item active"><Link href="/persona">🎭 인물 인터뷰</Link></li>
-          <li className="nav-item"><Link href="/notice">📄 가정통신문</Link></li>
-          <li className="nav-item"><Link href="/records">📚 학습 기록</Link></li>
-        </ul>
-      </aside>
+    <div className="dashboard-container" style={{ height: '100vh', overflow: 'hidden' }}>
+      <SidebarNav />
 
-      <main className="main-content" style={{ display: 'flex', gap: '24px' }}>
+      <main className="main-content" style={{ height: '100vh', overflow: 'hidden', display: 'flex', gap: '24px', padding: '20px 28px', backgroundColor: isDarkMode ? '#0F172A' : '#F8FAFC', transition: 'background-color 0.2s ease' }}>
         {/* Left Side: Character Picker */}
-        <div style={{ width: '260px', background: 'white', padding: '20px', borderRadius: '16px', boxShadow: 'var(--shadow-soft)' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px' }}>📖 교과서 인물 선택</h3>
-          {SAMPLE_TEXTBOOKS.map((tb) => {
-            const isSelected = selectedCharacter === tb.characterName;
-            return (
-              <div
-                key={tb.id}
-                onClick={() => setSelectedCharacter(tb.characterName)}
-                style={{
-                  padding: '16px',
-                  borderRadius: '12px',
-                  backgroundColor: isSelected ? '#F3E8FF' : '#F9FAFB',
-                  border: `2px solid ${isSelected ? '#9333EA' : '#E5E7EB'}`,
-                  cursor: 'pointer',
-                  marginBottom: '12px',
-                }}
-              >
-                <div style={{ fontSize: '20px', marginBottom: '4px' }}>🎭 {tb.characterName}</div>
-                <div style={{ fontSize: '12px', color: '#6B7280' }}>{tb.grade}</div>
-                <div style={{ fontSize: '11px', color: '#9CA3AF' }}>{tb.unitTitle}</div>
-              </div>
-            );
-          })}
+        <div style={{ width: '260px', background: isDarkMode ? '#1E293B' : 'white', padding: '20px', borderRadius: '16px', border: isDarkMode ? '2px solid #334155' : '1.5px solid #E2E8F0', display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px', color: isDarkMode ? '#F1F5F9' : '#0F172A', flexShrink: 0 }}>📖 교과서 인물 선택</h3>
+          <div style={{ flex: 1, overflowY: 'auto', paddingRight: '4px' }} className="inner-scroll">
+            {SAMPLE_TEXTBOOKS.map((tb) => {
+              const isSelected = selectedCharacter === tb.characterName;
+              return (
+                <div
+                  key={tb.id}
+                  onClick={() => setSelectedCharacter(tb.characterName)}
+                  style={{
+                    padding: '16px',
+                    borderRadius: '12px',
+                    backgroundColor: isSelected ? (isDarkMode ? '#3B2754' : '#F3E8FF') : (isDarkMode ? '#111827' : '#F9FAFB'),
+                    border: `2px solid ${isSelected ? (isDarkMode ? '#A855F7' : '#9333EA') : (isDarkMode ? '#334155' : '#E5E7EB')}`,
+                    cursor: 'pointer',
+                    marginBottom: '12px',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <div style={{ fontSize: '20px', fontWeight: '800', marginBottom: '4px', color: isDarkMode ? '#F1F5F9' : '#0F172A' }}>🎭 {tb.characterName}</div>
+                  <div style={{ fontSize: '12px', color: isDarkMode ? '#94A3B8' : '#6B7280', fontWeight: '700' }}>{tb.grade}</div>
+                  <div style={{ fontSize: '11px', color: isDarkMode ? '#64748B' : '#9CA3AF' }}>{tb.unitTitle}</div>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* Center: Interview Chat Workspace */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-          <div style={{ background: '#F3E8FF', padding: '16px 20px', borderRadius: '16px', border: '1px solid #D8B4FE', marginBottom: '20px' }}>
-            <span style={{ fontSize: '12px', fontWeight: '700', color: '#7E22CE' }}>선택된 페르소나 & RAG 기반 출처</span>
-            <h2 style={{ fontSize: '18px', fontWeight: '800', color: '#6B21A8', marginTop: '4px' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
+          {/* Persona banner */}
+          <div style={{ background: isDarkMode ? '#3B2754' : '#F3E8FF', padding: '16px 20px', borderRadius: '16px', border: isDarkMode ? '2px solid #6B21A8' : '1px solid #D8B4FE', marginBottom: '20px', flexShrink: 0 }}>
+            <span style={{ fontSize: '12px', fontWeight: '700', color: isDarkMode ? '#D8B4FE' : '#7E22CE' }}>선택된 페르소나 & RAG 기반 출처</span>
+            <h2 style={{ fontSize: '18px', fontWeight: '800', color: isDarkMode ? '#F1F5F9' : '#6B21A8', marginTop: '4px', marginBottom: 0 }}>
               🎭 {currentUnit.characterName} 인터뷰 ({currentUnit.unitTitle})
             </h2>
           </div>
 
-          <div style={{ flex: 1, background: 'white', padding: '24px', borderRadius: '16px', boxShadow: 'var(--shadow-soft)', overflowY: 'auto', marginBottom: '16px', minHeight: '340px' }}>
+          {/* Chat Messages */}
+          <div style={{ flex: 1, background: isDarkMode ? '#1E293B' : 'white', border: isDarkMode ? '2px solid #334155' : '1.5px solid #E2E8F0', padding: '24px', borderRadius: '16px', boxShadow: isDarkMode ? 'none' : 'var(--shadow-soft)', overflowY: 'auto', marginBottom: '16px', minHeight: '340px' }} className="inner-scroll">
             {messages.map((m) => (
-              <div key={m.id} style={{ background: '#F9FAFB', padding: '16px', borderRadius: '12px', marginBottom: '16px', border: '1px solid #E5E7EB' }}>
-                <div style={{ fontSize: '12px', fontWeight: '700', color: '#7E22CE', marginBottom: '4px' }}>🎭 {m.character} (1인칭 답변)</div>
-                <div style={{ fontSize: '15px', color: '#1F2937', lineHeight: '1.6', fontWeight: '500' }}>{m.answer}</div>
-                <div style={{ marginTop: '12px', display: 'flex', gap: '8px' }}>
+              <div key={m.id} style={{ background: isDarkMode ? '#111827' : '#F9FAFB', padding: '16px', borderRadius: '12px', marginBottom: '16px', border: isDarkMode ? '1.5px solid #334155' : '1px solid #E5E7EB' }}>
+                <div style={{ fontSize: '12px', fontWeight: '700', color: isDarkMode ? '#D8B4FE' : '#7E22CE', marginBottom: '6px' }}>🎭 {m.character} (1인칭 답변)</div>
+                <div style={{ fontSize: '15px', color: isDarkMode ? '#E2E8F0' : '#1F2937', lineHeight: '1.6', fontWeight: '500' }}>{m.answer}</div>
+                <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   {m.sources.map((s, idx) => (
-                    <span key={idx} style={{ background: '#EDE9FE', color: '#5B21B6', fontSize: '11px', fontWeight: '600', padding: '4px 8px', borderRadius: '6px' }}>
+                    <span key={idx} style={{ background: isDarkMode ? '#4C1D95' : '#EDE9FE', color: isDarkMode ? '#DDD6FE' : '#5B21B6', fontSize: '11px', fontWeight: '700', padding: '4px 8px', borderRadius: '6px' }}>
                       🏷️ 근거: {s}
                     </span>
                   ))}
@@ -105,18 +102,28 @@ export default function WebPersonaPage() {
             ))}
           </div>
 
-          <div style={{ display: 'flex', gap: '12px' }}>
+          {/* Input field */}
+          <div style={{ display: 'flex', gap: '12px', flexShrink: 0 }}>
             <input
               type="text"
               placeholder={`${selectedCharacter}에게 무엇이든 질문해보세요...`}
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAsk()}
-              style={{ flex: 1, padding: '14px', borderRadius: '12px', border: '1px solid #E5E7EB', fontSize: '15px' }}
+              style={{
+                flex: 1,
+                padding: '14px',
+                borderRadius: '12px',
+                border: isDarkMode ? '2px solid #334155' : '1.5px solid #CBD5E1',
+                backgroundColor: isDarkMode ? '#111827' : 'white',
+                color: isDarkMode ? '#F1F5F9' : '#0F172A',
+                fontSize: '15px',
+                outline: 'none',
+              }}
             />
             <button
               onClick={() => handleAsk()}
-              style={{ backgroundColor: '#8B5CF6', color: 'white', padding: '0 24px', borderRadius: '12px', fontWeight: '700' }}
+              style={{ backgroundColor: '#8B5CF6', color: 'white', padding: '0 24px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', border: 'none' }}
             >
               질문 전송
             </button>
