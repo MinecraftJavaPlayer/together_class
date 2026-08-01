@@ -45,7 +45,7 @@ export default function WebPersonaPage() {
     <div className="dashboard-container" style={{ height: '100vh', overflow: 'hidden' }}>
       <SidebarNav />
 
-      <main className="main-content" style={{ height: '100vh', overflow: 'hidden', display: 'flex', gap: '24px', padding: '20px 28px', backgroundColor: isDarkMode ? '#0F172A' : '#F8FAFC', transition: 'background-color 0.2s ease' }}>
+      <main className="main-content" style={{ height: '100vh', overflow: 'hidden', display: 'flex', gap: '24px', padding: '20px 28px', backgroundColor: 'var(--bg-main)', transition: 'background-color 0.2s ease' }}>
         {/* Left Side: Character Picker */}
         <div style={{ width: '260px', background: isDarkMode ? '#1E293B' : 'white', padding: '20px', borderRadius: '16px', border: isDarkMode ? '2px solid #334155' : '1.5px solid #E2E8F0', display: 'flex', flexDirection: 'column', height: '100%' }}>
           <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px', color: isDarkMode ? '#F1F5F9' : '#0F172A', flexShrink: 0 }}>📖 교과서 인물 선택</h3>

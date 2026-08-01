@@ -49,7 +49,7 @@ export default function WebRankPage() {
       <SidebarNav />
 
       {/* 100% Fixed Main Page Container (Zero Page Scrolling) */}
-      <main className="main-content" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '28px 32px', backgroundColor: isDarkMode ? '#0F172A' : '#F8FAFC', transition: 'background-color 0.2s ease' }}>
+      <main className="main-content" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '28px 32px', backgroundColor: 'var(--bg-main)', transition: 'background-color 0.2s ease' }}>
         {/* Fixed Title Header */}
         <div style={{ flexShrink: 0, marginBottom: '20px' }}>
           <h1 style={{ fontSize: '26px', fontWeight: '900', color: isDarkMode ? '#F1F5F9' : '#1E293B', marginBottom: '4px' }}>🏆 월간 랭크 & 학급 실시간 리더보드</h1>

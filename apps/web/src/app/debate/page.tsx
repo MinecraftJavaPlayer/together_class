@@ -53,7 +53,7 @@ export default function WebDebatePage() {
     <div className="dashboard-container" style={{ height: '100vh', overflow: 'hidden' }}>
       <SidebarNav />
 
-      <main className="main-content" style={{ height: '100vh', overflow: 'hidden', display: 'flex', gap: '24px', padding: '20px 28px', backgroundColor: isDarkMode ? '#0F172A' : '#F8FAFC', transition: 'background-color 0.2s ease' }}>
+      <main className="main-content" style={{ height: '100vh', overflow: 'hidden', display: 'flex', gap: '24px', padding: '20px 28px', backgroundColor: 'var(--bg-main)', transition: 'background-color 0.2s ease' }}>
         {/* Main Chat Thread Area */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
           <div style={{ background: isDarkMode ? '#1D3B6F' : '#EFF6FF', padding: '16px 20px', borderRadius: '16px', border: isDarkMode ? '2px solid #1E40AF' : '1px solid #BFDBFE', marginBottom: '20px', flexShrink: 0 }}>

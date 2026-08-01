@@ -25,7 +25,7 @@ export default function WebRecordsPage() {
     <div className="dashboard-container" style={{ height: '100vh', overflow: 'hidden' }}>
       <SidebarNav />
 
-      <main className="main-content" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '20px 28px', backgroundColor: isDarkMode ? '#0F172A' : '#F8FAFC', transition: 'background-color 0.2s ease' }}>
+      <main className="main-content" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '20px 28px', backgroundColor: 'var(--bg-main)', transition: 'background-color 0.2s ease' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexShrink: 0 }}>
           <div>
             <h1 style={{ fontSize: '24px', fontWeight: '800', color: '#10B981' }}>📚 학습 기록 대시보드 (W8)</h1>

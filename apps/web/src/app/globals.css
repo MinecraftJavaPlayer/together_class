@@ -6,11 +6,11 @@
   --primary-light: #CCFBF1;
   --secondary: #FF7A59;
   --accent: #FBBF24;
-  --bg-main: #F7FAFC;
+  --bg-main: #F8FAFC;
   --card-bg: #FFFFFF;
-  --text-main: #1F2937;
+  --text-main: #0F172A;
   --text-muted: #6B7280;
-  --border-color: #E5E7EB;
+  --border-color: #E2E8F0;
   --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.05);
   --shadow-medium: 0 6px 16px rgba(20, 184, 166, 0.15);
   --nav-highlight-rank-bg: #FEF3C7;
@@ -193,7 +193,7 @@ button {
 
 /* --- Global Dark Theme Style Overrides --- */
 .dark {
-  --bg-main: #0B0F19;
+  --bg-main: #0F172A;
   --card-bg: #1E293B;
   --text-main: #F1F5F9;
   --text-muted: #94A3B8;
@@ -208,7 +208,7 @@ button {
 }
 
 .dark html, .dark body {
-  background-color: #0B0F19 !important;
+  background-color: #0F172A !important;
   color: #F1F5F9 !important;
 }
 

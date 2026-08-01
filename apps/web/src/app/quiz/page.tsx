@@ -178,7 +178,7 @@ export default function WebEvaluationQuizPage() {
     <div className="dashboard-container" style={{ height: '100vh', overflow: 'hidden' }}>
       <SidebarNav />
 
-      <main className="main-content" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '20px 28px', backgroundColor: isDarkMode ? '#0F172A' : '#F8FAFC', transition: 'background-color 0.2s ease' }}>
+      <main className="main-content" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '20px 28px', backgroundColor: 'var(--bg-main)', transition: 'background-color 0.2s ease' }}>
         {/* Top Rank Status Banner */}
         <div style={{ background: isDarkMode ? '#1E293B' : currentRank.bgColor, border: `2px solid ${isDarkMode ? '#334155' : currentRank.color}`, padding: '20px 28px', borderRadius: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>

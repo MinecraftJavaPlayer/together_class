@@ -95,7 +95,7 @@ export default function DashboardHome() {
       <SidebarNav />
 
       {/* Main Content Area — 100% Zero Page Scroll */}
-      <main className="main-content" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '20px 28px', backgroundColor: isDarkMode ? '#0F172A' : '#F8FAFC', transition: 'background-color 0.2s ease' }}>
+      <main className="main-content" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '20px 28px', backgroundColor: 'var(--bg-main)', transition: 'background-color 0.2s ease' }}>
         
         {/* Top Header Card */}
         <div className="header-bar" style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: isDarkMode ? '#1E293B' : 'white', border: isDarkMode ? '2px solid #334155' : 'none', padding: '16px 24px', borderRadius: '18px', marginBottom: '20px', boxShadow: isDarkMode ? 'none' : 'var(--shadow-soft)' }}>

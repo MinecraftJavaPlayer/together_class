@@ -15,7 +15,7 @@ export default function WebWritingPage() {
     <div className="dashboard-container" style={{ height: '100vh', overflow: 'hidden' }}>
       <SidebarNav />
 
-      <main className="main-content" style={{ height: '100vh', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px 28px', backgroundColor: isDarkMode ? '#0F172A' : '#F8FAFC', transition: 'background-color 0.2s ease' }}>
+      <main className="main-content" style={{ height: '100vh', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px 28px', backgroundColor: 'var(--bg-main)', transition: 'background-color 0.2s ease' }}>
         <div style={{ background: isDarkMode ? '#1E293B' : 'white', border: isDarkMode ? '2px solid #334155' : 'none', padding: '48px', borderRadius: '24px', maxWidth: '600px', width: '100%', textAlign: 'center', boxShadow: isDarkMode ? 'none' : 'var(--shadow-soft)' }}>
           <span style={{ fontSize: '72px' }}>📱</span>
           <h1 style={{ fontSize: '24px', fontWeight: '900', color: isDarkMode ? '#F1F5F9' : '#0F172A', marginTop: '16px', marginBottom: '12px' }}>
