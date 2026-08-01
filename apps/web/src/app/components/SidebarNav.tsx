@@ -5,7 +5,6 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { getCurrentUser, isAllLearningCompleted } from '@dahamkke/shared';
-import { DamiLogoIcon } from './DamiLogoIcon';
 
 export function SidebarNav() {
   const pathname = usePathname() || '/';
@@ -34,8 +33,17 @@ export function SidebarNav() {
   return (
     <aside className="sidebar">
       {/* Brand Logo with New Cute 3D HTML SVG Mascot */}
-      <div className="brand-logo" style={{ marginBottom: '28px' }}>
-        <DamiLogoIcon size={46} showText={true} />
+      <div className="brand-logo" style={{ marginBottom: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+        <img
+          src="/logo.png"
+          alt="다함께 교실 Logo"
+          style={{
+            maxWidth: '100%',
+            height: 'auto',
+            maxHeight: '48px',
+            objectFit: 'contain',
+          }}
+        />
       </div>
 
       <ul className="nav-list" style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '8px', padding: 0, margin: 0 }}>

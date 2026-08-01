@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { SAMPLE_TEXTBOOKS } from '@dahamkke/shared';
 import { SidebarNav } from '../components/SidebarNav';
+import { saveLearningRecord } from '../utils/recordsStore';
 
 export default function WebPersonaPage() {
   const [selectedCharacter, setSelectedCharacter] = useState(SAMPLE_TEXTBOOKS[0].characterName);
@@ -115,6 +116,14 @@ export default function WebPersonaPage() {
         sources: res.sources,
       },
     ]);
+
+    saveLearningRecord(
+      'dialog',
+      `인물 인터뷰 (${selectedCharacter})`,
+      '러시아어 🇷🇺',
+      `질문: ${askText} ➔ 대답: ${res.answer}`
+    );
+
     setQuestion('');
   };
 

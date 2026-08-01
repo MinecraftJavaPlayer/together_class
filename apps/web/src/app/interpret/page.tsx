@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { SidebarNav } from '../components/SidebarNav';
 import { LANGUAGE_LIST, LanguageCode, markModuleCompleted } from '@dahamkke/shared';
+import { saveLearningRecord } from '../utils/recordsStore';
 
 interface InterpretMessage {
   id: string;
@@ -164,6 +165,12 @@ export default function WebInterpretPage() {
     };
 
     setMessages((prev) => [...prev, newMsg]);
+    saveLearningRecord(
+      'dialog',
+      `실시간 통역 (${detected.name} ➔ ${result.targetName})`,
+      `${detected.name} ${detected.flag}`,
+      `${text} ➔ ${result.translation}`
+    );
     markModuleCompleted('interpret');
   };
 

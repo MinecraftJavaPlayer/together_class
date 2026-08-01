@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 // @ts-ignore
 import Link from 'next/link';
 import { SidebarNav } from '../components/SidebarNav';
+import { saveLearningRecord } from '../utils/recordsStore';
 
 interface WebDebateMsg {
   id: string;
@@ -82,6 +83,14 @@ export default function WebDebatePage() {
         sources: res.sources,
       },
     ]);
+
+    saveLearningRecord(
+      'dialog',
+      'AI 토론 친구 (일회용품 규제)',
+      '러시아어 🇷🇺',
+      `나: ${msg} ➔ AI: ${res.textKo}`
+    );
+
     setInputText('');
   };
 

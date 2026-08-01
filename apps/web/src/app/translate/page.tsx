@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { SidebarNav } from '../components/SidebarNav';
 import { LANGUAGE_LIST, LanguageCode, markModuleCompleted } from '@dahamkke/shared';
+import { saveLearningRecord } from '../utils/recordsStore';
 
 const TRANSLATION_MAP: Record<string, string> = {
   ru: 'Давным-давно в одной деревне жили братья Хынбу и Нолбу. Хынбу был беден, но вся семья жила дружно.',
@@ -266,6 +267,14 @@ export default function WebTranslatePage() {
             <div style={{ display: 'flex', gap: '12px', marginTop: '18px', flexShrink: 0 }}>
               <button
                 onClick={() => {
+                  const targetLangName = LANGUAGE_LIST.find(l => l.code === targetLang)?.name || targetLang.toUpperCase();
+                  const targetLangFlag = LANGUAGE_LIST.find(l => l.code === targetLang)?.flag || '🌐';
+                  saveLearningRecord(
+                    'ocr',
+                    '교과서 번역 (' + targetLangName + ')',
+                    targetLangName + ' ' + targetLangFlag,
+                    translatedText.replace(/^\[.*?\]\n/, '')
+                  );
                   markModuleCompleted('translate');
                   alert('⭐ 학습 기록에 번역 내역이 저장되었습니다.');
                 }}

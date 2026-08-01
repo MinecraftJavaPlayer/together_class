@@ -1,23 +1,18 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-// @ts-ignore
-import Link from 'next/link';
 import { SidebarNav } from '../components/SidebarNav';
+import { getLearningRecords, LearningRecord } from '../utils/recordsStore';
 
 export default function WebRecordsPage() {
   const [filter, setFilter] = useState<'all' | 'ocr' | 'dialog'>('all');
+  const [records, setRecords] = useState<LearningRecord[]>([]);
 
   const [isDarkMode, setIsDarkMode] = useState(false);
   useEffect(() => {
     setIsDarkMode(localStorage.getItem('dahamkke_dark_mode') === 'true');
+    setRecords(getLearningRecords());
   }, []);
-
-  const records = [
-    { id: '1', type: 'ocr', title: '교과서 5학년 1학기 지문', lang: 'RU 🇷🇺', date: '2026-07-25', preview: '옛날 옛적 어느 마을에 흥부와 놀부 형제가...' },
-    { id: '2', type: 'dialog', title: 'AI 토론 친구 (스마트폰 금지)', lang: 'RU 🇷🇺', date: '2026-07-25', preview: '찬성하는 입장의 이유를 잘 명시해줘서 고마워!' },
-    { id: '3', type: 'ocr', title: '가정통신문 (현장체험학습)', lang: 'RU 🇷🇺', date: '2026-07-24', preview: '2026학년도 현장체험학습 안내 및 준수사항...' },
-  ];
 
   const filteredRecords = filter === 'all' ? records : records.filter((r) => r.type === filter);
 
