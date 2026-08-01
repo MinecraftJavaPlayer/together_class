@@ -110,7 +110,35 @@ export default function WebNoticePage() {
     setLoading(true);
     // Parse summary instantly
     const parsed = getParsedSummary(text);
-    setSummary(parsed);
+
+    let translatedDates = [...parsed.dates];
+    let translatedItems = [...parsed.items];
+    let translatedDeadlines = [...parsed.deadlines];
+
+    if (lang !== 'ko') {
+      try {
+        // Translate dates
+        translatedDates = await Promise.all(
+          parsed.dates.map(d => translateSourceText(d, lang))
+        );
+        // Translate items
+        translatedItems = await Promise.all(
+          parsed.items.map(i => translateSourceText(i, lang))
+        );
+        // Translate deadlines
+        translatedDeadlines = await Promise.all(
+          parsed.deadlines.map(dl => translateSourceText(dl, lang))
+        );
+      } catch (err) {
+        console.error('Failed to translate summary fields:', err);
+      }
+    }
+
+    setSummary({
+      dates: translatedDates,
+      items: translatedItems,
+      deadlines: translatedDeadlines,
+    });
 
     // Translate notice text asynchronously
     try {
