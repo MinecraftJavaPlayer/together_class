@@ -33,29 +33,31 @@ export function SidebarNav() {
   return (
     <aside className="sidebar">
       {/* Brand Logo with New Cute 3D HTML SVG Mascot */}
-      <div className="brand-logo" style={{ marginBottom: '28px', padding: '0 12px', width: '100%', boxSizing: 'border-box' }}>
-        <div style={{
-          backgroundColor: '#FFFFFF',
-          padding: '8px 16px',
-          borderRadius: '16px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
-          width: '100%',
-          boxSizing: 'border-box',
-        }}>
-          <img
-            src="/logo.png"
-            alt="다함께 교실 Logo"
-            style={{
-              maxWidth: '100%',
-              height: 'auto',
-              maxHeight: '44px',
-              objectFit: 'contain',
-            }}
-          />
-        </div>
+      <div className="brand-logo" style={{ marginBottom: '28px', padding: '0 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', boxSizing: 'border-box' }}>
+        {/* Light Mode Logo */}
+        <img
+          src="/logo_light.png"
+          alt="다함께 교실 Logo"
+          className="logo-light"
+          style={{
+            width: '100%',
+            height: 'auto',
+            maxHeight: '60px',
+            objectFit: 'contain',
+          }}
+        />
+        {/* Dark Mode Logo */}
+        <img
+          src="/logo_dark.png"
+          alt="다함께 교실 Logo"
+          className="logo-dark"
+          style={{
+            width: '100%',
+            height: 'auto',
+            maxHeight: '60px',
+            objectFit: 'contain',
+          }}
+        />
       </div>
 
       <ul className="nav-list" style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '8px', padding: 0, margin: 0 }}>

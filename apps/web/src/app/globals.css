@@ -279,3 +279,17 @@ button {
   border-color: #334155 !important;
   color: #F1F5F9 !important;
 }
+
+/* Logo visibility toggle based on theme */
+.logo-light {
+  display: block !important;
+}
+.logo-dark {
+  display: none !important;
+}
+.dark .logo-light {
+  display: none !important;
+}
+.dark .logo-dark {
+  display: block !important;
+}
