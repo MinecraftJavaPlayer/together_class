@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { SidebarNav } from '../components/SidebarNav';
 import { LANGUAGE_LIST, LanguageCode, markModuleCompleted } from '@dahamkke/shared';
 
@@ -25,6 +25,11 @@ export default function WebTranslatePage() {
   );
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  useEffect(() => {
+    setIsDarkMode(localStorage.getItem('dahamkke_dark_mode') === 'true');
+  }, []);
 
   const handleTranslate = () => {
     setLoading(true);
@@ -54,27 +59,27 @@ export default function WebTranslatePage() {
   };
 
   return (
-    <div className="dashboard-container">
+    <div className="dashboard-container" style={{ height: '100vh', overflow: 'hidden' }}>
       <SidebarNav />
 
-      <main className="main-content" style={{ overflowY: 'auto' }}>
+      <main className="main-content" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '20px 28px', backgroundColor: isDarkMode ? '#0F172A' : '#F8FAFC', transition: 'background-color 0.2s ease' }}>
         {/* Header Title Section */}
-        <div style={{ marginBottom: '20px' }}>
+        <div style={{ marginBottom: '20px', flexShrink: 0 }}>
           <h1 style={{ fontSize: '24px', fontWeight: '900', color: '#14B8A6', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span>📷</span> 교과서 OCR 번역 (W3)
           </h1>
-          <p style={{ fontSize: '14px', color: '#6B7280', marginTop: '4px' }}>
+          <p style={{ fontSize: '14px', color: isDarkMode ? '#94A3B8' : '#6B7280', marginTop: '4px', marginBottom: 0 }}>
             교과서 지문 이미지를 업로드하고 다국어 병렬 비교 번역을 확인하세요.
           </p>
         </div>
 
         {/* Two Column Side-by-side Workspace */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', flex: 1, minHeight: 0 }}>
           {/* Left Column: Input & Upload */}
-          <div style={{ background: 'white', padding: '24px', borderRadius: '20px', boxShadow: 'var(--shadow-soft)' }}>
+          <div style={{ background: isDarkMode ? '#1E293B' : 'white', border: isDarkMode ? '2px solid #334155' : '1.5px solid #E2E8F0', padding: '24px', borderRadius: '20px', display: 'flex', flexDirection: 'column' }}>
             {/* Left Header with Source Language Selector */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-              <h2 style={{ fontSize: '16px', fontWeight: '800', color: '#0F172A' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexShrink: 0 }}>
+              <h2 style={{ fontSize: '16px', fontWeight: '800', color: isDarkMode ? '#F1F5F9' : '#0F172A' }}>
                 <span style={{ color: '#14B8A6' }}>KR</span> 1. 교과서 이미지 & 한국어 원문
               </h2>
 
@@ -85,24 +90,24 @@ export default function WebTranslatePage() {
                   onChange={(e) => setSourceLang(e.target.value as LanguageCode)}
                   style={{
                     appearance: 'none',
-                    backgroundColor: '#FFFFFF',
-                    border: '1.5px solid #CBD5E1',
+                    backgroundColor: isDarkMode ? '#1E293B' : '#FFFFFF',
+                    border: isDarkMode ? '1.5px solid #475569' : '1.5px solid #CBD5E1',
                     borderRadius: '12px',
                     padding: '6px 36px 6px 14px',
                     fontSize: '14px',
                     fontWeight: '800',
-                    color: '#0F172A',
+                    color: isDarkMode ? '#F1F5F9' : '#0F172A',
                     cursor: 'pointer',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                    outline: 'none',
                   }}
                 >
                   {LANGUAGE_LIST.map((l) => (
-                    <option key={l.code} value={l.code}>
+                    <option key={l.code} value={l.code} style={{ backgroundColor: isDarkMode ? '#1E293B' : '#FFFFFF' }}>
                       {l.name}
                     </option>
                   ))}
                 </select>
-                <span style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', fontSize: '12px', color: '#64748B', fontWeight: '900' }}>
+                <span style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', fontSize: '12px', color: isDarkMode ? '#94A3B8' : '#64748B', fontWeight: '900' }}>
                   ∨
                 </span>
               </div>
@@ -111,16 +116,17 @@ export default function WebTranslatePage() {
             {/* Upload Box */}
             <div
               style={{
-                border: '2px dashed #99F6E4',
+                border: isDarkMode ? '2px dashed #0D9488' : '2px dashed #99F6E4',
                 padding: '28px',
                 borderRadius: '16px',
                 textAlign: 'center',
                 marginBottom: '18px',
-                backgroundColor: '#F0FDFA',
+                backgroundColor: isDarkMode ? '#1A2D2A' : '#F0FDFA',
+                flexShrink: 0,
               }}
             >
               <div style={{ fontSize: '38px', marginBottom: '6px' }}>📖</div>
-              <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '14px', fontWeight: '600' }}>
+              <p style={{ fontSize: '13px', color: isDarkMode ? '#94A3B8' : '#64748B', marginBottom: '14px', fontWeight: '600' }}>
                 교과서 이미지 파일 (JPG/PNG)을 드래그하거나 선택하세요
               </p>
               <input
@@ -148,7 +154,7 @@ export default function WebTranslatePage() {
               </button>
             </div>
 
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: '800', color: '#334155', marginBottom: '6px' }}>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: '800', color: isDarkMode ? '#94A3B8' : '#334155', marginBottom: '6px', flexShrink: 0 }}>
               인식된 한국어 텍스트 (수정 가능)
             </label>
             <textarea
@@ -159,12 +165,15 @@ export default function WebTranslatePage() {
                 width: '100%',
                 padding: '14px',
                 borderRadius: '12px',
-                border: '1.5px solid #E2E8F0',
+                border: isDarkMode ? '2px solid #334155' : '1.5px solid #E2E8F0',
+                backgroundColor: isDarkMode ? '#111827' : 'white',
+                color: isDarkMode ? '#F1F5F9' : '#000000',
                 fontSize: '14px',
                 lineHeight: '1.6',
                 fontFamily: 'inherit',
                 outline: 'none',
-                resize: 'vertical',
+                resize: 'none',
+                flex: 1,
               }}
             />
 
@@ -183,6 +192,7 @@ export default function WebTranslatePage() {
                 border: 'none',
                 cursor: 'pointer',
                 boxShadow: '0 4px 14px rgba(20, 184, 166, 0.25)',
+                flexShrink: 0,
               }}
             >
               {loading ? '⚡ 번역 진행 중...' : '⚡ 번역 실행하기'}
@@ -190,10 +200,10 @@ export default function WebTranslatePage() {
           </div>
 
           {/* Right Column: Result Comparison */}
-          <div style={{ background: 'white', padding: '24px', borderRadius: '20px', boxShadow: 'var(--shadow-soft)' }}>
+          <div style={{ background: isDarkMode ? '#1E293B' : 'white', border: isDarkMode ? '2px solid #334155' : '1.5px solid #E2E8F0', padding: '24px', borderRadius: '20px', display: 'flex', flexDirection: 'column' }}>
             {/* Right Header with Target Language Selector */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-              <h2 style={{ fontSize: '16px', fontWeight: '800', color: '#0F172A' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexShrink: 0 }}>
+              <h2 style={{ fontSize: '16px', fontWeight: '800', color: isDarkMode ? '#F1F5F9' : '#0F172A' }}>
                 <span style={{ color: '#3B82F6' }}>🌐</span> 2. 다국어 번역 결과 ({targetLang.toUpperCase()})
               </h2>
 
@@ -204,24 +214,24 @@ export default function WebTranslatePage() {
                   onChange={(e) => handleTargetLangChange(e.target.value as LanguageCode)}
                   style={{
                     appearance: 'none',
-                    backgroundColor: '#FFFFFF',
-                    border: '1.5px solid #CBD5E1',
+                    backgroundColor: isDarkMode ? '#1E293B' : '#FFFFFF',
+                    border: isDarkMode ? '1.5px solid #475569' : '1.5px solid #CBD5E1',
                     borderRadius: '12px',
                     padding: '6px 36px 6px 14px',
                     fontSize: '14px',
                     fontWeight: '800',
-                    color: '#0F172A',
+                    color: isDarkMode ? '#F1F5F9' : '#0F172A',
                     cursor: 'pointer',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                    outline: 'none',
                   }}
                 >
                   {LANGUAGE_LIST.map((l) => (
-                    <option key={l.code} value={l.code}>
+                    <option key={l.code} value={l.code} style={{ backgroundColor: isDarkMode ? '#1E293B' : '#FFFFFF' }}>
                       {l.name}
                     </option>
                   ))}
                 </select>
-                <span style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', fontSize: '12px', color: '#64748B', fontWeight: '900' }}>
+                <span style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', fontSize: '12px', color: isDarkMode ? '#94A3B8' : '#64748B', fontWeight: '900' }}>
                   ∨
                 </span>
               </div>
@@ -229,14 +239,15 @@ export default function WebTranslatePage() {
 
             <div
               style={{
-                minHeight: '260px',
-                background: '#F8FAFC',
+                flex: 1,
+                background: isDarkMode ? '#111827' : '#F8FAFC',
                 padding: '22px',
                 borderRadius: '16px',
-                border: '1px solid #E2E8F0',
+                border: isDarkMode ? '2px solid #334155' : '1px solid #E2E8F0',
                 fontSize: '15px',
                 lineHeight: '1.7',
-                color: '#1E293B',
+                color: isDarkMode ? '#E2E8F0' : '#1E293B',
+                overflowY: 'auto',
               }}
             >
               {loading ? (
@@ -252,14 +263,14 @@ export default function WebTranslatePage() {
               )}
             </div>
 
-            <div style={{ display: 'flex', gap: '12px', marginTop: '18px' }}>
+            <div style={{ display: 'flex', gap: '12px', marginTop: '18px', flexShrink: 0 }}>
               <button
                 onClick={() => {
                   markModuleCompleted('translate');
                   alert('⭐ 학습 기록에 번역 내역이 저장되었습니다.');
                 }}
                 style={{
-                  flex: 1,
+                  width: '100%',
                   backgroundColor: '#E06A55',
                   color: 'white',
                   padding: '12px',

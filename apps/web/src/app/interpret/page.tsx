@@ -25,6 +25,11 @@ export default function WebInterpretPage() {
   const [audioLevel, setAudioLevel] = useState(0);
   const [interimSpeech, setInterimSpeech] = useState('');
 
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  useEffect(() => {
+    setIsDarkMode(localStorage.getItem('dahamkke_dark_mode') === 'true');
+  }, []);
+
   const [messages, setMessages] = useState<InterpretMessage[]>([
     {
       id: '1',
@@ -149,75 +154,79 @@ export default function WebInterpretPage() {
         analyser.getByteFrequencyData(dataArray);
         const sum = dataArray.reduce((acc, val) => acc + val, 0);
         const avg = sum / dataArray.length;
-        setAudioLevel(Math.min(100, Math.round(avg * 2.5)));
+        setAudioLevel(Math.min(avg * 4, 100)); // boost visualizer range
         requestAnimationFrame(updateAudioLevel);
       };
       updateAudioLevel();
+      setIsMicActive(true);
+      setMicStatusText('🟢 마이크 감지 활성 상태 (말씀해보세요)');
 
-      // Web Speech API setup
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      // Simulating simple recognition events
+      // @ts-ignore
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (SpeechRecognition) {
-        const recognition = new SpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = 'ko-KR'; // Multi-language detection active
+        const recog = new SpeechRecognition();
+        recog.continuous = true;
+        recog.interimResults = true;
+        recog.lang = 'ko-KR';
 
-        recognition.onresult = (event: any) => {
-          let interim = '';
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            const transcript = event.results[i][0].transcript;
-            if (event.results[i].isFinal) {
-              handleRecognizedSpeech(transcript);
+        recog.onresult = (e: any) => {
+          let text = '';
+          for (let i = e.resultIndex; i < e.results.length; ++i) {
+            if (e.results[i].isFinal) {
+              handleRecognizedSpeech(e.results[i][0].transcript);
               setInterimSpeech('');
             } else {
-              interim += transcript;
+              text += e.results[i][0].transcript;
+              setInterimSpeech(text);
             }
           }
-          setInterimSpeech(interim);
         };
 
-        recognition.onerror = () => {
-          setMicStatusText('🔴 마이크 수신 중 (음성을 말씀하세요)');
+        recog.onend = () => {
+          if (mediaStreamRef.current) recog.start();
         };
 
-        recognition.start();
-        recognitionRef.current = recognition;
+        recog.start();
+        recognitionRef.current = recog;
       }
-
-      setIsMicActive(true);
-      setMicStatusText('🔴 마이크 연결됨! 감지된 언어를 자동으로 모국어로 통역합니다.');
     } catch (err) {
-      alert('마이크 엑세스 허용이 필요합니다. 브라우저에서 마이크 권한을 허용해주세요.');
-      setMicStatusText('⚠️ 마이크 엑세스 거부됨');
+      console.error('Microphone error:', err);
+      setMicStatusText('❌ 마이크 접근 거부됨 또는 장치 없음');
     }
   };
 
   const stopMicrophone = () => {
     if (mediaStreamRef.current) {
-      mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+      mediaStreamRef.current.getTracks().forEach((track) => track.stop());
       mediaStreamRef.current = null;
-    }
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-      recognitionRef.current = null;
     }
     if (audioContextRef.current) {
       audioContextRef.current.close();
       audioContextRef.current = null;
     }
+    if (recognitionRef.current) {
+      recognitionRef.current.onend = null;
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+    }
     setIsMicActive(false);
+    setMicStatusText('마이크 대기 중');
     setAudioLevel(0);
     setInterimSpeech('');
-    setMicStatusText('마이크 대기 중');
   };
 
-  // Text-To-Speech function
   const speakText = (text: string, langCode: string) => {
-    if ('speechSynthesis' in window) {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = langCode === 'ko' ? 'ko-KR' : langCode === 'ru' ? 'ru-RU' : 'en-US';
+      if (langCode === 'ko') utterance.lang = 'ko-KR';
+      else if (langCode === 'ru') utterance.lang = 'ru-RU';
+      else if (langCode === 'vi') utterance.lang = 'vi-VN';
+      else if (langCode === 'zh') utterance.lang = 'zh-CN';
       window.speechSynthesis.speak(utterance);
+    } else {
+      alert('이 브라우저는 TTS 음성 출력을 지원하지 않습니다.');
     }
   };
 
@@ -228,39 +237,40 @@ export default function WebInterpretPage() {
   }, []);
 
   return (
-    <div className="dashboard-container">
+    <div className="dashboard-container" style={{ height: '100vh', overflow: 'hidden' }}>
       <SidebarNav />
 
-      <main className="main-content" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', padding: '24px' }}>
+      <main className="main-content" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', padding: '20px 28px', backgroundColor: isDarkMode ? '#0F172A' : '#F8FAFC', transition: 'background-color 0.2s ease' }}>
         {/* Header Bar */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexShrink: 0 }}>
           <div>
             <h1 style={{ fontSize: '24px', fontWeight: '900', color: '#FF7A59', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span>🎙️</span> 실시간 마이크 음성 자동 감지 통역
             </h1>
-            <p style={{ fontSize: '14px', color: '#6B7280', marginTop: '2px' }}>
+            <p style={{ fontSize: '14px', color: isDarkMode ? '#94A3B8' : '#6B7280', marginTop: '2px', marginBottom: 0 }}>
               마이크에 감지된 언어를 AI가 즉시 자동 판단하여 학생의 모국어로 실시간 통역합니다.
             </p>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <label style={{ fontSize: '13px', fontWeight: '800', color: '#334155' }}>내 모국어 설정:</label>
+            <label style={{ fontSize: '13px', fontWeight: '800', color: isDarkMode ? '#94A3B8' : '#334155' }}>내 모국어 설정:</label>
             <select
               value={userNativeLang}
               onChange={(e) => setUserNativeLang(e.target.value as LanguageCode)}
               style={{
-                backgroundColor: '#FFFFFF',
-                border: '1.5px solid #CBD5E1',
+                backgroundColor: isDarkMode ? '#1E293B' : '#FFFFFF',
+                border: isDarkMode ? '1.5px solid #475569' : '1.5px solid #CBD5E1',
                 borderRadius: '12px',
                 padding: '6px 14px',
                 fontSize: '14px',
                 fontWeight: '800',
-                color: '#0F172A',
+                color: isDarkMode ? '#F1F5F9' : '#0F172A',
                 cursor: 'pointer',
+                outline: 'none',
               }}
             >
               {LANGUAGE_LIST.map((l) => (
-                <option key={l.code} value={l.code}>
+                <option key={l.code} value={l.code} style={{ backgroundColor: isDarkMode ? '#1E293B' : '#FFFFFF' }}>
                   {l.name}
                 </option>
               ))}
@@ -271,8 +281,8 @@ export default function WebInterpretPage() {
         {/* Microphone Real-Time Stream Status Control Card */}
         <div
           style={{
-            backgroundColor: isMicActive ? '#FEF2F2' : '#F8FAFC',
-            border: `2px solid ${isMicActive ? '#EF4444' : '#E2E8F0'}`,
+            backgroundColor: isMicActive ? (isDarkMode ? '#3B2222' : '#FEF2F2') : (isDarkMode ? '#1E293B' : '#F8FAFC'),
+            border: `2px solid ${isMicActive ? '#EF4444' : (isDarkMode ? '#334155' : '#E2E8F0')}`,
             borderRadius: '16px',
             padding: '16px 20px',
             marginBottom: '16px',
@@ -304,7 +314,7 @@ export default function WebInterpretPage() {
             </button>
 
             <div>
-              <div style={{ fontSize: '14px', fontWeight: '800', color: isMicActive ? '#DC2626' : '#334155' }}>
+              <div style={{ fontSize: '14px', fontWeight: '800', color: isMicActive ? '#EF4444' : (isDarkMode ? '#94A3B8' : '#334155') }}>
                 {micStatusText}
               </div>
               {interimSpeech ? (
@@ -335,12 +345,14 @@ export default function WebInterpretPage() {
 
         {/* Conversation Log Thread Area */}
         <div
+          className="inner-scroll"
           style={{
             flex: 1,
-            background: 'white',
+            background: isDarkMode ? '#1E293B' : 'white',
+            border: isDarkMode ? '2px solid #334155' : '1.5px solid #E2E8F0',
             borderRadius: '20px',
             padding: '24px',
-            boxShadow: 'var(--shadow-soft)',
+            boxShadow: isDarkMode ? 'none' : 'var(--shadow-soft)',
             overflowY: 'auto',
             marginBottom: '16px',
             display: 'flex',
@@ -363,8 +375,8 @@ export default function WebInterpretPage() {
                     maxWidth: '75%',
                     padding: '16px 20px',
                     borderRadius: '20px',
-                    backgroundColor: isKoreanSource ? '#EFF6FF' : '#F0FDFA',
-                    border: `2px solid ${isKoreanSource ? '#93C5FD' : '#99F6E4'}`,
+                    backgroundColor: isKoreanSource ? (isDarkMode ? '#1D3B6F' : '#EFF6FF') : (isDarkMode ? '#0F4C43' : '#F0FDFA'),
+                    border: `2px solid ${isKoreanSource ? (isDarkMode ? '#1E40AF' : '#93C5FD') : (isDarkMode ? '#0D9488' : '#99F6E4')}`,
                     boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
                   }}
                 >
@@ -374,20 +386,20 @@ export default function WebInterpretPage() {
                       style={{
                         fontSize: '12px',
                         fontWeight: '900',
-                        color: isKoreanSource ? '#1D4ED8' : '#0D9488',
-                        backgroundColor: '#FFFFFF',
+                        color: isKoreanSource ? (isDarkMode ? '#60A5FA' : '#1D4ED8') : (isDarkMode ? '#2DD4BF' : '#0D9488'),
+                        backgroundColor: isDarkMode ? '#111827' : '#FFFFFF',
                         padding: '3px 10px',
                         borderRadius: '12px',
-                        border: `1px solid ${isKoreanSource ? '#BFDBFE' : '#99F6E4'}`,
+                        border: `1.5px solid ${isKoreanSource ? (isDarkMode ? '#1E40AF' : '#BFDBFE') : (isDarkMode ? '#0D9488' : '#99F6E4')}`,
                       }}
                     >
                       {item.detectedLangFlag} 감지된 발화 언어: {item.detectedLangName}
                     </span>
-                    <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: '700' }}>{item.time}</span>
+                    <span style={{ fontSize: '11px', color: isDarkMode ? '#64748B' : '#94A3B8', fontWeight: '700' }}>{item.time}</span>
                   </div>
 
                   {/* Original Spoken Text */}
-                  <div style={{ fontSize: '17px', fontWeight: '800', color: '#0F172A', marginBottom: '8px', lineHeight: '1.4' }}>
+                  <div style={{ fontSize: '17px', fontWeight: '800', color: isDarkMode ? '#F1F5F9' : '#0F172A', marginBottom: '8px', lineHeight: '1.4' }}>
                     "{item.sourceText}"
                   </div>
 
@@ -396,8 +408,8 @@ export default function WebInterpretPage() {
                     style={{
                       fontSize: '15px',
                       fontWeight: '700',
-                      color: isKoreanSource ? '#1E40AF' : '#0F766E',
-                      backgroundColor: '#FFFFFF',
+                      color: isKoreanSource ? (isDarkMode ? '#60A5FA' : '#1E40AF') : (isDarkMode ? '#2DD4BF' : '#0F766E'),
+                      backgroundColor: isDarkMode ? '#111827' : '#FFFFFF',
                       padding: '10px 14px',
                       borderRadius: '12px',
                       display: 'flex',
@@ -414,15 +426,16 @@ export default function WebInterpretPage() {
                     <button
                       onClick={() => speakText(item.translatedText, item.targetLangCode)}
                       style={{
-                        backgroundColor: '#F1F5F9',
-                        border: '1px solid #CBD5E1',
+                        backgroundColor: isDarkMode ? '#1E293B' : '#F1F5F9',
+                        border: isDarkMode ? '1px solid #334155' : '1px solid #CBD5E1',
                         borderRadius: '8px',
                         padding: '4px 8px',
                         fontSize: '12px',
                         fontWeight: '800',
                         cursor: 'pointer',
-                        color: '#334155',
+                        color: isDarkMode ? '#F1F5F9' : '#334155',
                         flexShrink: 0,
+                        outline: 'none',
                       }}
                     >
                       🔊 TTS
@@ -460,10 +473,13 @@ export default function WebInterpretPage() {
               flex: 1,
               backgroundColor: '#14B8A6',
               color: 'white',
+              padding: '14px',
               borderRadius: '16px',
               fontSize: '18px',
               fontWeight: '800',
               boxShadow: '0 4px 12px rgba(20,184,166,0.2)',
+              cursor: 'pointer',
+              border: 'none',
             }}
           >
             🗣️ [테스트] 모국어 마이크 발화 ({userNativeLang.toUpperCase()} ➔ 한국어 통역)
