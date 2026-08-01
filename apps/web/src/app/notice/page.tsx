@@ -6,6 +6,27 @@ import Link from 'next/link';
 import { LANGUAGE_LIST } from '@dahamkke/shared';
 import { SidebarNav } from '../components/SidebarNav';
 
+const DICTIONARY: Record<string, Record<string, string>> = {
+  // Notice elements
+  '현장체험학습': { ru: 'экскурсию', vi: 'dã ngoại', zh: '研学旅行', mn: 'хээрийн дадлага', en: 'field trip', ja: '校外学習', ko: '현장체험학습' },
+  '안내장': { ru: 'Объявление', vi: 'Thông báo', zh: '通知', mn: 'Удирдамж', en: 'Notice', ja: '案内', ko: '안내장' },
+  '실시됩니다': { ru: 'состоится', vi: 'sẽ được tổ chức', zh: '将举行', mn: 'явагдана', en: 'will take place', ja: '実施されます', ko: '실시됩니다' },
+  '실내화': { ru: 'сменную обувь', vi: 'giày đi trong nhà', zh: '室内鞋', mn: 'дотор өмсөх гутал', en: 'indoor shoes', ja: '上履き', ko: '실내화' },
+  '개인 텀블러': { ru: 'личный термос', vi: 'bình nước cá nhân', zh: '个人保温杯', mn: 'хувийн термос', en: 'personal tumbler', ja: '水筒', ko: '개인 텀블러' },
+  '도시락을': { ru: 'обед', vi: 'hộp cơm trưa', zh: '午餐', mn: 'өдрийн хоол', en: 'lunch box', ja: 'お弁当を', ko: '도시락을' },
+  '지참하여': { ru: 'принести с собой', vi: 'mang theo', zh: '携带', mn: 'бэлдэж', en: 'bring', ja: '持参して', ko: '지참하여' },
+  '오전 9시까지': { ru: 'к 9 часам утра', vi: 'trước 9 giờ sáng', zh: 'утра 9 giờ sáng', mn: 'өглөөний 09:00 цаг гэхэд', en: 'by 9:00 AM', ja: '午前9時まで', ko: '오전 9시까지' },
+  '등교해 주시기 바랍니다': { ru: 'прийти в школу', vi: 'đến trường', zh: '请到校', mn: 'сургуульдаа ирнэ үү', en: 'please come to school', ja: '登校してください', ko: '등교해 주시기 바랍니다' },
+  '제출 기한은': { ru: 'срок сдачи', vi: 'hạn nộp là', zh: '截止时间为', mn: 'хугацаа нь', en: 'deadline is', ja: '提出期限は', ko: '제출 기한은' },
+  '제출기한은': { ru: 'срок сдачи', vi: 'hạn nộp là', zh: '截止时间为', mn: 'хугацаа нь', en: 'deadline is', ja: '提出期限는', ko: '제출기한은' },
+  '도서': { ru: 'книги', vi: 'sách', zh: '图书', mn: 'ном', en: 'books', ja: '図書', ko: '도서' },
+  '반납': { ru: 'возврат', vi: 'trả sách', zh: '归还', mn: 'буцааж өгөх', en: 'return', ja: '返却', ko: '반납' },
+  '대출': { ru: 'выдача', vi: 'mượn sách', zh: '借阅', mn: 'зээлэх', en: 'borrow', ja: '貸出', ko: '대출' },
+  '기한은': { ru: 'срок', vi: 'hạn', zh: '截止日期为', mn: 'хугацаа нь', en: 'deadline is', ja: '期限は', ko: '기한은' },
+  '연체': { ru: 'просрочка', vi: 'quá hạn', zh: 'удирдлага', mn: 'хугацаа хэтэрсэн', en: 'overdue', ja: '延滞', ko: '연체' },
+  '제한': { ru: 'ограничение', vi: 'giới hạn', zh: '限制', mn: 'хязгаарлах', en: 'restrict', ja: '制限', ko: '제한' }
+};
+
 export default function WebNoticePage() {
   const [selectedLang, setSelectedLang] = useState('ru');
   const [sourceText, setSourceText] = useState(
@@ -20,7 +41,7 @@ export default function WebNoticePage() {
     setIsDarkMode(localStorage.getItem('dahamkke_dark_mode') === 'true');
   }, []);
 
-  // Parse summary metadata dynamically from the sourceText!
+  // Parse summary metadata dynamically from the sourceText
   const getParsedSummary = (text: string) => {
     const norm = text.toLowerCase();
     
@@ -57,43 +78,33 @@ export default function WebNoticePage() {
   };
 
   const getNoticeTranslation = (text: string, lang: string): string => {
-    const norm = text.toLowerCase();
-    
-    // Default field trip notice
-    if (norm.includes('현장체험학습') || norm.includes('실내화') || norm.includes('도시락')) {
-      const maps: Record<string, string> = {
-        ru: '[Экскурсия] Экскурсия состоится в четверг, 30 июля. Ученики должны прийти в школу к 09:00 со сменной обувью, личным термосом и обедом. Срок сдачи - до 17:00 вторника, 28 июля.',
-        vi: '[Thông báo dã ngoại] Buổi dã ngoại sẽ được tổ chức vào Thứ Năm ngày 30 tháng 7. Học sinh vui lòng đến trường trước 9:00 sáng mang theo giày đi trong nhà, bình nước cá nhân và hộp cơm trưa. Hạn nộp là trước 17:00 Thứ Ba ngày 28 tháng 7.',
-        zh: '[研学旅行通知] 研学旅行将于7月30日（星期四）进行。学生请携带室内鞋、个人保温杯和午餐，于上午9:00前到校。提交截止时间为7月28日（星期二）17:00前。',
-        mn: '[Хээрийн дадлагын удирдамж] 7-р сарын 30-ны Пүрэв гарагт хээрийн дадлага явагдана. Сурагчид дотор өмсөх гутал, хувийн термос, өдрийн хоолоо бэлдэж, өглөөний 09:00 цагаас өмнө сургуульдаа ирнэ үү. Хугацаа 7-р сарын 28-ны Мягмар гарагийн 17:00 цаг хүртэл байна.',
-        en: '[Field Trip Guide] The field trip will take place on Thursday, July 30th. Students should arrive at school by 9:00 AM with indoor shoes, a personal tumbler, and a lunch box. The submission deadline is by Tuesday, July 28th, at 17:00.',
-      };
-      return maps[lang] || `[${lang.toUpperCase()} Notice] ${text}`;
+    if (lang === 'ko') {
+      return text;
     }
 
-    // Library book return notice
-    if (norm.includes('도서') || norm.includes('반납') || norm.includes('대출')) {
-      const maps: Record<string, string> = {
-        ru: '[Возврат книг] Срок выдачи и возврата библиотечных книг - до 10 августа. Пожалуйста, верните просроченные книги как можно скорее. В случае задержки выдача книг может быть ограничена.',
-        vi: '[Trả sách thư viện] Hạn mượn và trả sách thư viện là ngày 10 tháng 8. Vui lòng trả sách quá hạn càng sớm càng tốt. Nếu quá hạn, việc mượn sách có thể bị giới hạn.',
-        zh: '[图书馆图书归还] 图书馆图书借阅及归还截止日期为8月10日。请尽快归还逾期图书。逾期可能会限制图书借阅。',
-        mn: '[Номын сангийн ном буцаах] Номын сангийн ном зээлэх болон буцааж өгөх хугацаа 8-р сарын 10 хүртэл байна. Хугацаа хэтэрсэн номыг нэн даруй буцааж өгнө үү. Хугацаа хэтэрсэн тохиолдолд ном зээлэхийг хязгаарлана.',
-        en: '[Library Book Return] The deadline for borrowing and returning library books is August 10th. Please return overdue books as soon as possible. Overdue books may restrict future borrowing.',
-      };
-      return maps[lang] || `[${lang.toUpperCase()} Notice] ${text}`;
+    let result = text;
+    const placeholders: Record<string, string> = {};
+    let placeholderCounter = 0;
+
+    const keys = Object.keys(DICTIONARY).sort((a, b) => b.length - a.length);
+
+    for (const key of keys) {
+      let index = result.indexOf(key);
+      while (index !== -1) {
+        const placeholder = `__TOKEN_${placeholderCounter}__`;
+        placeholders[placeholder] = DICTIONARY[key][lang] || DICTIONARY[key].ko;
+        placeholderCounter++;
+        
+        result = result.substring(0, index) + placeholder + result.substring(index + key.length);
+        index = result.indexOf(key);
+      }
     }
-    
-    // Otherwise, dynamic fallback
-    if (lang === 'ru') {
-      return `[RU] Перевод объявления: "${text.substring(0, 100)}..."`;
-    } else if (lang === 'vi') {
-      return `[VI] Dịch thông báo: "${text.substring(0, 100)}..."`;
-    } else if (lang === 'zh') {
-      return `[ZH] 通知翻译： "${text.substring(0, 100)}..."`;
-    } else if (lang === 'mn') {
-      return `[MN] Зарлал орчуулга: "${text.substring(0, 100)}..."`;
+
+    for (const placeholder in placeholders) {
+      result = result.replaceAll(placeholder, placeholders[placeholder]);
     }
-    return `[${lang.toUpperCase()}] Notice Translation: "${text.substring(0, 100)}..."`;
+
+    return result;
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -268,7 +279,7 @@ export default function WebNoticePage() {
               </div>
               
               <button
-                onClick={() => alert('학부모 공유용 QR 코드 링크가 생성되었습니다!')}
+                onClick={() => alert('학부мо 공유용 QR 코드 링크가 생성되었습니다!')}
                 style={{ marginTop: '16px', backgroundColor: '#14B8A6', color: 'white', padding: '12px 20px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', border: 'none', flexShrink: 0 }}
               >
                 📲 학부모 공유 QR/링크 생성
