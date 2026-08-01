@@ -184,3 +184,51 @@ button {
 .inner-scroll::-webkit-scrollbar-thumb:hover {
   background: #14B8A6;
 }
+
+/* --- Global Dark Theme Style Overrides --- */
+.dark {
+  --bg-main: #0B0F19;
+  --card-bg: #1E293B;
+  --text-main: #F1F5F9;
+  --text-muted: #94A3B8;
+  --border-color: #334155;
+  --shadow-soft: none;
+}
+
+.dark html, .dark body {
+  background-color: #0B0F19 !important;
+  color: #F1F5F9 !important;
+}
+
+/* Sidebar Dark Theme */
+.dark .sidebar {
+  background-color: #111827 !important;
+  border-right: 1px solid #334155 !important;
+}
+
+/* Navigation Link Dark Theme */
+.dark .nav-item a {
+  color: #E2E8F0 !important;
+}
+
+.dark .nav-item:hover, .dark .nav-item.active {
+  background-color: #1F2937 !important;
+}
+
+.dark .nav-item:hover a, .dark .nav-item.active a {
+  color: #38BDF8 !important;
+}
+
+/* Top Header Bar Dark Theme */
+.dark .header-bar {
+  background-color: #111827 !important;
+  border: 1px solid #334155 !important;
+  box-shadow: none !important;
+}
+
+/* Features, translating cards Dark Theme */
+.dark .feature-card, .dark .dashboard-card {
+  background-color: #1E293B !important;
+  border-color: #334155 !important;
+  color: #F1F5F9 !important;
+}

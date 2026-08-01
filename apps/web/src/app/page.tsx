@@ -24,6 +24,14 @@ export default function DashboardHome() {
   useEffect(() => {
     setCurrentUser(getCurrentUser());
 
+    const saved = localStorage.getItem('dahamkke_dark_mode') === 'true';
+    setIsDarkMode(saved);
+    if (saved) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+
     const handleUserUpdate = (e: any) => {
       if (e.detail) {
         setCurrentUser(e.detail);
@@ -38,6 +46,17 @@ export default function DashboardHome() {
     localStorage.removeItem('dahamkke_current_user');
     alert('로그아웃 되었습니다.');
     router.push('/login');
+  };
+
+  const toggleDarkMode = () => {
+    const nextVal = !isDarkMode;
+    setIsDarkMode(nextVal);
+    localStorage.setItem('dahamkke_dark_mode', String(nextVal));
+    if (nextVal) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   };
 
   const currentRank = getUserRank(currentUser);
@@ -118,22 +137,17 @@ export default function DashboardHome() {
               </button>
             );
           })}
-        </div>
-
-        {/* Dynamic Tab Contents Panel */}
-        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-          
-          {/* TAB 1: 랭크 (Rank) */}
+                 {/* TAB 1: 랭크 (Rank) */}
           {activeTab === 'rank' && (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', flex: 1, maxHeight: '360px' }}>
               {/* Leaderboard Card */}
               <div
                 onClick={() => router.push('/rank')}
                 style={{
-                  backgroundColor: 'white',
+                  backgroundColor: isDarkMode ? '#1E293B' : 'white',
                   borderRadius: '24px',
-                  boxShadow: 'var(--shadow-soft)',
-                  border: '1.5px solid #E2E8F0',
+                  boxShadow: isDarkMode ? 'none' : 'var(--shadow-soft)',
+                  border: isDarkMode ? '2px solid #334155' : '1.5px solid #E2E8F0',
                   cursor: 'pointer',
                   display: 'flex',
                   flexDirection: 'column',
@@ -148,7 +162,7 @@ export default function DashboardHome() {
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = 'var(--shadow-soft)';
+                  e.currentTarget.style.boxShadow = isDarkMode ? 'none' : 'var(--shadow-soft)';
                 }}
               >
                 {/* 3D-like CSS Podium (Gold, Silver, Bronze) */}
@@ -167,17 +181,17 @@ export default function DashboardHome() {
                   </div>
                 </div>
 
-                <h3 style={{ fontSize: '28px', fontWeight: '900', color: '#0F172A' }}>리더보드</h3>
+                <h3 style={{ fontSize: '28px', fontWeight: '900', color: isDarkMode ? '#F8FAFC' : '#0F172A' }}>리더보드</h3>
               </div>
 
               {/* 10-Question Quiz Card */}
               <div
                 onClick={() => router.push(isQuizUnlocked ? '/quiz' : '/translate')}
                 style={{
-                  backgroundColor: 'white',
+                  backgroundColor: isDarkMode ? '#1E293B' : 'white',
                   borderRadius: '24px',
-                  boxShadow: 'var(--shadow-soft)',
-                  border: '1.5px solid #E2E8F0',
+                  boxShadow: isDarkMode ? 'none' : 'var(--shadow-soft)',
+                  border: isDarkMode ? '2px solid #334155' : '1.5px solid #E2E8F0',
                   cursor: 'pointer',
                   display: 'flex',
                   flexDirection: 'column',
@@ -192,7 +206,7 @@ export default function DashboardHome() {
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = 'var(--shadow-soft)';
+                  e.currentTarget.style.boxShadow = isDarkMode ? 'none' : 'var(--shadow-soft)';
                 }}
               >
                 {/* 3D-like CSS Notepad & Pencil */}
@@ -218,7 +232,7 @@ export default function DashboardHome() {
                   </div>
                 </div>
 
-                <h3 style={{ fontSize: '28px', fontWeight: '900', color: '#0F172A' }}>
+                <h3 style={{ fontSize: '28px', fontWeight: '900', color: isDarkMode ? '#F8FAFC' : '#0F172A' }}>
                   {isQuizUnlocked ? '10문항 평가' : '🔒 10문항 평가 (잠김)'}
                 </h3>
               </div>
@@ -288,10 +302,10 @@ export default function DashboardHome() {
                   key={idx}
                   onClick={() => router.push(item.href)}
                   style={{
-                    backgroundColor: 'white',
+                    backgroundColor: isDarkMode ? '#1E293B' : 'white',
                     borderRadius: '24px',
-                    boxShadow: 'var(--shadow-soft)',
-                    border: '1.5px solid #E2E8F0',
+                    boxShadow: isDarkMode ? 'none' : 'var(--shadow-soft)',
+                    border: isDarkMode ? '2px solid #334155' : '1.5px solid #E2E8F0',
                     cursor: 'pointer',
                     display: 'flex',
                     flexDirection: 'column',
@@ -306,12 +320,12 @@ export default function DashboardHome() {
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = 'var(--shadow-soft)';
+                    e.currentTarget.style.boxShadow = isDarkMode ? 'none' : 'var(--shadow-soft)';
                   }}
                 >
                   {item.icon}
-                  <h3 style={{ fontSize: '24px', fontWeight: '900', color: '#0F172A', margin: 0 }}>{item.title}</h3>
-                  <p style={{ fontSize: '13px', color: '#6B7280', marginTop: '6px', textAlign: 'center', padding: '0 12px' }}>{item.desc}</p>
+                  <h3 style={{ fontSize: '24px', fontWeight: '900', color: isDarkMode ? '#F8FAFC' : '#0F172A', margin: 0 }}>{item.title}</h3>
+                  <p style={{ fontSize: '13px', color: isDarkMode ? '#94A3B8' : '#6B7280', marginTop: '6px', textAlign: 'center', padding: '0 12px' }}>{item.desc}</p>
                 </div>
               ))}
             </div>
@@ -367,10 +381,10 @@ export default function DashboardHome() {
                   key={idx}
                   onClick={() => router.push(item.href)}
                   style={{
-                    backgroundColor: 'white',
+                    backgroundColor: isDarkMode ? '#1E293B' : 'white',
                     borderRadius: '24px',
-                    boxShadow: 'var(--shadow-soft)',
-                    border: '1.5px solid #E2E8F0',
+                    boxShadow: isDarkMode ? 'none' : 'var(--shadow-soft)',
+                    border: isDarkMode ? '2px solid #334155' : '1.5px solid #E2E8F0',
                     cursor: 'pointer',
                     display: 'flex',
                     flexDirection: 'column',
@@ -385,12 +399,12 @@ export default function DashboardHome() {
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = 'var(--shadow-soft)';
+                    e.currentTarget.style.boxShadow = isDarkMode ? 'none' : 'var(--shadow-soft)';
                   }}
                 >
                   {item.icon}
-                  <h3 style={{ fontSize: '24px', fontWeight: '900', color: '#0F172A', margin: 0 }}>{item.title}</h3>
-                  <p style={{ fontSize: '13px', color: '#6B7280', marginTop: '6px', textAlign: 'center', padding: '0 8px' }}>{item.desc}</p>
+                  <h3 style={{ fontSize: '24px', fontWeight: '900', color: isDarkMode ? '#F8FAFC' : '#0F172A', margin: 0 }}>{item.title}</h3>
+                  <p style={{ fontSize: '13px', color: isDarkMode ? '#94A3B8' : '#6B7280', marginTop: '6px', textAlign: 'center', padding: '0 8px' }}>{item.desc}</p>
                 </div>
               ))}
             </div>
@@ -417,7 +431,7 @@ export default function DashboardHome() {
                 
                 {/* On/Off Switch */}
                 <div
-                  onClick={() => setIsDarkMode(!isDarkMode)}
+                  onClick={toggleDarkMode}
                   style={{
                     width: '80px',
                     height: '40px',
