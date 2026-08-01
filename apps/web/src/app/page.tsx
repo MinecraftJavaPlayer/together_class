@@ -156,7 +156,11 @@ export default function DashboardHome() {
               </button>
             );
           })}
-                 {/* TAB 1: 랭크 (Rank) */}
+        </div>
+
+        {/* Dynamic Tab Contents Panel */}
+        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+          {/* TAB 1: 랭크 (Rank) */}
           {activeTab === 'rank' && (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', flex: 1, maxHeight: '360px' }}>
               {/* Leaderboard Card */}

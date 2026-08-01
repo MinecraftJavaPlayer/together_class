@@ -14,13 +14,13 @@ export function SidebarNav() {
 
   const navItems = [
     { href: '/', label: '🏠 홈 대시보드' },
-    { href: '/rank', label: '🏆 랭크 & 시즌', highlight: true, color: '#B45309', bg: '#FEF3C7' },
+    { href: '/rank', label: '🏆 랭크 & 시즌', highlight: true, color: 'var(--nav-highlight-rank-text)', bg: 'var(--nav-highlight-rank-bg)' },
     {
       href: isQuizUnlocked ? '/quiz' : '/translate',
       label: isQuizUnlocked ? '📝 10문항 평가' : '🔒 10문항 평가 (잠김)',
       highlight: true,
-      color: isQuizUnlocked ? '#BE185D' : '#94A3B8',
-      bg: isQuizUnlocked ? '#FCE7F3' : '#F1F5F9',
+      color: isQuizUnlocked ? 'var(--nav-highlight-quiz-text)' : '#94A3B8',
+      bg: isQuizUnlocked ? 'var(--nav-highlight-quiz-bg)' : '#334155',
     },
     { href: '/translate', label: '📷 교과서 번역' },
     { href: '/interpret', label: '🎙️ 실시간 통역' },
@@ -70,7 +70,7 @@ export function SidebarNav() {
           );
         })}
 
-        <li className="nav-item" style={{ marginTop: 'auto', borderRadius: '12px', backgroundColor: '#EEF2FF' }}>
+        <li className="nav-item" style={{ marginTop: 'auto', borderRadius: '12px', backgroundColor: 'var(--nav-highlight-admin-bg)' }}>
           <Link
             href="/admin"
             style={{
@@ -79,7 +79,7 @@ export function SidebarNav() {
               padding: '12px 16px',
               borderRadius: '12px',
               fontWeight: '700',
-              color: '#4338CA',
+              color: 'var(--nav-highlight-admin-text)',
               textDecoration: 'none',
               width: '100%',
               boxSizing: 'border-box',
