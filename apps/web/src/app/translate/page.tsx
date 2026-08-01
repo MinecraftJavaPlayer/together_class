@@ -32,10 +32,54 @@ export default function WebTranslatePage() {
     setIsDarkMode(localStorage.getItem('dahamkke_dark_mode') === 'true');
   }, []);
 
+  const translateSourceText = (text: string, target: string): string => {
+    const norm = text.toLowerCase();
+    
+    // 1. If it's the Lee Sun-sin (이순신) story
+    if (norm.includes('이순신') || norm.includes('학익진') || norm.includes('거북선')) {
+      const maps: Record<string, string> = {
+        ru: 'Во времена династии Чосон адмирал Ли Сун Син одержал великую победу в битве при Хансандо, используя боевое построение "крыло журавля" и корабли-черепахи (Кобуксон).',
+        vi: 'Vào thời nhà Joseon, tướng quân Yi Sun-shin đã giành chiến thắng vang dội trong trận hải chiến Hansando nhờ áp dụng trận pháp cánh hạc và tàu rùa.',
+        zh: '在朝鲜王朝时期，李舜臣将军利用“鹤翼阵”战术和龟船在闲山岛大捷中夺取了伟大的胜利。',
+        mn: 'Жосон улсын үед Ли Сүн Шин жанжин тогорууны далавчит тактик болон яст мэлхийн хөлөг онгоцыг ашиглан Хансандогийн тулалдаанд түүхэн ялалт байгуулав.',
+        en: 'During the Joseon Dynasty, Admiral Yi Sun-sin won a monumental victory in the Battle of Hansando using the Crane Wing formation and Turtle Ship.',
+        ja: '朝鮮王朝時代、李舜臣将軍は鶴翼の陣戦術と亀船を用いて閑山島大捷で大勝利を収めました。',
+        ko: '조선 시대 이순신 장군은 학익진 전법과 거북선을 사용하여 한산도 대첩에서 큰 승리를 거두었습니다.',
+      };
+      return maps[target] || `[${target.toUpperCase()} 번역] ${text}`;
+    }
+    
+    // 2. If it is the default Heungbu & Nolbu (흥부와 놀부) story
+    if (norm.includes('흥부') || norm.includes('놀부') || norm.includes('제비')) {
+      const maps: Record<string, string> = {
+        ru: 'Давным-давно в одной деревне жили братья Хынбу и Нолбу. Хынбу был беден, но вся семья жила дружно.',
+        vi: 'Ngày xưa ở một ngôi làng nọ có hai anh em Heungbu và Nolbu. Heungbu tuy nghèo nhưng cả gia đình sống rất hòa thuận.',
+        zh: '很久以前，在一个村庄里住着兴夫和甭夫兄弟。兴夫虽然贫穷，但全家人互相珍惜，和睦生活。',
+        mn: 'Эрт урьд цагт нэгэн тосгонд Хынбү, Нолбү хоёр ах дүү амьдардаг байжээ. Хынбү ядуу байсан ч гэр бүлээрээ бие биеэ хайрлан амьдардаг байв.',
+        en: 'Once upon a time in a village, brothers Heungbu and Nolbu lived together. Although Heungbu was poor, the whole family cherished each other and lived happily.',
+        ja: '昔々ある村にフンブとノルブという兄弟が住んでいました。フンブは貧しかったですが、家族みんなでお互いを大切に暮らしていました。',
+        ko: '옛날 옛적 어느 마을에 흥부와 놀부 형제가 살고 있었습니다. 흥부는 가난했지만 온 가족이 서로 아끼며 살았습니다.',
+      };
+      return maps[target] || `[${target.toUpperCase()} 번역] ${text}`;
+    }
+    
+    // 3. Otherwise, dynamic fallback
+    if (target === 'ru') {
+      return `[RU] Перевод: "${text.substring(0, 100)}..."`;
+    } else if (target === 'vi') {
+      return `[VI] Dịch: "${text.substring(0, 100)}..."`;
+    } else if (target === 'zh') {
+      return `[ZH] 翻译： "${text.substring(0, 100)}..."`;
+    } else if (target === 'mn') {
+      return `[MN] Орчуулга: "${text.substring(0, 100)}..."`;
+    }
+    return `[${target.toUpperCase()}] Translation: "${text.substring(0, 100)}..."`;
+  };
+
   const handleTranslate = () => {
     setLoading(true);
     setTimeout(() => {
-      const translated = TRANSLATION_MAP[targetLang] || TRANSLATION_MAP.ru;
+      const translated = translateSourceText(sourceText, targetLang);
       setTranslatedText(`[${targetLang.toUpperCase()} 번역 결과]\n${translated}`);
       markModuleCompleted('translate');
       setLoading(false);
@@ -47,7 +91,16 @@ export default function WebTranslatePage() {
       const file = e.target.files[0];
       setLoading(true);
       setTimeout(() => {
-        setSourceText(`[OCR 인식 완료 - ${file.name}]\n옛날 옛적 어느 마을에 흥부와 놀부 형제가 살고 있었습니다. 흥부는 가난했지만 온 가족이 서로 아끼며 살았습니다.`);
+        const lowerName = file.name.toLowerCase();
+        if (lowerName.includes('lee') || lowerName.includes('sun') || lowerName.includes('이순신') || lowerName.includes('대첩')) {
+          setSourceText('조선 선조 때, 왜군이 수많은 군함을 끌고 우리 바다를 침략해 왔습니다. 이순신 장군은 학이 날개를 편 모양의 \'학익진\' 전법과 거북선을 활용하여 한산도 대첩에서 큰 승리를 거두었습니다.');
+          const translated = translateSourceText('조선 선조 때, 왜군이 수많은 군함을 끌고 우리 바다를 침략해 왔습니다. 이순신 장군은 학이 날개를 편 모양의 \'학익진\' 전법과 거북선을 활용하여 한산도 대첩에서 큰 승리를 거두었습니다.', targetLang);
+          setTranslatedText(`[${targetLang.toUpperCase()} 번역 결과]\n${translated}`);
+        } else {
+          setSourceText('옛날 옛적 어느 마을에 흥부와 놀부 형제가 살고 있었습니다. 흥부는 가난했지만 온 가족이 서로 아끼며 살았습니다.');
+          const translated = translateSourceText('옛날 옛적 어느 마을에 흥부와 놀부 형제가 살고 있었습니다. 흥부는 가난했지만 온 가족이 서로 아끼며 살았습니다.', targetLang);
+          setTranslatedText(`[${targetLang.toUpperCase()} 번역 결과]\n${translated}`);
+        }
         setLoading(false);
       }, 700);
     }
@@ -55,7 +108,7 @@ export default function WebTranslatePage() {
 
   const handleTargetLangChange = (newLang: LanguageCode) => {
     setTargetLang(newLang);
-    const translated = TRANSLATION_MAP[newLang] || TRANSLATION_MAP.ru;
+    const translated = translateSourceText(sourceText, newLang);
     setTranslatedText(`[${newLang.toUpperCase()} 번역 결과]\n${translated}`);
   };
 
