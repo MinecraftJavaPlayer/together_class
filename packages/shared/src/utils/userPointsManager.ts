@@ -4,6 +4,24 @@ import { getRankByPoints, RankTier } from '../constants/rankSystem';
 const STORAGE_KEY = 'dahamkke_current_user';
 const ALL_USERS_DB_KEY = 'dahamkke_all_users_v2';
 
+const FALLBACK_USER: UserProfile = {
+  id: 'guest',
+  email: 'guest@dahamkke.kr',
+  name: '게스트',
+  role: 'student',
+  nativeLang: 'ko',
+  points: 0,
+  completedModules: {
+    translate: false,
+    interpret: false,
+    debate: false,
+    persona: false,
+    dictation: false,
+    writing: false,
+  },
+  seasonHistory: [],
+};
+
 export function getAllUsers(): UserProfile[] {
   // Load persisted list
   let list: UserProfile[] = [];
@@ -13,11 +31,14 @@ export function getAllUsers(): UserProfile[] {
       try {
         let parsed = JSON.parse(savedList);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Version migration: clear all temp users
+          // Version migration: clear all temp users and mock initial users
           const tempVersion = localStorage.getItem('dahamkke_temp_version');
-          if (tempVersion !== 'v6') {
-            parsed = parsed.filter(u => !u.id.startsWith('temp_'));
-            localStorage.setItem('dahamkke_temp_version', 'v6');
+          if (tempVersion !== 'v7') {
+            parsed = parsed.filter(u => 
+              !u.id.startsWith('temp_') && 
+              !['student-seojun', 'student-minjun', 'student-anna', 'teacher-jungwoong'].includes(u.id)
+            );
+            localStorage.setItem('dahamkke_temp_version', 'v7');
           }
           list = parsed;
         }
@@ -29,12 +50,15 @@ export function getAllUsers(): UserProfile[] {
   if (list.length === 0) {
     list = [...INITIAL_USERS];
     if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.setItem('dahamkke_temp_version', 'v6');
+      localStorage.setItem('dahamkke_temp_version', 'v7');
     }
   }
 
-  // Ensure any lingering temp users are filtered out
-  list = list.filter(u => !u.id.startsWith('temp_'));
+  // Ensure any lingering temp users and mock initial users are filtered out
+  list = list.filter(u => 
+    !u.id.startsWith('temp_') && 
+    !['student-seojun', 'student-minjun', 'student-anna', 'teacher-jungwoong'].includes(u.id)
+  );
 
 
   // ALWAYS merge/sync the currently active logged-in user so they ALWAYS appear on the leaderboard!
@@ -87,7 +111,7 @@ export function getCurrentUser(): UserProfile {
     }
   }
   const all = getAllUsers();
-  return all[0] || INITIAL_USERS[0];
+  return all[0] || FALLBACK_USER;
 }
 
 export function saveCurrentUser(user: UserProfile): void {
