@@ -16,10 +16,29 @@ type TabId = 'rank' | 'learning' | 'records' | 'settings';
 export default function DashboardHome() {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<UserProfile>(getCurrentUser());
-  const [activeTab, setActiveTab] = useState<TabId>('rank');
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  
+  const [activeTab, setActiveTab] = useState<TabId>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = sessionStorage.getItem('dahamkke_active_tab');
+      if (saved) return saved as TabId;
+    }
+    return 'rank';
+  });
+
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('dahamkke_dark_mode') === 'true';
+    }
+    return false;
+  });
+
   const [isConsoleExpanded, setIsConsoleExpanded] = useState(false);
   const [isInfoExpanded, setIsInfoExpanded] = useState(false);
+
+  const handleTabChange = (tab: TabId) => {
+    setActiveTab(tab);
+    sessionStorage.setItem('dahamkke_active_tab', tab);
+  };
 
   useEffect(() => {
     setCurrentUser(getCurrentUser());
@@ -118,7 +137,7 @@ export default function DashboardHome() {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as TabId)}
+                onClick={() => handleTabChange(tab.id as TabId)}
                 style={{
                   backgroundColor: 'transparent',
                   border: isActive ? '3.5px solid #00A3FF' : (isDarkMode ? '3.5px solid #475569' : '3.5px solid #000000'),
