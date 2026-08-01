@@ -289,7 +289,7 @@ export default function WebTranslatePage() {
                   alert('⭐ 학습 기록에 번역 내역이 저장되었습니다.');
                 }}
                 style={{
-                  width: '100%',
+                  flex: 1,
                   backgroundColor: '#E06A55',
                   color: 'white',
                   padding: '12px',
@@ -303,6 +303,49 @@ export default function WebTranslatePage() {
               >
                 ⭐ 학습 기록에 저장
               </button>
+
+              {translatedText && (
+                <button
+                  onClick={() => {
+                    if (!window.speechSynthesis) {
+                      alert('이 브라우저는 음성 합성(TTS)을 지원하지 않습니다.');
+                      return;
+                    }
+                    window.speechSynthesis.cancel();
+                    const cleanText = translatedText.replace(/^\[.*?\]\n/, '');
+                    const utterance = new SpeechSynthesisUtterance(cleanText);
+                    const localeMap: Record<string, string> = {
+                      ru: 'ru-RU',
+                      vi: 'vi-VN',
+                      zh: 'zh-CN',
+                      mn: 'mn-MN',
+                      en: 'en-US',
+                      ja: 'ja-JP',
+                      ko: 'ko-KR',
+                    };
+                    utterance.lang = localeMap[targetLang] || 'en-US';
+                    window.speechSynthesis.speak(utterance);
+                  }}
+                  style={{
+                    flex: 1,
+                    backgroundColor: '#3B82F6',
+                    color: 'white',
+                    padding: '12px',
+                    borderRadius: '12px',
+                    fontWeight: '800',
+                    fontSize: '14px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.2)',
+                  }}
+                >
+                  🔊 번역문 듣기 (TTS)
+                </button>
+              )}
             </div>
           </div>
         </div>

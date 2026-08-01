@@ -27,40 +27,83 @@ export default function WebNoticePage() {
     setIsDarkMode(localStorage.getItem('dahamkke_dark_mode') === 'true');
   }, []);
 
-  // Parse summary metadata dynamically from the sourceText
+  // Parse summary metadata dynamically from the sourceText using regex & search keys
   const getParsedSummary = (text: string) => {
-    const norm = text.toLowerCase();
-    
-    let dates = ['등록된 일정 없음'];
-    let items = ['등록된 준비물 없음'];
-    let deadlines = ['등록된 제출기한 없음'];
+    let dates: string[] = [];
+    let items: string[] = [];
+    let deadlines: string[] = [];
 
-    if (norm.includes('7월 30일')) {
-      dates = ['2026년 7월 30일(목) 09:00'];
-    } else if (norm.includes('8월 10일')) {
-      dates = ['2026년 8월 10일(월) 10:00'];
-    } else {
-      const matchDate = text.match(/\d+월\s*\d+일/);
-      if (matchDate) dates = [`2026년 ${matchDate[0]} (일정 확인 필요)`];
+    // Clean text by normalizing spaces
+    const cleanText = text.replace(/\s+/g, ' ');
+
+    // 1. Extract dates (e.g. 7월 30일, 8월 10일)
+    const dateRegex = /(\d+월\s*\d+일(\s*\([^)]+\))?(\s*\d+시)?)/g;
+    let match;
+    while ((match = dateRegex.exec(cleanText)) !== null) {
+      const matchStr = match[0].trim();
+      const beforeIndex = Math.max(0, match.index - 30);
+      const surroundingText = cleanText.substring(beforeIndex, match.index + 50);
+      
+      // If date is related to deadlines
+      if (surroundingText.includes('까지') || surroundingText.includes('기한') || surroundingText.includes('제출') || surroundingText.includes('반납')) {
+        if (!deadlines.includes(matchStr + ' 까지')) {
+          deadlines.push(matchStr + ' 까지');
+        }
+      } else {
+        if (!dates.includes(matchStr)) {
+          dates.push(matchStr);
+        }
+      }
     }
 
-    const detectedItems: string[] = [];
-    if (norm.includes('실내화')) detectedItems.push('실내화');
-    if (norm.includes('텀블러') || norm.includes('물병')) detectedItems.push('개인 텀블러');
-    if (norm.includes('도시락')) detectedItems.push('도시락');
-    if (norm.includes('도서') || norm.includes('책')) detectedItems.push('연체 도서 반납');
-    if (detectedItems.length > 0) items = detectedItems;
-
-    if (norm.includes('7월 28일')) {
-      deadlines = ['2026년 7월 28일(화) 17:00까지 제출'];
-    } else if (norm.includes('8월 10일')) {
-      deadlines = ['2026년 8월 10일(월) 16:00까지 반납'];
-    } else {
-      const matchDeadline = text.match(/\d+월\s*\d+일/);
-      if (matchDeadline) deadlines = [`${matchDeadline[0]} 기한 준수`];
+    // 2. Extract items (준비물)
+    const commonItems = [
+      '실내화', '텀블러', '도시락', '물병', '물통', '필기도구', '교과서', '우산', '풀', '가위',
+      '공책', '색종이', '운동복', '체육복', '운동화', '간식', '물티슈', '휴지', '장갑', '돋보기'
+    ];
+    for (const item of commonItems) {
+      if (cleanText.includes(item) && !items.includes(item)) {
+        items.push(item);
+      }
+    }
+    const prepRegex = /(?:준비물|지참물)\s*:?\s*([^\n.]+)/i;
+    const prepMatch = text.match(prepRegex);
+    if (prepMatch) {
+      const foundItems = prepMatch[1].split(/[,/]/).map(s => s.trim()).filter(s => s.length > 0 && s.length < 20);
+      foundItems.forEach(fit => {
+        if (!items.includes(fit)) {
+          items.push(fit);
+        }
+      });
     }
 
-    return { dates, items, deadlines };
+    // 3. Extract deadlines (제출기한)
+    const deadlineRegex = /(\d+월\s*\d+일(\s*\(.\))?(\s*\d+:\d+)?\s*까지)/g;
+    while ((match = deadlineRegex.exec(cleanText)) !== null) {
+      const matchStr = match[0].trim();
+      if (!deadlines.includes(matchStr)) {
+        deadlines.push(matchStr);
+      }
+    }
+    const limitRegex = /(?:기한은|기한:\s*)\s*([^\n.]+)/i;
+    const limitMatch = text.match(limitRegex);
+    if (limitMatch) {
+      const limitStr = limitMatch[1].trim();
+      if (!deadlines.includes(limitStr)) {
+        deadlines.push(limitStr);
+      }
+    }
+
+    // fallback defaults
+    if (dates.length === 0) dates = ['등록된 일정 없음 (본문 확인)'];
+    if (items.length === 0) items = ['등록된 준비물 없음 (본문 확인)'];
+    if (deadlines.length === 0) deadlines = ['등록된 제출기한 없음 (본문 확인)'];
+
+    return {
+      dates: Array.from(new Set(dates)),
+      items: Array.from(new Set(items)),
+      deadlines: Array.from(new Set(deadlines))
+    };
   };
 
   const updateNoticeData = async (text: string, lang: string) => {
@@ -256,12 +299,56 @@ export default function WebNoticePage() {
                 )}
               </div>
               
-              <button
-                onClick={() => alert('학부모 공유용 QR 코드 링크가 생성되었습니다!')}
-                style={{ marginTop: '16px', backgroundColor: '#14B8A6', color: 'white', padding: '12px 20px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', border: 'none', flexShrink: 0 }}
-              >
-                📲 학부모 공유 QR/링크 생성
-              </button>
+              <div style={{ display: 'flex', gap: '12px', marginTop: '16px', flexShrink: 0 }}>
+                <button
+                  onClick={() => alert('학부모 공유용 QR 코드 링크가 생성되었습니다!')}
+                  style={{ flex: 1, backgroundColor: '#14B8A6', color: 'white', padding: '12px 20px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', border: 'none' }}
+                >
+                  📲 학부모 공유 QR/링크 생성
+                </button>
+
+                {translatedText && (
+                  <button
+                    onClick={() => {
+                      if (!window.speechSynthesis) {
+                        alert('이 브라우저는 음성 합성(TTS)을 지원하지 않습니다.');
+                        return;
+                      }
+                      window.speechSynthesis.cancel();
+                      const cleanText = translatedText.replace(/^\[.*?\]\n/, '');
+                      const utterance = new SpeechSynthesisUtterance(cleanText);
+                      const localeMap: Record<string, string> = {
+                        ru: 'ru-RU',
+                        vi: 'vi-VN',
+                        zh: 'zh-CN',
+                        mn: 'mn-MN',
+                        en: 'en-US',
+                        ja: 'ja-JP',
+                        ko: 'ko-KR',
+                      };
+                      utterance.lang = localeMap[selectedLang] || 'en-US';
+                      window.speechSynthesis.speak(utterance);
+                    }}
+                    style={{
+                      flex: 1,
+                      backgroundColor: '#3B82F6',
+                      color: 'white',
+                      padding: '12px 20px',
+                      borderRadius: '8px',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      border: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      boxShadow: '0 4px 10px rgba(59, 130, 246, 0.15)',
+                    }}
+                  >
+                    🔊 번역문 듣기 (TTS)
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
