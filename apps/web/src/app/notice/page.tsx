@@ -5,27 +5,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { LANGUAGE_LIST } from '@dahamkke/shared';
 import { SidebarNav } from '../components/SidebarNav';
-
-const DICTIONARY: Record<string, Record<string, string>> = {
-  // Notice elements
-  '현장체험학습': { ru: 'экскурсию', vi: 'dã ngoại', zh: '研学旅行', mn: 'хээрийн дадлага', en: 'field trip', ja: '校外学習', ko: '현장체험학습' },
-  '안내장': { ru: 'Объявление', vi: 'Thông báo', zh: '通知', mn: 'Удирдамж', en: 'Notice', ja: '案内', ko: '안내장' },
-  '실시됩니다': { ru: 'состоится', vi: 'sẽ được tổ chức', zh: '将举行', mn: 'явагдана', en: 'will take place', ja: '実施されます', ko: '실시됩니다' },
-  '실내화': { ru: 'сменную обувь', vi: 'giày đi trong nhà', zh: '室内鞋', mn: 'дотор өмсөх гутал', en: 'indoor shoes', ja: '上履き', ko: '실내화' },
-  '개인 텀블러': { ru: 'личный термос', vi: 'bình nước cá nhân', zh: '个人保温杯', mn: 'хувийн термос', en: 'personal tumbler', ja: '水筒', ko: '개인 텀블러' },
-  '도시락을': { ru: 'обед', vi: 'hộp cơm trưa', zh: '午餐', mn: 'өдрийн хоол', en: 'lunch box', ja: 'お弁当を', ko: '도시락을' },
-  '지참하여': { ru: 'принести с собой', vi: 'mang theo', zh: '携带', mn: 'бэлдэж', en: 'bring', ja: '持参して', ko: '지참하여' },
-  '오전 9시까지': { ru: 'к 9 часам утра', vi: 'trước 9 giờ sáng', zh: 'утра 9 giờ sáng', mn: 'өглөөний 09:00 цаг гэхэд', en: 'by 9:00 AM', ja: '午前9時まで', ko: '오전 9시까지' },
-  '등교해 주시기 바랍니다': { ru: 'прийти в школу', vi: 'đến trường', zh: '请到校', mn: 'сургуульдаа ирнэ үү', en: 'please come to school', ja: '登校してください', ko: '등교해 주시기 바랍니다' },
-  '제출 기한은': { ru: 'срок сдачи', vi: 'hạn nộp là', zh: '截止时间为', mn: 'хугацаа нь', en: 'deadline is', ja: '提出期限は', ko: '제출 기한은' },
-  '제출기한은': { ru: 'срок сдачи', vi: 'hạn nộp là', zh: '截止时间为', mn: 'хугацаа нь', en: 'deadline is', ja: '提出期限는', ko: '제출기한은' },
-  '도서': { ru: 'книги', vi: 'sách', zh: '图书', mn: 'ном', en: 'books', ja: '図書', ko: '도서' },
-  '반납': { ru: 'возврат', vi: 'trả sách', zh: '归还', mn: 'буцааж өгөх', en: 'return', ja: '返却', ko: '반납' },
-  '대출': { ru: 'выдача', vi: 'mượn sách', zh: '借阅', mn: 'зээлэх', en: 'borrow', ja: '貸出', ko: '대출' },
-  '기한은': { ru: 'срок', vi: 'hạn', zh: '截止日期为', mn: 'хугацаа нь', en: 'deadline is', ja: '期限は', ko: '기한은' },
-  '연체': { ru: 'просрочка', vi: 'quá hạn', zh: 'удирдлага', mn: 'хугацаа хэтэрсэн', en: 'overdue', ja: '延滞', ko: '연체' },
-  '제한': { ru: 'ограничение', vi: 'giới hạn', zh: '限制', mn: 'хязгаарлах', en: 'restrict', ja: '制限', ko: '제한' }
-};
+import { translateSourceText } from '../utils/translationHelper';
 
 export default function WebNoticePage() {
   const [selectedLang, setSelectedLang] = useState('ru');
@@ -34,6 +14,12 @@ export default function WebNoticePage() {
   );
   
   const [loading, setLoading] = useState(false);
+  const [translatedText, setTranslatedText] = useState('');
+  const [summary, setSummary] = useState({
+    dates: ['2026년 7월 30일(목) 09:00'],
+    items: ['실내화', '개인 텀블러', '도시락'],
+    deadlines: ['2026년 7월 28일(화) 17:00까지 제출'],
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -77,35 +63,31 @@ export default function WebNoticePage() {
     return { dates, items, deadlines };
   };
 
-  const getNoticeTranslation = (text: string, lang: string): string => {
-    if (lang === 'ko') {
-      return text;
+  const updateNoticeData = async (text: string, lang: string) => {
+    setLoading(true);
+    // Parse summary instantly
+    const parsed = getParsedSummary(text);
+    setSummary(parsed);
+
+    // Translate notice text asynchronously
+    try {
+      const translated = await translateSourceText(text, lang);
+      setTranslatedText(translated);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
     }
-
-    let result = text;
-    const placeholders: Record<string, string> = {};
-    let placeholderCounter = 0;
-
-    const keys = Object.keys(DICTIONARY).sort((a, b) => b.length - a.length);
-
-    for (const key of keys) {
-      let index = result.indexOf(key);
-      while (index !== -1) {
-        const placeholder = `__TOKEN_${placeholderCounter}__`;
-        placeholders[placeholder] = DICTIONARY[key][lang] || DICTIONARY[key].ko;
-        placeholderCounter++;
-        
-        result = result.substring(0, index) + placeholder + result.substring(index + key.length);
-        index = result.indexOf(key);
-      }
-    }
-
-    for (const placeholder in placeholders) {
-      result = result.replaceAll(placeholder, placeholders[placeholder]);
-    }
-
-    return result;
   };
+
+  // Run update on source text or target language change (with 400ms debounce)
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      updateNoticeData(sourceText, selectedLang);
+    }, 400);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [sourceText, selectedLang]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -118,13 +100,9 @@ export default function WebNoticePage() {
         } else {
           setSourceText('[현장체험학습 안내장]\n7월 30일(목) 현장체험학습이 실시됩니다. 학생들은 실내화, 개인 텀블러, 도시락을 지참하여 오전 9시까지 등교해 주시기 바랍니다. 신청서 제출 기한은 7월 28일(화) 17:00까지입니다.');
         }
-        setLoading(false);
       }, 600);
     }
   };
-
-  const summary = getParsedSummary(sourceText);
-  const translatedText = getNoticeTranslation(sourceText, selectedLang);
 
   return (
     <div className="dashboard-container" style={{ height: '100vh', overflow: 'hidden' }}>
@@ -279,7 +257,7 @@ export default function WebNoticePage() {
               </div>
               
               <button
-                onClick={() => alert('학부мо 공유용 QR 코드 링크가 생성되었습니다!')}
+                onClick={() => alert('학부모 공유용 QR 코드 링크가 생성되었습니다!')}
                 style={{ marginTop: '16px', backgroundColor: '#14B8A6', color: 'white', padding: '12px 20px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', border: 'none', flexShrink: 0 }}
               >
                 📲 학부모 공유 QR/링크 생성
