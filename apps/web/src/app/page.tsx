@@ -44,7 +44,7 @@ export default function DashboardHome() {
   const tabs = [
     { id: 'rank', label: '랭크' },
     { id: 'learning', label: '학습 도우미' },
-    { id: 'records', label: '기록' },
+    { id: 'records', label: '연습 & 기록' },
     { id: 'settings', label: '설정' },
   ];
 
