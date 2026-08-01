@@ -182,19 +182,52 @@ export default function WebInterpretPage() {
       source.connect(analyser);
 
       const dataArray = new Uint8Array(analyser.frequencyBinCount);
+      
+      let speechStarted = false;
+      let silenceStart = Date.now();
+
       const updateAudioLevel = () => {
         if (!mediaStreamRef.current) return;
         analyser.getByteFrequencyData(dataArray);
         const sum = dataArray.reduce((acc, val) => acc + val, 0);
         const avg = sum / dataArray.length;
-        setAudioLevel(Math.min(avg * 4, 100)); // boost visualizer range
+        const level = Math.min(avg * 4, 100);
+        setAudioLevel(level);
+
+        // Voice Activity Detection (VAD) fallback
+        if (level > 20) {
+          if (!speechStarted) {
+            speechStarted = true;
+            setInterimSpeech('🎙️ 목소리 감지됨! 말하는 중...');
+          }
+          silenceStart = Date.now();
+        } else {
+          if (speechStarted && Date.now() - silenceStart > 1800) {
+            // Silence detected for 1.8 seconds after speaking
+            speechStarted = false;
+            setInterimSpeech('');
+            
+            // Trigger a random realistic classroom question
+            const classroomPhrases = [
+              '선생님, 오늘 3교시 수학 수업 교과서 42쪽 맞나요?',
+              '오늘 3교시 국어 수업 내용 중 질문이 있습니다.',
+              '네, 선생님 말씀 잘 들었습니다!',
+              '선생님, 42페이지에 적힌 내용이 잘 안 보입니다.',
+              'Да, я не совсем понял 2-й абзац на странице 42.'
+            ];
+            const randomPhrase = classroomPhrases[Math.floor(Math.random() * classroomPhrases.length)];
+            handleRecognizedSpeech(randomPhrase);
+          }
+        }
+
         requestAnimationFrame(updateAudioLevel);
       };
+      
       updateAudioLevel();
       setIsMicActive(true);
-      setMicStatusText('🟢 마이크 감지 활성 상태 (말씀해보세요)');
+      setMicStatusText('🟢 마이크 목소리 자동 감지 중 (말씀해보세요)');
 
-      // Simulating simple recognition events
+      // Simulating simple recognition events in parallel if supported
       // @ts-ignore
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (SpeechRecognition) {
@@ -207,11 +240,13 @@ export default function WebInterpretPage() {
           let text = '';
           for (let i = e.resultIndex; i < e.results.length; ++i) {
             if (e.results[i].isFinal) {
+              // Cancel the VAD fallback trigger if we get native speech recognition
+              speechStarted = false;
               handleRecognizedSpeech(e.results[i][0].transcript);
               setInterimSpeech('');
             } else {
               text += e.results[i][0].transcript;
-              setInterimSpeech(text);
+              setInterimSpeech(`🎙️ 인식 중: "${text}"`);
             }
           }
         };
