@@ -17,6 +17,9 @@ export default function DashboardHome() {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<UserProfile>(getCurrentUser());
   const [activeTab, setActiveTab] = useState<TabId>('rank');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isConsoleExpanded, setIsConsoleExpanded] = useState(false);
+  const [isInfoExpanded, setIsInfoExpanded] = useState(false);
 
   useEffect(() => {
     setCurrentUser(getCurrentUser());
@@ -54,10 +57,10 @@ export default function DashboardHome() {
       <SidebarNav />
 
       {/* Main Content Area — 100% Zero Page Scroll */}
-      <main className="main-content" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '20px 28px', backgroundColor: '#F8FAFC' }}>
+      <main className="main-content" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '20px 28px', backgroundColor: isDarkMode ? '#0F172A' : '#F8FAFC', transition: 'background-color 0.2s ease' }}>
         
         {/* Top Header Card */}
-        <div className="header-bar" style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'white', padding: '16px 24px', borderRadius: '18px', marginBottom: '20px', boxShadow: 'var(--shadow-soft)' }}>
+        <div className="header-bar" style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: isDarkMode ? '#1E293B' : 'white', border: isDarkMode ? '2px solid #334155' : 'none', padding: '16px 24px', borderRadius: '18px', marginBottom: '20px', boxShadow: isDarkMode ? 'none' : 'var(--shadow-soft)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
             <RankSVGIcon
               tierGroup={currentRank.tierGroup as any}
@@ -66,13 +69,13 @@ export default function DashboardHome() {
             />
 
             <div>
-              <h1 style={{ fontSize: '22px', fontWeight: '900', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h1 style={{ fontSize: '22px', fontWeight: '900', color: isDarkMode ? '#F1F5F9' : '#0F172A', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 {currentUser.name.replace(/[()]/g, '')}님 환영합니다! 👋
                 <span style={{ fontSize: '14px', fontWeight: '800', color: currentRank.color, background: currentRank.bgColor, border: `1px solid ${currentRank.color}`, padding: '3px 10px', borderRadius: '10px' }}>
                   {currentRank.name} [{currentUser.points} pt]
                 </span>
               </h1>
-              <p style={{ fontSize: '13px', color: '#6B7280', margin: '2px 0 0 0' }}>
+              <p style={{ fontSize: '13px', color: isDarkMode ? '#94A3B8' : '#6B7280', margin: '2px 0 0 0' }}>
                 언어 장벽 없이 자유롭게 학습하고, 단원 학습을 마치고 10문항 성취도 평가를 풀어 랭크를 올려보세요.
               </p>
             </div>
@@ -99,9 +102,9 @@ export default function DashboardHome() {
                 onClick={() => setActiveTab(tab.id as TabId)}
                 style={{
                   backgroundColor: 'transparent',
-                  border: isActive ? '3.5px solid #00A3FF' : '3.5px solid #000000',
+                  border: isActive ? '3.5px solid #00A3FF' : (isDarkMode ? '3.5px solid #475569' : '3.5px solid #000000'),
                   borderRadius: '24px',
-                  color: isActive ? '#00A3FF' : '#000000',
+                  color: isActive ? '#00A3FF' : (isDarkMode ? '#94A3B8' : '#000000'),
                   padding: '10px 32px',
                   fontSize: '24px',
                   fontWeight: '900',
@@ -395,81 +398,196 @@ export default function DashboardHome() {
 
           {/* TAB 4: 설정 (Settings) */}
           {activeTab === 'settings' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', flex: 1, maxHeight: '360px' }}>
-              {/* Teacher Console RAG */}
-              <div
-                onClick={() => router.push('/admin')}
-                style={{
-                  backgroundColor: 'white',
-                  borderRadius: '24px',
-                  boxShadow: 'var(--shadow-soft)',
-                  border: '1.5px solid #E2E8F0',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '32px',
-                  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-4px)';
-                  e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.08)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = 'var(--shadow-soft)';
-                }}
-              >
-                <div style={{ position: 'relative', width: '100px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
-                  <div style={{ width: '70px', height: '80px', backgroundColor: '#EEF2FF', border: '3px solid #4F46E5', borderRadius: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ fontSize: '36px' }}>👨‍🏫</span>
-                  </div>
-                </div>
-                <h3 style={{ fontSize: '28px', fontWeight: '900', color: '#0F172A', margin: 0 }}>교사 콘솔</h3>
-                <p style={{ fontSize: '14px', color: '#6B7280', marginTop: '6px', textAlign: 'center' }}>교안 파일 업로드 및 학생 콘텐츠 관리</p>
-              </div>
-
-              {/* User Session card */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: 1 }}>
+              
+              {/* Row 1: 다크 모드 */}
               <div
                 style={{
-                  backgroundColor: 'white',
+                  backgroundColor: isDarkMode ? '#1E293B' : 'white',
                   borderRadius: '24px',
-                  boxShadow: 'var(--shadow-soft)',
-                  border: '1.5px solid #E2E8F0',
-                  padding: '32px',
+                  boxShadow: isDarkMode ? 'none' : 'var(--shadow-soft)',
+                  border: isDarkMode ? '2.5px solid #475569' : '2.5px solid #000000',
+                  padding: '20px 36px',
                   display: 'flex',
-                  flexDirection: 'column',
+                  justifyContent: 'space-between',
                   alignItems: 'center',
-                  justifyContent: 'center',
                 }}
               >
-                <div style={{ position: 'relative', width: '100px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
-                  <div style={{ width: '70px', height: '80px', backgroundColor: '#F8FAFC', border: '3px solid #475569', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-                    <span style={{ fontSize: '36px' }}>👤</span>
-                    <div style={{ position: 'absolute', bottom: '2px', right: '2px', fontSize: '14px' }}>⚙️</div>
-                  </div>
-                </div>
-                <h3 style={{ fontSize: '28px', fontWeight: '900', color: '#0F172A', margin: 0 }}>내 정보 & 설정</h3>
-                <div style={{ fontSize: '14px', color: '#334155', lineHeight: '1.8', textAlign: 'center', marginTop: '8px', marginBottom: '12px' }}>
-                  👤 이름: {currentUser.name.replace(/[()]/g, '')} | ✉️ 이메일: {currentUser.email}
-                </div>
-                <button
-                  onClick={handleLogout}
+                <span style={{ fontSize: '32px', fontWeight: '900', color: isDarkMode ? '#F1F5F9' : '#000000' }}>다크 모드</span>
+                
+                {/* On/Off Switch */}
+                <div
+                  onClick={() => setIsDarkMode(!isDarkMode)}
                   style={{
-                    backgroundColor: '#EF4444',
-                    color: 'white',
-                    padding: '8px 24px',
-                    borderRadius: '12px',
-                    fontWeight: '800',
-                    border: 'none',
+                    width: '80px',
+                    height: '40px',
+                    borderRadius: '20px',
+                    border: '3px solid #000000',
+                    backgroundColor: isDarkMode ? '#00A3FF' : '#C5C5C5',
+                    position: 'relative',
                     cursor: 'pointer',
-                    fontSize: '13px',
+                    transition: 'background-color 0.2s ease',
                   }}
                 >
-                  🚪 로그아웃 실행
-                </button>
+                  <div
+                    style={{
+                      width: '30px',
+                      height: '30px',
+                      borderRadius: '50%',
+                      border: '3px solid #000000',
+                      backgroundColor: '#FFFFFF',
+                      position: 'absolute',
+                      top: '2px',
+                      left: isDarkMode ? '42px' : '2px',
+                      transition: 'left 0.2s ease',
+                    }}
+                  />
+                </div>
               </div>
+
+              {/* Row 2: 교사 콘솔 */}
+              <div>
+                <div
+                  onClick={() => setIsConsoleExpanded(!isConsoleExpanded)}
+                  style={{
+                    backgroundColor: isDarkMode ? '#1E293B' : 'white',
+                    borderRadius: '24px',
+                    boxShadow: isDarkMode ? 'none' : 'var(--shadow-soft)',
+                    border: isDarkMode ? '2.5px solid #475569' : '2.5px solid #000000',
+                    padding: '20px 36px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span style={{ fontSize: '32px', fontWeight: '900', color: isDarkMode ? '#F1F5F9' : '#000000' }}>교사 콘솔</span>
+                  <span
+                    style={{
+                      fontSize: '36px',
+                      fontWeight: '900',
+                      color: isDarkMode ? '#F1F5F9' : '#000000',
+                      transform: isConsoleExpanded ? 'rotate(180deg)' : 'none',
+                      transition: 'transform 0.2s ease',
+                    }}
+                  >
+                    ∨
+                  </span>
+                </div>
+
+                {isConsoleExpanded && (
+                  <div
+                    style={{
+                      backgroundColor: isDarkMode ? '#0F172A' : '#F8FAFC',
+                      border: isDarkMode ? '2px solid #334155' : '1.5px solid #E2E8F0',
+                      borderRadius: '24px',
+                      padding: '24px 36px',
+                      marginTop: '8px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <div>
+                      <h4 style={{ fontSize: '18px', fontWeight: '900', color: isDarkMode ? '#F1F5F9' : '#0F172A', margin: 0 }}>👨‍🏫 교사용 RAG 관리자 대시보드</h4>
+                      <p style={{ fontSize: '14px', color: isDarkMode ? '#94A3B8' : '#64748B', marginTop: '6px', marginBottom: 0 }}>
+                        교안 자료(PDF) 파일을 업로드하여 AI 인물 인터뷰의 지식 범위를 학습 및 관리합니다.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => router.push('/admin')}
+                      style={{
+                        backgroundColor: '#4F46E5',
+                        color: 'white',
+                        border: 'none',
+                        padding: '12px 24px',
+                        borderRadius: '12px',
+                        fontWeight: '800',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      교사 콘솔 이동 ➔
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Row 3: 내 정보 */}
+              <div>
+                <div
+                  onClick={() => setIsInfoExpanded(!isInfoExpanded)}
+                  style={{
+                    backgroundColor: isDarkMode ? '#1E293B' : 'white',
+                    borderRadius: '24px',
+                    boxShadow: isDarkMode ? 'none' : 'var(--shadow-soft)',
+                    border: isDarkMode ? '2.5px solid #475569' : '2.5px solid #000000',
+                    padding: '20px 36px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span style={{ fontSize: '32px', fontWeight: '900', color: isDarkMode ? '#F1F5F9' : '#000000' }}>내 정보</span>
+                  <span
+                    style={{
+                      fontSize: '36px',
+                      fontWeight: '900',
+                      color: isDarkMode ? '#F1F5F9' : '#000000',
+                      transform: isInfoExpanded ? 'rotate(180deg)' : 'none',
+                      transition: 'transform 0.2s ease',
+                    }}
+                  >
+                    ∨
+                  </span>
+                </div>
+
+                {isInfoExpanded && (
+                  <div
+                    style={{
+                      backgroundColor: isDarkMode ? '#0F172A' : '#F8FAFC',
+                      border: isDarkMode ? '2px solid #334155' : '1.5px solid #E2E8F0',
+                      borderRadius: '24px',
+                      padding: '24px 36px',
+                      marginTop: '8px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: '15px', color: isDarkMode ? '#E2E8F0' : '#334155', lineHeight: '2.0' }}>
+                        👤 <strong>이름:</strong> {currentUser.name.replace(/[()]/g, '')}
+                      </div>
+                      <div style={{ fontSize: '15px', color: isDarkMode ? '#E2E8F0' : '#334155', lineHeight: '2.0' }}>
+                        ✉️ <strong>이메일:</strong> {currentUser.email}
+                      </div>
+                      <div style={{ fontSize: '15px', color: isDarkMode ? '#E2E8F0' : '#334155', lineHeight: '2.0' }}>
+                        🏆 <strong>현재 등급:</strong> {currentRank.name} ({currentUser.points} pt)
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleLogout}
+                      style={{
+                        backgroundColor: '#EF4444',
+                        color: 'white',
+                        padding: '12px 24px',
+                        borderRadius: '12px',
+                        fontWeight: '800',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      🚪 로그아웃 실행
+                    </button>
+                  </div>
+                )}
+              </div>
+
             </div>
           )}
 
