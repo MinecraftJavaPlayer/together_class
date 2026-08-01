@@ -31,9 +31,45 @@ export default function WebDebatePage() {
     setIsDarkMode(localStorage.getItem('dahamkke_dark_mode') === 'true');
   }, []);
 
+  const getDebateResponse = (query: string): { textKo: string; textUser: string; sources: string[] } => {
+    const normQuery = query.toLowerCase();
+    
+    if (normQuery.includes('찬성') || normQuery.includes('법') || normQuery.includes('금지') || normQuery.includes('동의') || normQuery.includes('맞아') || normQuery.includes('필요')) {
+      return {
+        textKo: '일회용품을 법으로 강력히 금지해야 한다는 네 말에 정말 깊이 동의해! 국어 6-1 토론 단원에서도 쓰레기 매립 부족 문제와 미세 플라스틱으로 인한 동물 피해의 대안으로 규제 강화가 언급되거든. 그렇다면 종이 빨대나 텀블러 같은 대체품 사용을 더 의무화해야 할까?',
+        textUser: 'Я полностью согласен с тем, что пластик должен быть запрещен законом! Должны ли мы сделать использование многоразовых стаканов обязательным?',
+        sources: ['국어 6-1 (가) 1단원 (비판적 사고와 토론) 3문단'],
+      };
+    }
+    
+    if (normQuery.includes('반대') || normQuery.includes('불편') || normQuery.includes('힘들') || normQuery.includes('비싸') || normQuery.includes('상인') || normQuery.includes('부담')) {
+      return {
+        textKo: '일회용품 규제가 자영업자와 일반 시민에게 주는 과도한 불편함과 비용 부담도 간과해서는 안 돼. 사회 6-2 환경 교과서에서도 상생과 경제적 실용성을 균형 있게 다루고 있거든. 규제보다는 스스로 일회용품을 줄일 때 혜택을 주는 인센티브 제도가 더 효과적일까?',
+        textUser: 'Мы также не должны игнорировать неудобства и финансовое бремя для бизнеса. Будет ли система поощрений лучше, чем запреты?',
+        sources: ['사회 6-2 2단원 (환경 문제와 상생) 5문단'],
+      };
+    }
+    
+    if (normQuery.includes('해결') || normQuery.includes('대안') || normQuery.includes('방법') || normQuery.includes('생각') || normQuery.includes('의견')) {
+      return {
+        textKo: '양측의 절충안으로, 친환경 생분해 플라스틱 기술 개발에 정부가 적극적으로 보조금을 지급하고 분리배출 인프라를 대폭 개선하는 방법을 생각해볼 수 있어. 교과서에서도 자원 순환 경제를 모범 대안으로 꼽았거든. 이에 대해 추가적인 의견이 있니?',
+        textUser: 'В качестве компромисса правительство могло бы субсидировать биоразлагаемые технологии. Есть ли у тебя дополнительные мысли на этот счет?',
+        sources: ['사회 6-2 2단원 (자원 순환과 환경 기술) 6문단'],
+      };
+    }
+
+    return {
+      textKo: `흥미로운 의견 고마워! 교과서 토론 지문에 따르면 일회용품 법적 규제는 환경 보존과 경제적 편의라는 두 가치가 충돌하는 대표적 쟁점이야. 네 생각은 환경 보존과 경제 활성화 중 어느 쪽에 더 가깝니?`,
+      textUser: `Интересное мнение. Твоя идея ближе к сохранению окружающей среды или к экономическому удобству?`,
+      sources: ['국어 6-1 (가) 1단원 요약'],
+    };
+  };
+
   const handleSend = (textToSend?: string) => {
     const msg = textToSend || inputText;
     if (!msg) return;
+
+    const res = getDebateResponse(msg);
 
     setMessages((prev) => [
       ...prev,
@@ -41,9 +77,9 @@ export default function WebDebatePage() {
       {
         id: (Date.now() + 1).toString(),
         sender: 'ai',
-        textKo: `좋은 의견이야! 국어 교과서 지문(사회 6-2 2단원 4문단)에서도 일회용품 줄이기 운동의 중요성을 강조했어. "${msg}"라고 생각한 이유를 더 들어줄 수 있니?`,
-        textUser: `Отличное мнение! Можешь приписать еще одно основание?`,
-        sources: ['사회 6-2 2단원 (환경 문제) 4문단'],
+        textKo: res.textKo,
+        textUser: res.textUser,
+        sources: res.sources,
       },
     ]);
     setInputText('');

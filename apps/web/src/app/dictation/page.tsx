@@ -51,7 +51,7 @@ export default function WebDictationPage() {
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 0 }}>
           <div style={{ background: 'var(--card-bg)', border: '1.5px solid var(--border-color)', padding: '32px', borderRadius: '16px', width: '100%', maxWidth: '600px', boxShadow: 'var(--shadow-soft)', textAlign: 'center' }}>
             <div style={{ fontSize: '14px', fontWeight: '800', color: '#F59E0B', marginBottom: '8px' }}>
-              단어 {wordIdx + 1} / {PRACTICE_WORDS.length} (의미: {current.meaning})
+              단어 {wordIdx + 1} / {PRACTICE_WORDS.length}
             </div>
 
             <button

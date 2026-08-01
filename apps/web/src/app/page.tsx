@@ -267,7 +267,7 @@ export default function WebDashboard() {
 
           {/* TAB 2: 학습 (Learning) */}
           {activeTab === 'learning' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '24px', flex: 1, maxHeight: '360px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '24px', flex: 1, maxHeight: '360px' }}>
               {[
                 {
                   title: '교과서 번역',
@@ -289,6 +289,18 @@ export default function WebDashboard() {
                     <div style={{ position: 'relative', width: '100px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
                       <div style={{ width: '60px', height: '60px', borderRadius: '16px', backgroundColor: '#FFE4E6', border: '3px solid #F43F5E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <span style={{ fontSize: '32px' }}>🎙️</span>
+                      </div>
+                    </div>
+                  )
+                },
+                {
+                  title: '토론 친구',
+                  desc: 'AI 민준이와 함께 교과서 내용 토론하기',
+                  href: '/debate',
+                  icon: (
+                    <div style={{ position: 'relative', width: '100px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
+                      <div style={{ width: '60px', height: '60px', borderRadius: '16px', backgroundColor: '#EFF6FF', border: '3px solid #3B82F6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <span style={{ fontSize: '32px' }}>💬</span>
                       </div>
                     </div>
                   )

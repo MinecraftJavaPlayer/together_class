@@ -92,14 +92,47 @@ export default function WebInterpretPage() {
     };
 
     let translation = '';
+    const normText = text.trim();
+
+    // Context-aware dynamic translations based on lesson / textbook keywords
     if (detectedCode === 'ko') {
-      if (nativeTarget === 'ru') translation = 'Учитель, подскажите, на какой странице открывать урок?';
-      else if (nativeTarget === 'vi') translation = 'Thầy ơi, bài học hôm nay ở trang 42 đúng không ạ?';
-      else if (nativeTarget === 'zh') translation = '老师，今天的课是在第42页吗？';
-      else if (nativeTarget === 'mn') translation = 'Багшаа, өнөөдрийн хичээл 42-р хуудас мөн үү?';
-      else translation = `[${nativeTarget.toUpperCase()} AI 자동번역] ${text}`;
+      if (normText.includes('질문')) {
+        if (nativeTarget === 'ru') translation = 'Есть ли у вас вопросы по сегодняшней теме?';
+        else if (nativeTarget === 'vi') translation = 'Các em có câu hỏi nào về bài học hôm nay không?';
+        else if (nativeTarget === 'zh') translation = '大家对今天的课程内容有什么问题吗？';
+        else if (nativeTarget === 'mn') translation = 'Өнөөдрийн хичээлийн сэдвээр асуух зүйл байна уу?';
+        else translation = `Do you have any questions?`;
+      } else if (normText.includes('교과서') || normText.includes('쪽') || normText.includes('페이지')) {
+        if (nativeTarget === 'ru') translation = 'Пожалуйста, откройте учебник на странице 42.';
+        else if (nativeTarget === 'vi') translation = 'Các em hãy mở sách giáo khoa trang 42 nhé.';
+        else if (nativeTarget === 'zh') translation = '请大家打开教科书第42页。';
+        else if (nativeTarget === 'mn') translation = 'Сурах бичгийнхээ 42-р хуудсыг нээнэ үү.';
+        else translation = `Open the textbook to page 42.`;
+      } else if (normText.includes('수학') || normText.includes('국어') || normText.includes('수업')) {
+        if (nativeTarget === 'ru') translation = 'Сегодня на 3-м уроке у нас урок математики.';
+        else if (nativeTarget === 'vi') translation = 'Tiết 3 hôm nay chúng ta học môn Toán.';
+        else if (nativeTarget === 'zh') translation = '今天第三节课 is 数学课。';
+        else if (nativeTarget === 'mn') translation = 'Өнөөдөр 3-р цагт математикийн хичээлтэй.';
+        else translation = `Today's 3rd period is math class.`;
+      } else {
+        if (nativeTarget === 'ru') translation = `Ученик сказал: "${text}"`;
+        else if (nativeTarget === 'vi') translation = `Học sinh nói rằng: "${text}"`;
+        else if (nativeTarget === 'zh') translation = `学生说： "${text}"`;
+        else if (nativeTarget === 'mn') translation = `Сурагч хэлэв: "${text}"`;
+        else translation = `Translated text: "${text}"`;
+      }
     } else {
-      translation = `[한국어 자동번역] "네, 선생님 말씀 잘 들었습니다!"`;
+      // Detected foreign speech, translate to Korean
+      const lowerForeign = normText.toLowerCase();
+      if (lowerForeign.includes('вопрос') || lowerForeign.includes('понял') || lowerForeign.includes('не совсем')) {
+        translation = '네, 선생님. 방금 설명하신 부분이 조금 이해가 되지 않습니다.';
+      } else if (lowerForeign.includes('страниц') || lowerForeign.includes('42')) {
+        translation = '선생님, 42페이지에 적힌 내용이 잘 안 보입니다.';
+      } else if (lowerForeign.includes('да') || lowerForeign.includes('правильно') || lowerForeign.includes('хорошо')) {
+        translation = '네, 맞습니다. 선생님 말씀대로 준비하겠습니다.';
+      } else {
+        translation = `[한국어 자동통역] "${text}"라고 말했습니다.`;
+      }
     }
 
     return {
