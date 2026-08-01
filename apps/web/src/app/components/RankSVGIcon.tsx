@@ -1,6 +1,6 @@
 import React from 'react';
 
-type TierGroup = 'bronze' | 'silver' | 'gold' | 'diamond' | 'master';
+type TierGroup = 'bronze' | 'silver' | 'gold' | 'diamond' | 'master' | 'grandmaster';
 
 interface Props {
   tierGroup: TierGroup;
@@ -32,12 +32,13 @@ export function RankSVGIcon({ tierGroup, subTier = '1', size = 64 }: Props) {
     gold:    { main: '#F4C542', light: '#FFE180', dark: '#B8860B', accent: '#FFF3C4' },
     diamond: { main: '#38BDF8', light: '#A5E3FF', dark: '#0369A1', accent: '#E0F7FF' },
     master:  { main: '#C084FC', light: '#E9D5FF', dark: '#6B21A8', accent: '#FAF5FF' },
+    grandmaster: { main: '#FF0000', light: '#FF6666', dark: '#990000', accent: '#FFCCCC' },
   };
   const c = colors[tierGroup];
 
   // Decoration levels: bronze=1, silver=2, gold=3, diamond=4, master=5
   const tierDecoration: Record<TierGroup, number> = {
-    bronze: 1, silver: 2, gold: 3, diamond: 4, master: 5,
+    bronze: 1, silver: 2, gold: 3, diamond: 4, master: 5, grandmaster: 6,
   };
   const decorLevel = tierDecoration[tierGroup] + (sub - 1);
 

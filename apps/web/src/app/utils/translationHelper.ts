@@ -101,3 +101,75 @@ export async function translateSourceText(text: string, target: string): Promise
 
   return result;
 }
+
+export function speakText(text: string, lang: string) {
+  if (typeof window === 'undefined' || !window.speechSynthesis) {
+    alert('이 브라우저는 음성 합성(TTS)을 지원하지 않습니다.');
+    return;
+  }
+
+  try {
+    // 1. Cancel any active speech safely
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+    }
+
+    // 2. Clean text from prefix tag like [RU 번역 결과]
+    const cleanText = text.replace(/^\[.*?\]\n/, '').trim();
+    if (!cleanText) return;
+
+    // 3. Create utterance
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+
+    // 4. Map language codes to BCP 47 locales
+    const localeMap: Record<string, string> = {
+      ru: 'ru-RU',
+      vi: 'vi-VN',
+      zh: 'zh-CN',
+      mn: 'mn-MN',
+      en: 'en-US',
+      ja: 'ja-JP',
+      ko: 'ko-KR',
+    };
+    const targetLocale = localeMap[lang] || 'en-US';
+    utterance.lang = targetLocale;
+
+    // 5. Try to find a matching voice explicitly from the system
+    const voices = window.speechSynthesis.getVoices();
+    let selectedVoice = voices.find(v => v.lang === targetLocale || v.lang.startsWith(lang + '-'));
+    
+    // Fallback search if exact locale matches aren't found
+    if (!selectedVoice) {
+      selectedVoice = voices.find(v => v.lang.toLowerCase().includes(lang));
+    }
+    
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+      console.log(`TTS Voice selected: ${selectedVoice.name} (${selectedVoice.lang})`);
+    } else {
+      console.warn(`No explicit system voice found for lang "${lang}". Falling back to browser default.`);
+    }
+
+    utterance.rate = 0.95; // slightly slower for educational clarity
+    utterance.pitch = 1.0;
+
+    // 6. Monitor events
+    utterance.onstart = () => {
+      console.log('TTS Reading started for text:', cleanText);
+    };
+    utterance.onerror = (e) => {
+      console.error('TTS Reading error:', e);
+      // Fallback: If TTS error occurs (e.g. voice missing), try speaking with default voice
+      if (utterance.voice) {
+        console.log('Retrying TTS with default browser voice...');
+        const retryUtterance = new SpeechSynthesisUtterance(cleanText);
+        retryUtterance.rate = 0.95;
+        window.speechSynthesis.speak(retryUtterance);
+      }
+    };
+
+    window.speechSynthesis.speak(utterance);
+  } catch (err) {
+    console.error('TTS speakText crashed:', err);
+  }
+}

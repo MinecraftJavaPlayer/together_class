@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { LANGUAGE_LIST } from '@dahamkke/shared';
 import { SidebarNav } from '../components/SidebarNav';
-import { translateSourceText } from '../utils/translationHelper';
+import { translateSourceText, speakText } from '../utils/translationHelper';
 
 export default function WebNoticePage() {
   const [selectedLang, setSelectedLang] = useState('ru');
@@ -337,26 +337,7 @@ export default function WebNoticePage() {
 
                 {translatedText && (
                   <button
-                    onClick={() => {
-                      if (!window.speechSynthesis) {
-                        alert('이 브라우저는 음성 합성(TTS)을 지원하지 않습니다.');
-                        return;
-                      }
-                      window.speechSynthesis.cancel();
-                      const cleanText = translatedText.replace(/^\[.*?\]\n/, '');
-                      const utterance = new SpeechSynthesisUtterance(cleanText);
-                      const localeMap: Record<string, string> = {
-                        ru: 'ru-RU',
-                        vi: 'vi-VN',
-                        zh: 'zh-CN',
-                        mn: 'mn-MN',
-                        en: 'en-US',
-                        ja: 'ja-JP',
-                        ko: 'ko-KR',
-                      };
-                      utterance.lang = localeMap[selectedLang] || 'en-US';
-                      window.speechSynthesis.speak(utterance);
-                    }}
+                    onClick={() => speakText(translatedText, selectedLang)}
                     style={{
                       flex: 1,
                       backgroundColor: '#3B82F6',

@@ -1,5 +1,6 @@
 import './globals.css';
 import React from 'react';
+import { ThemeWatcher } from './components/ThemeWatcher';
 
 export const metadata = {
   title: '다함께교실 (Dahamkke Classroom)',
@@ -34,7 +35,10 @@ export default function RootLayout({
           } catch (e) {}
         ` }} />
       </head>
-      <body>{children}</body>
+      <body>
+        <ThemeWatcher />
+        {children}
+      </body>
     </html>
   );
 }

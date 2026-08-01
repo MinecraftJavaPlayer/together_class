@@ -184,7 +184,7 @@ export default function WebEvaluationQuizPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
             <RankSVGIcon tierGroup={currentRank.tierGroup as any} subTier={currentRank.subTier || '1'} size={64} />
             <div>
-              <h3 style={{ fontSize: '22px', fontWeight: '900', color: currentRank.color, margin: 0 }}>현재 티어: {currentRank.name}</h3>
+              <h3 style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-muted)', margin: 0 }}>현재 티어: {currentRank.name}</h3>
               <p style={{ fontSize: '14px', color: 'var(--text-muted)', margin: '4px 0 0 0', fontWeight: '800' }}>학생: {currentUser.name} | 누적 포인트: {currentUser.points} pt (매월 1일 초기화)</p>
             </div>
           </div>
@@ -381,22 +381,20 @@ export default function WebEvaluationQuizPage() {
                 }}
               >
                 {/* Large Simple SVG Rank Icon */}
-                <div style={{ display: 'inline-block', marginBottom: '20px', filter: `drop-shadow(0 0 20px ${currentRank.color}90)` }}>
+                <div style={{ display: 'inline-block', marginBottom: '20px', filter: `drop-shadow(0 0 20px var(--text-muted)90)` }}>
                   <RankSVGIcon
                     tierGroup={currentRank.tierGroup as any}
                     subTier={currentRank.subTier || '1'}
-                    size={130}
+                    size={64}
                   />
                 </div>
-
-                {/* Rank Name Only */}
-                <div style={{ fontSize: '28px', fontWeight: '900', color: currentRank.color, marginBottom: '24px' }}>
+                <div style={{ fontSize: '28px', fontWeight: '900', color: 'var(--text-muted)', marginBottom: '24px' }}>
                   {currentRank.name}
                 </div>
-
-                {/* Rank Progress Bar (SVG icon → bar → SVG icon) — Longer bar */}
-                <div
-                  style={{
+                <span style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                  {currentRank.name}
+                </span>
+                <div style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '16px',
@@ -407,7 +405,7 @@ export default function WebEvaluationQuizPage() {
                   {/* Current Rank SVG + Name */}
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                     <RankSVGIcon tierGroup={currentRank.tierGroup as any} subTier={currentRank.subTier || '1'} size={48} />
-                    <span style={{ fontSize: '13px', fontWeight: '800', color: currentRank.color, whiteSpace: 'nowrap' }}>{currentRank.name}</span>
+                     <span style={{ fontSize: '13px', fontWeight: '800', color: currentRank.color, whiteSpace: 'nowrap' }}>{currentRank.name}</span>
                   </div>
 
                   {/* Track — takes up all available width */}

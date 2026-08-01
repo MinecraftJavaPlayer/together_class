@@ -83,8 +83,8 @@ export default function WebDashboard() {
     }
   };
 
-  const currentRank = getUserRank(currentUser);
-  const isQuizUnlocked = isAllLearningCompleted(currentUser);
+  const currentRank = currentUser ? getUserRank(currentUser) : { name: '브론즈 1', tierGroup: 'bronze', subTier: '1', minPoints: 0, maxPoints: 19, bgColor: '#FEF3C7', color: '#CD7F32' };
+  const isQuizUnlocked = currentUser ? isAllLearningCompleted(currentUser) : false;
 
   const tabs = [
     { id: 'rank', label: '랭크' },
@@ -111,10 +111,10 @@ export default function WebDashboard() {
 
             <div>
               <h1 style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}>
-                {currentUser.name.replace(/[()]/g, '')}님 환영합니다! 👋
-                <span style={{ fontSize: '14px', fontWeight: '800', color: currentRank.color, background: currentRank.bgColor, border: `1px solid ${currentRank.color}`, padding: '3px 10px', borderRadius: '10px' }}>
-                  {currentRank.name} [{currentUser.points} pt]
-                </span>
+                {currentUser?.name ? currentUser.name.replace(/[()]/g, '') : '로딩 중...'}님 환영합니다!
+                  <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-muted)', background: currentRank.bgColor, border: `1px solid ${currentRank.color}`, padding: '3px 10px', borderRadius: '10px' }}>
+                    {currentRank.name} [{currentUser?.points ?? 0} pt]
+                  </span>
               </h1>
               <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
                 언어 장벽 없이 자유롭게 학습하고, 단원 학습을 마치고 10문항 성취도 평가를 풀어 랭크를 올려보세요.

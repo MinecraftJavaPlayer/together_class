@@ -7,7 +7,7 @@ export interface RankTier {
   color: string;
   bgColor: string;
   icon: string;
-  tierGroup: 'bronze' | 'silver' | 'gold' | 'diamond' | 'master';
+  tierGroup: 'bronze' | 'silver' | 'gold' | 'diamond' | 'master' | 'grandmaster';
 }
 
 export const RANK_TIERS: RankTier[] = [
@@ -27,7 +27,8 @@ export const RANK_TIERS: RankTier[] = [
   { id: 'diamond-2', name: '다이아 2', subTier: '2', minPoints: 2500, maxPoints: 3499, color: '#0891B2', bgColor: '#ECFEFF', icon: '💎', tierGroup: 'diamond' },
   { id: 'diamond-3', name: '다이아 3', subTier: '3', minPoints: 3500, maxPoints: 4999, color: '#0E7490', bgColor: '#ECFEFF', icon: '💎', tierGroup: 'diamond' },
 
-  { id: 'master', name: '마스터', subTier: 'MAX', minPoints: 5000, maxPoints: Infinity, color: '#8B5CF6', bgColor: '#F3E8FF', icon: '👑', tierGroup: 'master' },
+  { id: 'master', name: '마스터', subTier: 'MAX', minPoints: 5000, maxPoints: 9999, color: '#8B5CF6', bgColor: '#F3E8FF', icon: '👑', tierGroup: 'master' },
+  { id: 'grandmaster', name: '그랜드마스터', subTier: 'MAX', minPoints: 10000, maxPoints: Infinity, color: '#FF0000', bgColor: '#FFE5E5', icon: '👑', tierGroup: 'grandmaster' },
 ];
 
 export function getRankByPoints(points: number): RankTier {

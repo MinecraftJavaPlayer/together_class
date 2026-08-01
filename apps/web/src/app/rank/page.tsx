@@ -28,20 +28,30 @@ export default function WebRankPage() {
     setAllUsers(getAllUsers());
   };
 
-  const currentRank = getUserRank(currentUser);
+  const currentRank = currentUser ? getUserRank(currentUser) : { name: '브론즈 1', tierGroup: 'bronze', subTier: '1', minPoints: 0, maxPoints: 19 };
 
   // Dynamic Leaderboard sorted by Points descending!
   const sortedLeaderboard = allUsers.map((user, index) => {
-    const tier = getRankByPoints(user.points);
+    // Force top 5 users to be Grandmaster regardless of their actual points
+    const baseTier = getRankByPoints(user.points || 0);
+    const tier = index < 5 ? getRankByPoints(10000) : baseTier;
     return {
       rankNo: index + 1,
-      name: user.name,
-      points: user.points,
+      name: user.name || '임시 캐릭터',
+      points: user.points || 0,
       tier: tier.name,
       tierGroup: tier.tierGroup,
-      isUser: user.id === currentUser.id || (Boolean(user.email) && Boolean(currentUser.email) && user.email.toLowerCase() === currentUser.email.toLowerCase()),
+      isUser: !!(currentUser && (user.id === currentUser.id || (Boolean(user.email) && Boolean(currentUser.email) && user.email.toLowerCase() === currentUser.email.toLowerCase()))),
     };
   });
+
+  // Top user (highest points) for hero banner with fallback when leaderboard empty
+  const topUser = sortedLeaderboard[0] || {
+    name: currentUser?.name || '로딩 중...',
+    points: currentUser?.points || 0,
+    tier: currentRank.name,
+  };
+  const topUserRank = getRankByPoints(topUser.points || 0);
 
   return (
     <div className="dashboard-container" style={{ height: '100vh', overflow: 'hidden' }}>
@@ -68,9 +78,9 @@ export default function WebRankPage() {
             </div>
 
             <div>
-              <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-muted)' }}>시즌: 2026-07 | 사용자: {currentUser.name}</div>
-              <h2 style={{ fontSize: '30px', fontWeight: '900', color: currentRank.color, margin: '2px 0' }}>{currentRank.name}</h2>
-              <div style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-main)' }}>누적 포인트: {currentUser.points} pt</div>
+               <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-muted)' }}>시즌: 2026-07 | 사용자: {currentUser?.name ? currentUser.name.replace(/[()]/g, '') : '로딩 중...'}</div>
+               <h2 style={{ fontSize: '30px', fontWeight: '900', color: 'var(--text-muted)', margin: '2px 0' }}>{currentRank.name}</h2>
+               <div style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-main)' }}>누적 포인트: {currentUser?.points ?? 0} pt</div>
             </div>
           </div>
 
@@ -144,8 +154,8 @@ export default function WebRankPage() {
               {RANK_TIERS.map((tier) => (
                 <div key={tier.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderRadius: '12px', borderBottom: '1px solid var(--border-color)', flexShrink: 0 }}>
                   <RankSVGIcon tierGroup={tier.tierGroup as any} subTier={tier.subTier || '1'} size={46} />
-                  <span style={{ fontWeight: '800', fontSize: '15px', color: tier.color, flex: 1, marginLeft: '12px' }}>{tier.name}</span>
-                  <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '700' }}>{tier.minPoints} ~ {tier.maxPoints === Infinity ? 'MAX' : `${tier.maxPoints} pt`}</span>
+                  <span style={{ fontWeight: '800', fontSize: '15px', color: (tier as any).color, flex: 1, marginLeft: '12px' }}>{tier.name}</span>
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '700' }}>{tier.id === 'grandmaster' ? '세계 TOP 5' : tier.id === 'master' ? '5000 ~ MAX' : `${tier.minPoints} ~ ${tier.maxPoints === Infinity ? 'MAX' : `${tier.maxPoints} pt`}`}</span>
                 </div>
               ))}
             </div>

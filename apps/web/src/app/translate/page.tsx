@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { SidebarNav } from '../components/SidebarNav';
 import { LANGUAGE_LIST, LanguageCode, markModuleCompleted } from '@dahamkke/shared';
 import { saveLearningRecord } from '../utils/recordsStore';
-import { translateSourceText } from '../utils/translationHelper';
+import { translateSourceText, speakText } from '../utils/translationHelper';
 
 export default function WebTranslatePage() {
   const [sourceLang, setSourceLang] = useState<LanguageCode>('ko');
@@ -306,26 +306,7 @@ export default function WebTranslatePage() {
 
               {translatedText && (
                 <button
-                  onClick={() => {
-                    if (!window.speechSynthesis) {
-                      alert('이 브라우저는 음성 합성(TTS)을 지원하지 않습니다.');
-                      return;
-                    }
-                    window.speechSynthesis.cancel();
-                    const cleanText = translatedText.replace(/^\[.*?\]\n/, '');
-                    const utterance = new SpeechSynthesisUtterance(cleanText);
-                    const localeMap: Record<string, string> = {
-                      ru: 'ru-RU',
-                      vi: 'vi-VN',
-                      zh: 'zh-CN',
-                      mn: 'mn-MN',
-                      en: 'en-US',
-                      ja: 'ja-JP',
-                      ko: 'ko-KR',
-                    };
-                    utterance.lang = localeMap[targetLang] || 'en-US';
-                    window.speechSynthesis.speak(utterance);
-                  }}
+                  onClick={() => speakText(translatedText, targetLang)}
                   style={{
                     flex: 1,
                     backgroundColor: '#3B82F6',
