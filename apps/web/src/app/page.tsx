@@ -1,104 +1,107 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+// @ts-ignore
 import { useRouter } from 'next/navigation';
 import {
   getUserRank,
+  getCurrentUser,
   isAllLearningCompleted,
   UserProfile,
-  getCurrentUser,
 } from '@dahamkke/shared';
 import { SidebarNav } from './components/SidebarNav';
 import { RankSVGIcon } from './components/RankSVGIcon';
 
 type TabId = 'rank' | 'learning' | 'records' | 'settings';
 
-export default function DashboardHome() {
+export default function WebDashboard() {
   const router = useRouter();
-  const [currentUser, setCurrentUser] = useState<UserProfile>(getCurrentUser());
   
-  const [activeTab, setActiveTab] = useState<TabId>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = sessionStorage.getItem('dahamkke_active_tab');
-      if (saved) return saved as TabId;
-    }
-    return 'rank';
-  });
-
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('dahamkke_dark_mode') === 'true';
-    }
-    return false;
-  });
-
+  // Persistent activeTab using sessionStorage (to preserve tab state when returning from subpages)
+  const [activeTab, setActiveTab] = useState<TabId>('rank');
+  const [currentUser, setCurrentUser] = useState<UserProfile>(getCurrentUser());
   const [isConsoleExpanded, setIsConsoleExpanded] = useState(false);
   const [isInfoExpanded, setIsInfoExpanded] = useState(false);
 
-  const handleTabChange = (tab: TabId) => {
-    setActiveTab(tab);
-    sessionStorage.setItem('dahamkke_active_tab', tab);
-  };
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
-    setCurrentUser(getCurrentUser());
-
-    const saved = localStorage.getItem('dahamkke_dark_mode') === 'true';
-    setIsDarkMode(saved);
-    if (saved) {
+    // Initial activeTab load
+    const savedTab = sessionStorage.getItem('dahamkke_active_tab') as TabId;
+    if (savedTab) {
+      setActiveTab(savedTab);
+    }
+    
+    // Initial theme load
+    const isDark = localStorage.getItem('dahamkke_dark_mode') === 'true';
+    setIsDarkMode(isDark);
+    if (isDark) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
 
+    // Force user state hydration
+    const cur = getCurrentUser();
+    setCurrentUser(cur);
+
+    // Watch user points updates
     const handleUserUpdate = (e: any) => {
       if (e.detail) {
         setCurrentUser(e.detail);
       }
     };
-
     window.addEventListener('dahamkke_user_updated', handleUserUpdate);
     return () => window.removeEventListener('dahamkke_user_updated', handleUserUpdate);
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('dahamkke_current_user');
-    alert('로그아웃 되었습니다.');
-    router.push('/login');
+  const handleTabChange = (tabId: TabId) => {
+    setActiveTab(tabId);
+    sessionStorage.setItem('dahamkke_active_tab', tabId);
   };
 
   const toggleDarkMode = () => {
-    const nextVal = !isDarkMode;
-    setIsDarkMode(nextVal);
-    localStorage.setItem('dahamkke_dark_mode', String(nextVal));
-    if (nextVal) {
+    const nextDarkState = !isDarkMode;
+    setIsDarkMode(nextDarkState);
+    localStorage.setItem('dahamkke_dark_mode', String(nextDarkState));
+    
+    if (nextDarkState) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
+    }
+
+    // Dispatch global event for instant updates on mounted layouts
+    window.dispatchEvent(new CustomEvent('dahamkke_theme_changed', { detail: nextDarkState }));
+  };
+
+  const handleLogout = () => {
+    if (confirm('정말 로그아웃 하시겠습니까?')) {
+      localStorage.clear();
+      sessionStorage.clear();
+      router.push('/login');
     }
   };
 
   const currentRank = getUserRank(currentUser);
   const isQuizUnlocked = isAllLearningCompleted(currentUser);
 
-  // Tab configurations
   const tabs = [
     { id: 'rank', label: '랭크' },
-    { id: 'learning', label: '학습 도우미' },
+    { id: 'learning', label: '학습' },
     { id: 'records', label: '연습 & 기록' },
     { id: 'settings', label: '설정' },
   ];
 
   return (
     <div className="dashboard-container" style={{ height: '100vh', overflow: 'hidden' }}>
-      {/* Left Sidebar Nav Component */}
       <SidebarNav />
 
       {/* Main Content Area — 100% Zero Page Scroll */}
       <main className="main-content" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '20px 28px', backgroundColor: 'var(--bg-main)', transition: 'background-color 0.2s ease' }}>
         
         {/* Top Header Card */}
-        <div className="header-bar" style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: isDarkMode ? '#1E293B' : 'white', border: isDarkMode ? '2px solid #334155' : 'none', padding: '16px 24px', borderRadius: '18px', marginBottom: '20px', boxShadow: isDarkMode ? 'none' : 'var(--shadow-soft)' }}>
+        <div className="header-bar" style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--card-bg)', border: '1.5px solid var(--border-color)', padding: '16px 24px', borderRadius: '18px', marginBottom: '20px', boxShadow: 'var(--shadow-soft)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
             <RankSVGIcon
               tierGroup={currentRank.tierGroup as any}
@@ -107,13 +110,13 @@ export default function DashboardHome() {
             />
 
             <div>
-              <h1 style={{ fontSize: '22px', fontWeight: '900', color: isDarkMode ? '#F1F5F9' : '#0F172A', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h1 style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}>
                 {currentUser.name.replace(/[()]/g, '')}님 환영합니다! 👋
                 <span style={{ fontSize: '14px', fontWeight: '800', color: currentRank.color, background: currentRank.bgColor, border: `1px solid ${currentRank.color}`, padding: '3px 10px', borderRadius: '10px' }}>
                   {currentRank.name} [{currentUser.points} pt]
                 </span>
               </h1>
-              <p style={{ fontSize: '13px', color: isDarkMode ? '#94A3B8' : '#6B7280', margin: '2px 0 0 0' }}>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
                 언어 장벽 없이 자유롭게 학습하고, 단원 학습을 마치고 10문항 성취도 평가를 풀어 랭크를 올려보세요.
               </p>
             </div>
@@ -130,7 +133,7 @@ export default function DashboardHome() {
           </div>
         </div>
 
-        {/* Tab Selection Bar — Rounded thick outlines */}
+        {/* Tab Selection Bar */}
         <div style={{ flexShrink: 0, display: 'flex', gap: '16px', marginBottom: '24px' }}>
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
@@ -140,9 +143,9 @@ export default function DashboardHome() {
                 onClick={() => handleTabChange(tab.id as TabId)}
                 style={{
                   backgroundColor: 'transparent',
-                  border: isActive ? '3.5px solid #00A3FF' : (isDarkMode ? '3.5px solid #475569' : '3.5px solid #000000'),
+                  border: isActive ? '3.5px solid #00A3FF' : '3.5px solid var(--border-color)',
                   borderRadius: '24px',
-                  color: isActive ? '#00A3FF' : (isDarkMode ? '#94A3B8' : '#000000'),
+                  color: isActive ? '#00A3FF' : 'var(--text-muted)',
                   padding: '10px 32px',
                   fontSize: '24px',
                   fontWeight: '900',
@@ -167,10 +170,10 @@ export default function DashboardHome() {
               <div
                 onClick={() => router.push('/rank')}
                 style={{
-                  backgroundColor: isDarkMode ? '#1E293B' : 'white',
+                  backgroundColor: 'var(--card-bg)',
                   borderRadius: '24px',
-                  boxShadow: isDarkMode ? 'none' : 'var(--shadow-soft)',
-                  border: isDarkMode ? '2px solid #334155' : '1.5px solid #E2E8F0',
+                  boxShadow: 'var(--shadow-soft)',
+                  border: '1.5px solid var(--border-color)',
                   cursor: 'pointer',
                   display: 'flex',
                   flexDirection: 'column',
@@ -185,7 +188,7 @@ export default function DashboardHome() {
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = isDarkMode ? 'none' : 'var(--shadow-soft)';
+                  e.currentTarget.style.boxShadow = 'var(--shadow-soft)';
                 }}
               >
                 {/* 3D-like CSS Podium (Gold, Silver, Bronze) */}
@@ -204,17 +207,17 @@ export default function DashboardHome() {
                   </div>
                 </div>
 
-                <h3 style={{ fontSize: '28px', fontWeight: '900', color: isDarkMode ? '#F8FAFC' : '#0F172A' }}>리더보드</h3>
+                <h3 style={{ fontSize: '28px', fontWeight: '900', color: 'var(--text-main)', margin: 0 }}>리더보드</h3>
               </div>
 
               {/* 10-Question Quiz Card */}
               <div
                 onClick={() => router.push(isQuizUnlocked ? '/quiz' : '/translate')}
                 style={{
-                  backgroundColor: isDarkMode ? '#1E293B' : 'white',
+                  backgroundColor: 'var(--card-bg)',
                   borderRadius: '24px',
-                  boxShadow: isDarkMode ? 'none' : 'var(--shadow-soft)',
-                  border: isDarkMode ? '2px solid #334155' : '1.5px solid #E2E8F0',
+                  boxShadow: 'var(--shadow-soft)',
+                  border: '1.5px solid var(--border-color)',
                   cursor: 'pointer',
                   display: 'flex',
                   flexDirection: 'column',
@@ -229,7 +232,7 @@ export default function DashboardHome() {
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = isDarkMode ? 'none' : 'var(--shadow-soft)';
+                  e.currentTarget.style.boxShadow = 'var(--shadow-soft)';
                 }}
               >
                 {/* 3D-like CSS Notepad & Pencil */}
@@ -255,67 +258,49 @@ export default function DashboardHome() {
                   </div>
                 </div>
 
-                <h3 style={{ fontSize: '28px', fontWeight: '900', color: isDarkMode ? '#F8FAFC' : '#0F172A' }}>
+                <h3 style={{ fontSize: '28px', fontWeight: '900', color: 'var(--text-main)', margin: 0 }}>
                   {isQuizUnlocked ? '10문항 평가' : '🔒 10문항 평가 (잠김)'}
                 </h3>
               </div>
             </div>
           )}
 
-          {/* TAB 2: 학습 도우미 (Learning Assistants) */}
+          {/* TAB 2: 학습 (Learning) */}
           {activeTab === 'learning' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', flex: 1, maxHeight: '360px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '24px', flex: 1, maxHeight: '360px' }}>
               {[
                 {
                   title: '교과서 번역',
-                  desc: '지문 사진 촬영/업로드 텍스트 추출 및 번역',
+                  desc: '교과서 지문 OCR 텍스트 자동 번역',
                   href: '/translate',
                   icon: (
                     <div style={{ position: 'relative', width: '100px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
-                      <span style={{ fontSize: '64px' }}>📖</span>
-                      <div style={{ position: 'absolute', bottom: '4px', right: '4px', backgroundColor: '#14B8A6', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px solid white', boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }}>
-                        <span style={{ fontSize: '16px' }}>📷</span>
+                      <div style={{ width: '60px', height: '60px', borderRadius: '16px', backgroundColor: '#CCFBF1', border: '3px solid #14B8A6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <span style={{ fontSize: '32px' }}>📷</span>
                       </div>
                     </div>
                   )
                 },
                 {
                   title: '실시간 통역',
-                  desc: '짝꿍과의 양방향 실시간 음성 대화 통역',
+                  desc: '마이크를 통한 한-다국어 자동 통역',
                   href: '/interpret',
                   icon: (
                     <div style={{ position: 'relative', width: '100px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
-                      <span style={{ fontSize: '64px' }}>🎙️</span>
-                      <div style={{ position: 'absolute', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 8px' }}>
-                        <div style={{ width: '4px', height: '24px', backgroundColor: '#FF7A59', borderRadius: '2px' }} />
-                        <div style={{ width: '4px', height: '24px', backgroundColor: '#FF7A59', borderRadius: '2px' }} />
-                      </div>
-                    </div>
-                  )
-                },
-                {
-                  title: '토론 친구 (민준)',
-                  desc: '가상 한국인 친구 민준이와 교과서 토론',
-                  href: '/debate',
-                  icon: (
-                    <div style={{ position: 'relative', width: '100px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
-                      <div style={{ position: 'absolute', top: '15px', left: '10px', width: '50px', height: '42px', backgroundColor: '#93C5FD', borderRadius: '12px', border: '2.5px solid #2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <span style={{ fontSize: '12px', fontWeight: '800', color: '#1E40AF' }}>Hello</span>
-                      </div>
-                      <div style={{ position: 'absolute', bottom: '15px', right: '10px', width: '50px', height: '42px', backgroundColor: '#CCFBF1', borderRadius: '12px', border: '2.5px solid #0D9488', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '2px 4px 10px rgba(0,0,0,0.05)' }}>
-                        <span style={{ fontSize: '12px', fontWeight: '800', color: '#0F766E' }}>안녕</span>
+                      <div style={{ width: '60px', height: '60px', borderRadius: '16px', backgroundColor: '#FFE4E6', border: '3px solid #F43F5E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <span style={{ fontSize: '32px' }}>🎙️</span>
                       </div>
                     </div>
                   )
                 },
                 {
                   title: '인물 인터뷰',
-                  desc: '교과서 역사 속 인물과의 1인칭 대화',
+                  desc: '교과서 인물 및 직업군과의 AI 가상 대화',
                   href: '/persona',
                   icon: (
                     <div style={{ position: 'relative', width: '100px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
-                      <div style={{ width: '70px', height: '80px', backgroundColor: '#F3E8FF', border: '3px solid #8B5CF6', borderRadius: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                        <span style={{ fontSize: '36px' }}>🎭</span>
+                      <div style={{ width: '60px', height: '60px', borderRadius: '16px', backgroundColor: '#F3E8FF', border: '3px solid #A855F7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <span style={{ fontSize: '32px' }}>🎭</span>
                       </div>
                     </div>
                   )
@@ -325,10 +310,10 @@ export default function DashboardHome() {
                   key={idx}
                   onClick={() => router.push(item.href)}
                   style={{
-                    backgroundColor: isDarkMode ? '#1E293B' : 'white',
+                    backgroundColor: 'var(--card-bg)',
                     borderRadius: '24px',
-                    boxShadow: isDarkMode ? 'none' : 'var(--shadow-soft)',
-                    border: isDarkMode ? '2px solid #334155' : '1.5px solid #E2E8F0',
+                    boxShadow: 'var(--shadow-soft)',
+                    border: '1.5px solid var(--border-color)',
                     cursor: 'pointer',
                     display: 'flex',
                     flexDirection: 'column',
@@ -343,12 +328,12 @@ export default function DashboardHome() {
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = isDarkMode ? 'none' : 'var(--shadow-soft)';
+                    e.currentTarget.style.boxShadow = 'var(--shadow-soft)';
                   }}
                 >
                   {item.icon}
-                  <h3 style={{ fontSize: '24px', fontWeight: '900', color: isDarkMode ? '#F8FAFC' : '#0F172A', margin: 0 }}>{item.title}</h3>
-                  <p style={{ fontSize: '13px', color: isDarkMode ? '#94A3B8' : '#6B7280', marginTop: '6px', textAlign: 'center', padding: '0 12px' }}>{item.desc}</p>
+                  <h3 style={{ fontSize: '24px', fontWeight: '900', color: 'var(--text-main)', margin: 0 }}>{item.title}</h3>
+                  <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '6px', textAlign: 'center', padding: '0 12px' }}>{item.desc}</p>
                 </div>
               ))}
             </div>
@@ -404,10 +389,10 @@ export default function DashboardHome() {
                   key={idx}
                   onClick={() => router.push(item.href)}
                   style={{
-                    backgroundColor: isDarkMode ? '#1E293B' : 'white',
+                    backgroundColor: 'var(--card-bg)',
                     borderRadius: '24px',
-                    boxShadow: isDarkMode ? 'none' : 'var(--shadow-soft)',
-                    border: isDarkMode ? '2px solid #334155' : '1.5px solid #E2E8F0',
+                    boxShadow: 'var(--shadow-soft)',
+                    border: '1.5px solid var(--border-color)',
                     cursor: 'pointer',
                     display: 'flex',
                     flexDirection: 'column',
@@ -422,12 +407,12 @@ export default function DashboardHome() {
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = isDarkMode ? 'none' : 'var(--shadow-soft)';
+                    e.currentTarget.style.boxShadow = 'var(--shadow-soft)';
                   }}
                 >
                   {item.icon}
-                  <h3 style={{ fontSize: '24px', fontWeight: '900', color: isDarkMode ? '#F8FAFC' : '#0F172A', margin: 0 }}>{item.title}</h3>
-                  <p style={{ fontSize: '13px', color: isDarkMode ? '#94A3B8' : '#6B7280', marginTop: '6px', textAlign: 'center', padding: '0 8px' }}>{item.desc}</p>
+                  <h3 style={{ fontSize: '24px', fontWeight: '900', color: 'var(--text-main)', margin: 0 }}>{item.title}</h3>
+                  <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '6px', textAlign: 'center', padding: '0 8px' }}>{item.desc}</p>
                 </div>
               ))}
             </div>
@@ -440,17 +425,17 @@ export default function DashboardHome() {
               {/* Row 1: 다크 모드 */}
               <div
                 style={{
-                  backgroundColor: isDarkMode ? '#1E293B' : 'white',
+                  backgroundColor: 'var(--card-bg)',
                   borderRadius: '24px',
-                  boxShadow: isDarkMode ? 'none' : 'var(--shadow-soft)',
-                  border: isDarkMode ? '2.5px solid #475569' : '2.5px solid #000000',
+                  boxShadow: 'var(--shadow-soft)',
+                  border: '2.5px solid var(--border-color)',
                   padding: '20px 36px',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
                 }}
               >
-                <span style={{ fontSize: '32px', fontWeight: '900', color: isDarkMode ? '#F1F5F9' : '#000000' }}>다크 모드</span>
+                <span style={{ fontSize: '32px', fontWeight: '900', color: 'var(--text-main)' }}>다크 모드</span>
                 
                 {/* On/Off Switch */}
                 <div
@@ -487,10 +472,10 @@ export default function DashboardHome() {
                 <div
                   onClick={() => setIsConsoleExpanded(!isConsoleExpanded)}
                   style={{
-                    backgroundColor: isDarkMode ? '#1E293B' : 'white',
+                    backgroundColor: 'var(--card-bg)',
                     borderRadius: '24px',
-                    boxShadow: isDarkMode ? 'none' : 'var(--shadow-soft)',
-                    border: isDarkMode ? '2.5px solid #475569' : '2.5px solid #000000',
+                    boxShadow: 'var(--shadow-soft)',
+                    border: '2.5px solid var(--border-color)',
                     padding: '20px 36px',
                     display: 'flex',
                     justifyContent: 'space-between',
@@ -498,12 +483,12 @@ export default function DashboardHome() {
                     cursor: 'pointer',
                   }}
                 >
-                  <span style={{ fontSize: '32px', fontWeight: '900', color: isDarkMode ? '#F1F5F9' : '#000000' }}>교사 콘솔</span>
+                  <span style={{ fontSize: '32px', fontWeight: '900', color: 'var(--text-main)' }}>교사 콘솔</span>
                   <span
                     style={{
                       fontSize: '36px',
                       fontWeight: '900',
-                      color: isDarkMode ? '#F1F5F9' : '#000000',
+                      color: 'var(--text-main)',
                       transform: isConsoleExpanded ? 'rotate(180deg)' : 'none',
                       transition: 'transform 0.2s ease',
                     }}
@@ -515,8 +500,8 @@ export default function DashboardHome() {
                 {isConsoleExpanded && (
                   <div
                     style={{
-                      backgroundColor: isDarkMode ? '#0F172A' : '#F8FAFC',
-                      border: isDarkMode ? '2px solid #334155' : '1.5px solid #E2E8F0',
+                      backgroundColor: 'var(--bg-main)',
+                      border: '1.5px solid var(--border-color)',
                       borderRadius: '24px',
                       padding: '24px 36px',
                       marginTop: '8px',
@@ -526,8 +511,8 @@ export default function DashboardHome() {
                     }}
                   >
                     <div>
-                      <h4 style={{ fontSize: '18px', fontWeight: '900', color: isDarkMode ? '#F1F5F9' : '#0F172A', margin: 0 }}>👨‍🏫 교사용 RAG 관리자 대시보드</h4>
-                      <p style={{ fontSize: '14px', color: isDarkMode ? '#94A3B8' : '#64748B', marginTop: '6px', marginBottom: 0 }}>
+                      <h4 style={{ fontSize: '18px', fontWeight: '900', color: 'var(--text-main)', margin: 0 }}>👨‍🏫 교사용 RAG 관리자 대시보드</h4>
+                      <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '6px', marginBottom: 0 }}>
                         교안 자료(PDF) 파일을 업로드하여 AI 인물 인터뷰의 지식 범위를 학습 및 관리합니다.
                       </p>
                     </div>
@@ -556,10 +541,10 @@ export default function DashboardHome() {
                 <div
                   onClick={() => setIsInfoExpanded(!isInfoExpanded)}
                   style={{
-                    backgroundColor: isDarkMode ? '#1E293B' : 'white',
+                    backgroundColor: 'var(--card-bg)',
                     borderRadius: '24px',
-                    boxShadow: isDarkMode ? 'none' : 'var(--shadow-soft)',
-                    border: isDarkMode ? '2.5px solid #475569' : '2.5px solid #000000',
+                    boxShadow: 'var(--shadow-soft)',
+                    border: '2.5px solid var(--border-color)',
                     padding: '20px 36px',
                     display: 'flex',
                     justifyContent: 'space-between',
@@ -567,12 +552,12 @@ export default function DashboardHome() {
                     cursor: 'pointer',
                   }}
                 >
-                  <span style={{ fontSize: '32px', fontWeight: '900', color: isDarkMode ? '#F1F5F9' : '#000000' }}>내 정보</span>
+                  <span style={{ fontSize: '32px', fontWeight: '900', color: 'var(--text-main)' }}>내 정보</span>
                   <span
                     style={{
                       fontSize: '36px',
                       fontWeight: '900',
-                      color: isDarkMode ? '#F1F5F9' : '#000000',
+                      color: 'var(--text-main)',
                       transform: isInfoExpanded ? 'rotate(180deg)' : 'none',
                       transition: 'transform 0.2s ease',
                     }}
@@ -584,8 +569,8 @@ export default function DashboardHome() {
                 {isInfoExpanded && (
                   <div
                     style={{
-                      backgroundColor: isDarkMode ? '#0F172A' : '#F8FAFC',
-                      border: isDarkMode ? '2px solid #334155' : '1.5px solid #E2E8F0',
+                      backgroundColor: 'var(--bg-main)',
+                      border: '1.5px solid var(--border-color)',
                       borderRadius: '24px',
                       padding: '24px 36px',
                       marginTop: '8px',
@@ -595,13 +580,13 @@ export default function DashboardHome() {
                     }}
                   >
                     <div>
-                      <div style={{ fontSize: '15px', color: isDarkMode ? '#E2E8F0' : '#334155', lineHeight: '2.0' }}>
+                      <div style={{ fontSize: '15px', color: 'var(--text-main)', lineHeight: '2.0' }}>
                         👤 <strong>이름:</strong> {currentUser.name.replace(/[()]/g, '')}
                       </div>
-                      <div style={{ fontSize: '15px', color: isDarkMode ? '#E2E8F0' : '#334155', lineHeight: '2.0' }}>
+                      <div style={{ fontSize: '15px', color: 'var(--text-main)', lineHeight: '2.0' }}>
                         ✉️ <strong>이메일:</strong> {currentUser.email}
                       </div>
-                      <div style={{ fontSize: '15px', color: isDarkMode ? '#E2E8F0' : '#334155', lineHeight: '2.0' }}>
+                      <div style={{ fontSize: '15px', color: 'var(--text-main)', lineHeight: '2.0' }}>
                         🏆 <strong>현재 등급:</strong> {currentRank.name} ({currentUser.points} pt)
                       </div>
                     </div>

@@ -247,30 +247,30 @@ export default function WebInterpretPage() {
             <h1 style={{ fontSize: '24px', fontWeight: '900', color: '#FF7A59', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span>🎙️</span> 실시간 마이크 음성 자동 감지 통역
             </h1>
-            <p style={{ fontSize: '14px', color: isDarkMode ? '#94A3B8' : '#6B7280', marginTop: '2px', marginBottom: 0 }}>
+            <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '2px', marginBottom: 0 }}>
               마이크에 감지된 언어를 AI가 즉시 자동 판단하여 학생의 모국어로 실시간 통역합니다.
             </p>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <label style={{ fontSize: '13px', fontWeight: '800', color: isDarkMode ? '#94A3B8' : '#334155' }}>내 모국어 설정:</label>
+            <label style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-muted)' }}>내 모국어 설정:</label>
             <select
               value={userNativeLang}
               onChange={(e) => setUserNativeLang(e.target.value as LanguageCode)}
               style={{
-                backgroundColor: isDarkMode ? '#1E293B' : '#FFFFFF',
-                border: isDarkMode ? '1.5px solid #475569' : '1.5px solid #CBD5E1',
+                backgroundColor: 'var(--card-bg)',
+                border: '1.5px solid var(--border-color)',
                 borderRadius: '12px',
                 padding: '6px 14px',
                 fontSize: '14px',
                 fontWeight: '800',
-                color: isDarkMode ? '#F1F5F9' : '#0F172A',
+                color: 'var(--text-main)',
                 cursor: 'pointer',
                 outline: 'none',
               }}
             >
               {LANGUAGE_LIST.map((l) => (
-                <option key={l.code} value={l.code} style={{ backgroundColor: isDarkMode ? '#1E293B' : '#FFFFFF' }}>
+                <option key={l.code} value={l.code} style={{ backgroundColor: 'var(--card-bg)', color: 'var(--text-main)' }}>
                   {l.name}
                 </option>
               ))}
@@ -281,8 +281,8 @@ export default function WebInterpretPage() {
         {/* Microphone Real-Time Stream Status Control Card */}
         <div
           style={{
-            backgroundColor: isMicActive ? (isDarkMode ? '#3B2222' : '#FEF2F2') : (isDarkMode ? '#1E293B' : '#F8FAFC'),
-            border: `2px solid ${isMicActive ? '#EF4444' : (isDarkMode ? '#334155' : '#E2E8F0')}`,
+            backgroundColor: isMicActive ? (isDarkMode ? '#3B2222' : '#FEF2F2') : 'var(--card-bg)',
+            border: `2px solid ${isMicActive ? '#EF4444' : 'var(--border-color)'}`,
             borderRadius: '16px',
             padding: '16px 20px',
             marginBottom: '16px',
@@ -314,7 +314,7 @@ export default function WebInterpretPage() {
             </button>
 
             <div>
-              <div style={{ fontSize: '14px', fontWeight: '800', color: isMicActive ? '#EF4444' : (isDarkMode ? '#94A3B8' : '#334155') }}>
+              <div style={{ fontSize: '14px', fontWeight: '800', color: isMicActive ? '#EF4444' : 'var(--text-muted)' }}>
                 {micStatusText}
               </div>
               {interimSpeech ? (
@@ -348,11 +348,11 @@ export default function WebInterpretPage() {
           className="inner-scroll"
           style={{
             flex: 1,
-            background: isDarkMode ? '#1E293B' : 'white',
-            border: isDarkMode ? '2px solid #334155' : '1.5px solid #E2E8F0',
+            background: 'var(--card-bg)',
+            border: '1.5px solid var(--border-color)',
             borderRadius: '20px',
             padding: '24px',
-            boxShadow: isDarkMode ? 'none' : 'var(--shadow-soft)',
+            boxShadow: 'var(--shadow-soft)',
             overflowY: 'auto',
             marginBottom: '16px',
             display: 'flex',
@@ -375,8 +375,8 @@ export default function WebInterpretPage() {
                     maxWidth: '75%',
                     padding: '16px 20px',
                     borderRadius: '20px',
-                    backgroundColor: isKoreanSource ? (isDarkMode ? '#1D3B6F' : '#EFF6FF') : (isDarkMode ? '#0F4C43' : '#F0FDFA'),
-                    border: `2px solid ${isKoreanSource ? (isDarkMode ? '#1E40AF' : '#93C5FD') : (isDarkMode ? '#0D9488' : '#99F6E4')}`,
+                    backgroundColor: isKoreanSource ? 'var(--highlight-dialog-bg)' : 'var(--highlight-foreign-bg)',
+                    border: `2px solid ${isKoreanSource ? 'var(--highlight-dialog-border)' : 'var(--highlight-foreign-border)'}`,
                     boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
                   }}
                 >
@@ -386,20 +386,20 @@ export default function WebInterpretPage() {
                       style={{
                         fontSize: '12px',
                         fontWeight: '900',
-                        color: isKoreanSource ? (isDarkMode ? '#60A5FA' : '#1D4ED8') : (isDarkMode ? '#2DD4BF' : '#0D9488'),
-                        backgroundColor: isDarkMode ? '#111827' : '#FFFFFF',
+                        color: isKoreanSource ? 'var(--highlight-dialog-text)' : 'var(--highlight-foreign-text)',
+                        backgroundColor: 'var(--input-bg)',
                         padding: '3px 10px',
                         borderRadius: '12px',
-                        border: `1.5px solid ${isKoreanSource ? (isDarkMode ? '#1E40AF' : '#BFDBFE') : (isDarkMode ? '#0D9488' : '#99F6E4')}`,
+                        border: `1.5px solid ${isKoreanSource ? 'var(--highlight-dialog-border)' : 'var(--highlight-foreign-border)'}`,
                       }}
                     >
                       {item.detectedLangFlag} 감지된 발화 언어: {item.detectedLangName}
                     </span>
-                    <span style={{ fontSize: '11px', color: isDarkMode ? '#64748B' : '#94A3B8', fontWeight: '700' }}>{item.time}</span>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '700' }}>{item.time}</span>
                   </div>
 
                   {/* Original Spoken Text */}
-                  <div style={{ fontSize: '17px', fontWeight: '800', color: isDarkMode ? '#F1F5F9' : '#0F172A', marginBottom: '8px', lineHeight: '1.4' }}>
+                  <div style={{ fontSize: '17px', fontWeight: '800', color: 'var(--text-main)', marginBottom: '8px', lineHeight: '1.4' }}>
                     "{item.sourceText}"
                   </div>
 
@@ -408,8 +408,8 @@ export default function WebInterpretPage() {
                     style={{
                       fontSize: '15px',
                       fontWeight: '700',
-                      color: isKoreanSource ? (isDarkMode ? '#60A5FA' : '#1E40AF') : (isDarkMode ? '#2DD4BF' : '#0F766E'),
-                      backgroundColor: isDarkMode ? '#111827' : '#FFFFFF',
+                      color: isKoreanSource ? 'var(--highlight-dialog-text)' : 'var(--highlight-foreign-text)',
+                      backgroundColor: 'var(--input-bg)',
                       padding: '10px 14px',
                       borderRadius: '12px',
                       display: 'flex',
@@ -426,14 +426,14 @@ export default function WebInterpretPage() {
                     <button
                       onClick={() => speakText(item.translatedText, item.targetLangCode)}
                       style={{
-                        backgroundColor: isDarkMode ? '#1E293B' : '#F1F5F9',
-                        border: isDarkMode ? '1px solid #334155' : '1px solid #CBD5E1',
+                        backgroundColor: 'var(--card-bg)',
+                        border: '1px solid var(--border-color)',
                         borderRadius: '8px',
                         padding: '4px 8px',
                         fontSize: '12px',
                         fontWeight: '800',
                         cursor: 'pointer',
-                        color: isDarkMode ? '#F1F5F9' : '#334155',
+                        color: 'var(--text-main)',
                         flexShrink: 0,
                         outline: 'none',
                       }}

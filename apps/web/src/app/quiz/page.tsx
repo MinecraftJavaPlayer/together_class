@@ -180,30 +180,30 @@ export default function WebEvaluationQuizPage() {
 
       <main className="main-content" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '20px 28px', backgroundColor: 'var(--bg-main)', transition: 'background-color 0.2s ease' }}>
         {/* Top Rank Status Banner */}
-        <div style={{ background: isDarkMode ? '#1E293B' : currentRank.bgColor, border: `2px solid ${isDarkMode ? '#334155' : currentRank.color}`, padding: '20px 28px', borderRadius: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexShrink: 0 }}>
+        <div style={{ background: 'var(--card-bg)', border: '2.5px solid var(--border-color)', padding: '20px 28px', borderRadius: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
             <RankSVGIcon tierGroup={currentRank.tierGroup as any} subTier={currentRank.subTier || '1'} size={64} />
             <div>
-              <h3 style={{ fontSize: '22px', fontWeight: '900', color: isDarkMode ? '#F1F5F9' : currentRank.color, margin: 0 }}>현재 티어: {currentRank.name}</h3>
-              <p style={{ fontSize: '14px', color: isDarkMode ? '#94A3B8' : '#64748B', margin: '2px 0 0 0', fontWeight: '600' }}>학생: {currentUser.name} | 누적 포인트: {currentUser.points} pt (매월 1일 초기화)</p>
+              <h3 style={{ fontSize: '22px', fontWeight: '900', color: currentRank.color, margin: 0 }}>현재 티어: {currentRank.name}</h3>
+              <p style={{ fontSize: '14px', color: 'var(--text-muted)', margin: '4px 0 0 0', fontWeight: '800' }}>학생: {currentUser.name} | 누적 포인트: {currentUser.points} pt (매월 1일 초기화)</p>
             </div>
           </div>
-          <div style={{ background: isDarkMode ? '#382F13' : 'white', border: isDarkMode ? '2px solid #78350F' : 'none', padding: '10px 18px', borderRadius: '14px', fontSize: '14px', fontWeight: '800', color: isDarkMode ? '#FBBF24' : '#D97706', boxShadow: isDarkMode ? 'none' : 'var(--shadow-soft)' }}>
+          <div style={{ background: 'var(--highlight-warning-bg)', border: '1.5px solid var(--highlight-warning-border)', padding: '10px 18px', borderRadius: '14px', fontSize: '14px', fontWeight: '900', color: 'var(--highlight-warning-text)' }}>
             🎁 성적 따라 -20pt ~ +20pt 변동
           </div>
         </div>
 
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 0 }}>
           {!isUnlocked ? (
-            <div style={{ background: isDarkMode ? '#1E293B' : 'white', border: isDarkMode ? '2px solid #334155' : 'none', padding: '48px', borderRadius: '16px', maxWidth: '600px', width: '100%', textAlign: 'center', boxShadow: isDarkMode ? 'none' : 'var(--shadow-soft)' }}>
+            <div style={{ background: 'var(--card-bg)', border: '1.5px solid var(--border-color)', padding: '48px', borderRadius: '16px', maxWidth: '600px', width: '100%', textAlign: 'center', boxShadow: 'var(--shadow-soft)' }}>
               <span style={{ fontSize: '64px' }}>🔒</span>
-              <h2 style={{ fontSize: '22px', fontWeight: '800', color: isDarkMode ? '#F1F5F9' : '#0F172A', marginTop: '16px' }}>학습 미완료 상태입니다</h2>
-              <p style={{ fontSize: '14px', color: isDarkMode ? '#94A3B8' : '#64748B', lineHeight: '1.6', marginBottom: '24px' }}>
+              <h2 style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-main)', marginTop: '16px' }}>학습 미완료 상태입니다</h2>
+              <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: '1.6', marginBottom: '24px', fontWeight: '600' }}>
                 교과서 번역, 통역, AI 토론, 인물 인터뷰 등 단원 학습을 먼저 완료해야 10문항 성취도 평가에 응시할 수 있습니다.
               </p>
 
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                <Link href="/translate" style={{ backgroundColor: '#14B8A6', color: 'white', padding: '14px 28px', borderRadius: '12px', fontWeight: '700', textDecoration: 'none' }}>
+                <Link href="/translate" style={{ backgroundColor: '#14B8A6', color: 'white', padding: '14px 28px', borderRadius: '12px', fontWeight: '800', textDecoration: 'none' }}>
                   📷 교과서 단원 학습 시작하기 ➔
                 </Link>
                 <button
@@ -215,7 +215,7 @@ export default function WebEvaluationQuizPage() {
               </div>
             </div>
           ) : !quizFinished ? (
-            <div style={{ background: isDarkMode ? '#1E293B' : 'white', border: isDarkMode ? '2px solid #334155' : 'none', padding: '32px', borderRadius: '16px', maxWidth: '700px', width: '100%', boxShadow: isDarkMode ? 'none' : 'var(--shadow-soft)', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ background: 'var(--card-bg)', border: '1.5px solid var(--border-color)', padding: '32px', borderRadius: '16px', maxWidth: '700px', width: '100%', boxShadow: 'var(--shadow-soft)', display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexShrink: 0 }}>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                   <span style={{
@@ -223,8 +223,9 @@ export default function WebEvaluationQuizPage() {
                     fontWeight: '800',
                     padding: '3px 10px',
                     borderRadius: '8px',
-                    backgroundColor: currentQ.difficulty === '하' ? (isDarkMode ? '#14532D' : '#DCFCE7') : currentQ.difficulty === '중' ? (isDarkMode ? '#78350F' : '#FEF3C7') : (isDarkMode ? '#7F1D1D' : '#FEE2E2'),
-                    color: currentQ.difficulty === '하' ? (isDarkMode ? '#4ADE80' : '#166534') : currentQ.difficulty === '중' ? (isDarkMode ? '#FBBF24' : '#92400E') : (isDarkMode ? '#F87171' : '#991B1B'),
+                    backgroundColor: currentQ.difficulty === '하' ? 'var(--highlight-foreign-bg)' : currentQ.difficulty === '중' ? 'var(--highlight-warning-bg)' : 'var(--highlight-danger-bg)',
+                    color: currentQ.difficulty === '하' ? 'var(--highlight-foreign-text)' : currentQ.difficulty === '중' ? 'var(--highlight-warning-text)' : 'var(--highlight-danger-text)',
+                    border: '1px solid var(--border-color)',
                   }}>
                     난이도: {currentQ.difficulty || '중'}
                   </span>
@@ -233,19 +234,19 @@ export default function WebEvaluationQuizPage() {
                     fontWeight: '800',
                     padding: '3px 10px',
                     borderRadius: '8px',
-                    backgroundColor: currentQ.type === 'short-answer' ? (isDarkMode ? '#1E1B4B' : '#EEF2FF') : (isDarkMode ? '#1E293B' : '#F1F5F9'),
-                    color: currentQ.type === 'short-answer' ? (isDarkMode ? '#818CF8' : '#4338CA') : (isDarkMode ? '#94A3B8' : '#475569'),
-                    border: isDarkMode ? '1.5px solid #334155' : 'none',
+                    backgroundColor: 'var(--highlight-dialog-bg)',
+                    color: 'var(--highlight-dialog-text)',
+                    border: '1.5px solid var(--highlight-dialog-border)',
                   }}>
                     {currentQ.type === 'short-answer' ? '✍️ 주관식' : '🔘 객관식'}
                   </span>
                 </div>
-                <div style={{ fontSize: '14px', fontWeight: '800', color: isDarkMode ? '#94A3B8' : '#64748B' }}>
+                <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-muted)' }}>
                   문제 {currentIdx + 1} / {quizQuestions.length}
                 </div>
               </div>
 
-              <h2 style={{ fontSize: '19px', fontWeight: '800', color: isDarkMode ? '#F1F5F9' : '#0F172A', marginBottom: '24px', lineHeight: '1.4', flexShrink: 0 }}>
+              <h2 style={{ fontSize: '19px', fontWeight: '800', color: 'var(--text-main)', marginBottom: '24px', lineHeight: '1.4', flexShrink: 0 }}>
                 Q{currentIdx + 1}. {currentQ.question}
               </h2>
 
@@ -263,11 +264,11 @@ export default function WebEvaluationQuizPage() {
                         width: '100%',
                         padding: '16px 20px',
                         borderRadius: '14px',
-                        border: `2.5px solid ${isSubmitted ? (isLastAnswerCorrect ? '#22C55E' : '#EF4444') : (isDarkMode ? '#475569' : '#3B82F6')}`,
-                        backgroundColor: isSubmitted ? (isLastAnswerCorrect ? (isDarkMode ? '#14532D' : '#DCFCE7') : (isDarkMode ? '#7F1D1D' : '#FEE2E2')) : (isDarkMode ? '#111827' : '#FFFFFF'),
+                        border: `2.5px solid ${isSubmitted ? (isLastAnswerCorrect ? 'var(--highlight-foreign-border)' : 'var(--highlight-danger-border)') : 'var(--border-color)'}`,
+                        backgroundColor: isSubmitted ? (isLastAnswerCorrect ? 'var(--highlight-foreign-bg)' : 'var(--highlight-danger-bg)') : 'var(--input-bg)',
                         fontSize: '17px',
-                        fontWeight: '700',
-                        color: isDarkMode ? '#F1F5F9' : '#0F172A',
+                        fontWeight: '800',
+                        color: isSubmitted ? (isLastAnswerCorrect ? 'var(--highlight-foreign-text)' : 'var(--highlight-danger-text)') : 'var(--text-main)',
                         outline: 'none',
                         boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
                       }}
@@ -277,19 +278,24 @@ export default function WebEvaluationQuizPage() {
                   <div style={{ display: 'flex', gap: '12px', flexDirection: 'column', marginBottom: '24px' }}>
                     {currentQ.options.map((opt, idx) => {
                       const isSelected = selectedOption === idx;
-                      let bg = isDarkMode ? '#111827' : '#F8FAFC';
-                      let border = isDarkMode ? '#334155' : '#E2E8F0';
+                      let bg = 'var(--input-bg)';
+                      let border = '2px solid var(--border-color)';
+                      let textCol = 'var(--text-main)';
+                      
                       if (isSelected) {
-                        bg = isDarkMode ? '#1E1B4B' : '#EFF6FF';
-                        border = '#3B82F6';
+                        bg = 'var(--highlight-dialog-bg)';
+                        border = '2px solid var(--highlight-dialog-border)';
+                        textCol = 'var(--highlight-dialog-text)';
                       }
                       if (isSubmitted) {
                         if (idx === currentQ.answerIndex) {
-                          bg = isDarkMode ? '#14532D' : '#DCFCE7';
-                          border = '#22C55E';
+                          bg = 'var(--highlight-foreign-bg)';
+                          border = '2px solid var(--highlight-foreign-border)';
+                          textCol = 'var(--highlight-foreign-text)';
                         } else if (isSelected) {
-                          bg = isDarkMode ? '#7F1D1D' : '#FEE2E2';
-                          border = '#EF4444';
+                          bg = 'var(--highlight-danger-bg)';
+                          border = '2px solid var(--highlight-danger-border)';
+                          textCol = 'var(--highlight-danger-text)';
                         }
                       }
 
@@ -301,11 +307,11 @@ export default function WebEvaluationQuizPage() {
                             textAlign: 'left',
                             padding: '16px',
                             borderRadius: '12px',
-                            border: `2px solid ${border}`,
+                            border: border,
                             backgroundColor: bg,
                             fontSize: '16px',
-                            fontWeight: '700',
-                            color: isDarkMode ? '#F1F5F9' : '#1E293B',
+                            fontWeight: '800',
+                            color: textCol,
                             cursor: 'pointer',
                           }}
                         >
@@ -317,16 +323,16 @@ export default function WebEvaluationQuizPage() {
                 )}
 
                 {isSubmitted && (
-                  <div style={{ background: isDarkMode ? '#111827' : '#F1F5F9', border: isDarkMode ? '1.5px solid #334155' : 'none', padding: '16px', borderRadius: '12px', marginBottom: '24px' }}>
-                    <h4 style={{ fontSize: '15px', fontWeight: '800', color: isDarkMode ? '#F1F5F9' : '#0F172A', marginBottom: '4px' }}>
+                  <div style={{ background: 'var(--bg-main)', border: '1.5px solid var(--border-color)', padding: '16px', borderRadius: '12px', marginBottom: '24px' }}>
+                    <h4 style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-main)', marginBottom: '4px' }}>
                       {isLastAnswerCorrect ? '✅ 정답입니다!' : '❌ 아쉽습니다!'}
                       {currentQ.type === 'short-answer' && !isLastAnswerCorrect && (
-                        <span style={{ color: '#059669', marginLeft: '8px' }}>
+                        <span style={{ color: 'var(--highlight-foreign-text)', marginLeft: '8px' }}>
                           (정답 예시: {currentQ.acceptableAnswers?.[0]})
                         </span>
                       )}
                     </h4>
-                    <p style={{ fontSize: '13px', color: isDarkMode ? '#94A3B8' : '#475569', margin: 0, lineHeight: '1.5' }}>{currentQ.explanation}</p>
+                    <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0, lineHeight: '1.5', fontWeight: '600' }}>{currentQ.explanation}</p>
                   </div>
                 )}
               </div>

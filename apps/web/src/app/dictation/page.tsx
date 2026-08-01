@@ -41,16 +41,16 @@ export default function WebDictationPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexShrink: 0 }}>
           <div>
             <h1 style={{ fontSize: '24px', fontWeight: '800', color: '#F59E0B' }}>✍️ 웹 받아쓰기 연습실</h1>
-            <p style={{ fontSize: '14px', color: isDarkMode ? '#94A3B8' : '#6B7280', margin: '4px 0 0 0' }}>단어 발음을 듣고 키보드로 받아 적어보세요.</p>
+            <p style={{ fontSize: '14px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>단어 발음을 듣고 키보드로 받아 적어보세요.</p>
           </div>
-          <div style={{ background: isDarkMode ? '#382F13' : '#FEF3C7', border: isDarkMode ? '2px solid #78350F' : 'none', padding: '12px 20px', borderRadius: '12px', fontWeight: '800', color: isDarkMode ? '#FBBF24' : '#B45309' }}>
+          <div style={{ background: 'var(--highlight-warning-bg)', border: '1px solid var(--highlight-warning-border)', padding: '12px 20px', borderRadius: '12px', fontWeight: '800', color: 'var(--highlight-warning-text)' }}>
             ⭐ 획득 포인트: {score} Pt
           </div>
         </div>
 
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 0 }}>
-          <div style={{ background: isDarkMode ? '#1E293B' : 'white', border: isDarkMode ? '2px solid #334155' : '1.5px solid #E2E8F0', padding: '32px', borderRadius: '16px', width: '100%', maxWidth: '600px', boxShadow: isDarkMode ? 'none' : 'var(--shadow-soft)', textAlign: 'center' }}>
-            <div style={{ fontSize: '14px', fontWeight: '700', color: '#F59E0B', marginBottom: '8px' }}>
+          <div style={{ background: 'var(--card-bg)', border: '1.5px solid var(--border-color)', padding: '32px', borderRadius: '16px', width: '100%', maxWidth: '600px', boxShadow: 'var(--shadow-soft)', textAlign: 'center' }}>
+            <div style={{ fontSize: '14px', fontWeight: '800', color: '#F59E0B', marginBottom: '8px' }}>
               단어 {wordIdx + 1} / {PRACTICE_WORDS.length} (의미: {current.meaning})
             </div>
 
@@ -71,9 +71,9 @@ export default function WebDictationPage() {
                 width: '100%',
                 padding: '14px',
                 borderRadius: '12px',
-                border: isDarkMode ? '2px solid #334155' : '2px solid #E5E7EB',
-                backgroundColor: isDarkMode ? '#111827' : 'white',
-                color: isDarkMode ? '#F1F5F9' : '#0F172A',
+                border: '2px solid var(--border-color)',
+                backgroundColor: 'var(--input-bg)',
+                color: 'var(--text-main)',
                 fontSize: '18px',
                 textAlign: 'center',
                 marginBottom: '20px',

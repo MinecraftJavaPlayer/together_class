@@ -8,6 +8,7 @@
   --accent: #FBBF24;
   --bg-main: #F8FAFC;
   --card-bg: #FFFFFF;
+  --input-bg: #FFFFFF;
   --text-main: #0F172A;
   --text-muted: #6B7280;
   --border-color: #E2E8F0;
@@ -19,6 +20,23 @@
   --nav-highlight-quiz-text: #BE185D;
   --nav-highlight-admin-bg: #EEF2FF;
   --nav-highlight-admin-text: #4338CA;
+  
+  /* Highlight Variables */
+  --highlight-dialog-bg: #EFF6FF;
+  --highlight-dialog-border: #93C5FD;
+  --highlight-dialog-text: #1D4ED8;
+  --highlight-foreign-bg: #F0FDFA;
+  --highlight-foreign-border: #99F6E4;
+  --highlight-foreign-text: #0D9488;
+  --highlight-warning-bg: #FEF3C7;
+  --highlight-warning-border: #FDE68A;
+  --highlight-warning-text: #B45309;
+  --highlight-danger-bg: #FEE2E2;
+  --highlight-danger-border: #FCA5A5;
+  --highlight-danger-text: #B91C1C;
+  --highlight-purple-bg: #F3E8FF;
+  --highlight-purple-border: #E9D5FF;
+  --highlight-purple-text: #6B21A8;
 }
 
 * {
@@ -191,10 +209,10 @@ button {
   background: #14B8A6;
 }
 
-/* --- Global Dark Theme Style Overrides --- */
 .dark {
   --bg-main: #0F172A;
   --card-bg: #1E293B;
+  --input-bg: #111827;
   --text-main: #F1F5F9;
   --text-muted: #94A3B8;
   --border-color: #334155;
@@ -205,6 +223,23 @@ button {
   --nav-highlight-quiz-text: #FCE7F3;
   --nav-highlight-admin-bg: #312E81;
   --nav-highlight-admin-text: #EEF2FF;
+
+  /* Highlight Variables */
+  --highlight-dialog-bg: #1D3B6F;
+  --highlight-dialog-border: #1E40AF;
+  --highlight-dialog-text: #60A5FA;
+  --highlight-foreign-bg: #0F4C43;
+  --highlight-foreign-border: #0D9488;
+  --highlight-foreign-text: #2DD4BF;
+  --highlight-warning-bg: #382F13;
+  --highlight-warning-border: #78350F;
+  --highlight-warning-text: #FBBF24;
+  --highlight-danger-bg: #7F1D1D;
+  --highlight-danger-border: #991B1B;
+  --highlight-danger-text: #F87171;
+  --highlight-purple-bg: #2E1065;
+  --highlight-purple-border: #5B21B6;
+  --highlight-purple-text: #C084FC;
 }
 
 .dark html, .dark body {

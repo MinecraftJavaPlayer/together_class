@@ -47,8 +47,8 @@ export default function WebPersonaPage() {
 
       <main className="main-content" style={{ height: '100vh', overflow: 'hidden', display: 'flex', gap: '24px', padding: '20px 28px', backgroundColor: 'var(--bg-main)', transition: 'background-color 0.2s ease' }}>
         {/* Left Side: Character Picker */}
-        <div style={{ width: '260px', background: isDarkMode ? '#1E293B' : 'white', padding: '20px', borderRadius: '16px', border: isDarkMode ? '2px solid #334155' : '1.5px solid #E2E8F0', display: 'flex', flexDirection: 'column', height: '100%' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px', color: isDarkMode ? '#F1F5F9' : '#0F172A', flexShrink: 0 }}>📖 교과서 인물 선택</h3>
+        <div style={{ width: '260px', background: 'var(--card-bg)', padding: '20px', borderRadius: '16px', border: '1.5px solid var(--border-color)', display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px', color: 'var(--text-main)', flexShrink: 0 }}>📖 교과서 인물 선택</h3>
           <div style={{ flex: 1, overflowY: 'auto', paddingRight: '4px' }} className="inner-scroll">
             {SAMPLE_TEXTBOOKS.map((tb) => {
               const isSelected = selectedCharacter === tb.characterName;
@@ -59,16 +59,16 @@ export default function WebPersonaPage() {
                   style={{
                     padding: '16px',
                     borderRadius: '12px',
-                    backgroundColor: isSelected ? (isDarkMode ? '#3B2754' : '#F3E8FF') : (isDarkMode ? '#111827' : '#F9FAFB'),
-                    border: `2px solid ${isSelected ? (isDarkMode ? '#A855F7' : '#9333EA') : (isDarkMode ? '#334155' : '#E5E7EB')}`,
+                    backgroundColor: isSelected ? 'var(--highlight-purple-bg)' : 'var(--input-bg)',
+                    border: `2px solid ${isSelected ? 'var(--highlight-purple-border)' : 'var(--border-color)'}`,
                     cursor: 'pointer',
                     marginBottom: '12px',
                     transition: 'all 0.15s ease',
                   }}
                 >
-                  <div style={{ fontSize: '20px', fontWeight: '800', marginBottom: '4px', color: isDarkMode ? '#F1F5F9' : '#0F172A' }}>🎭 {tb.characterName}</div>
-                  <div style={{ fontSize: '12px', color: isDarkMode ? '#94A3B8' : '#6B7280', fontWeight: '700' }}>{tb.grade}</div>
-                  <div style={{ fontSize: '11px', color: isDarkMode ? '#64748B' : '#9CA3AF' }}>{tb.unitTitle}</div>
+                  <div style={{ fontSize: '20px', fontWeight: '800', marginBottom: '4px', color: 'var(--text-main)' }}>🎭 {tb.characterName}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '700' }}>{tb.grade}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', opacity: 0.85 }}>{tb.unitTitle}</div>
                 </div>
               );
             })}
@@ -78,22 +78,22 @@ export default function WebPersonaPage() {
         {/* Center: Interview Chat Workspace */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
           {/* Persona banner */}
-          <div style={{ background: isDarkMode ? '#3B2754' : '#F3E8FF', padding: '16px 20px', borderRadius: '16px', border: isDarkMode ? '2px solid #6B21A8' : '1px solid #D8B4FE', marginBottom: '20px', flexShrink: 0 }}>
-            <span style={{ fontSize: '12px', fontWeight: '700', color: isDarkMode ? '#D8B4FE' : '#7E22CE' }}>선택된 페르소나 & RAG 기반 출처</span>
-            <h2 style={{ fontSize: '18px', fontWeight: '800', color: isDarkMode ? '#F1F5F9' : '#6B21A8', marginTop: '4px', marginBottom: 0 }}>
+          <div style={{ background: 'var(--highlight-purple-bg)', padding: '16px 20px', borderRadius: '16px', border: '1.5px solid var(--highlight-purple-border)', marginBottom: '20px', flexShrink: 0 }}>
+            <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--highlight-purple-text)' }}>선택된 페르소나 & RAG 기반 출처</span>
+            <h2 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-main)', marginTop: '4px', marginBottom: 0 }}>
               🎭 {currentUnit.characterName} 인터뷰 ({currentUnit.unitTitle})
             </h2>
           </div>
 
           {/* Chat Messages */}
-          <div style={{ flex: 1, background: isDarkMode ? '#1E293B' : 'white', border: isDarkMode ? '2px solid #334155' : '1.5px solid #E2E8F0', padding: '24px', borderRadius: '16px', boxShadow: isDarkMode ? 'none' : 'var(--shadow-soft)', overflowY: 'auto', marginBottom: '16px', minHeight: '340px' }} className="inner-scroll">
+          <div style={{ flex: 1, background: 'var(--card-bg)', border: '1.5px solid var(--border-color)', padding: '24px', borderRadius: '16px', boxShadow: 'var(--shadow-soft)', overflowY: 'auto', marginBottom: '16px', minHeight: '340px' }} className="inner-scroll">
             {messages.map((m) => (
-              <div key={m.id} style={{ background: isDarkMode ? '#111827' : '#F9FAFB', padding: '16px', borderRadius: '12px', marginBottom: '16px', border: isDarkMode ? '1.5px solid #334155' : '1px solid #E5E7EB' }}>
-                <div style={{ fontSize: '12px', fontWeight: '700', color: isDarkMode ? '#D8B4FE' : '#7E22CE', marginBottom: '6px' }}>🎭 {m.character} (1인칭 답변)</div>
-                <div style={{ fontSize: '15px', color: isDarkMode ? '#E2E8F0' : '#1F2937', lineHeight: '1.6', fontWeight: '500' }}>{m.answer}</div>
+              <div key={m.id} style={{ background: 'var(--bg-main)', padding: '16px', borderRadius: '12px', marginBottom: '16px', border: '1px solid var(--border-color)' }}>
+                <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--highlight-purple-text)', marginBottom: '6px' }}>🎭 {m.character} (1인칭 답변)</div>
+                <div style={{ fontSize: '15px', color: 'var(--text-main)', lineHeight: '1.6', fontWeight: '600' }}>{m.answer}</div>
                 <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   {m.sources.map((s, idx) => (
-                    <span key={idx} style={{ background: isDarkMode ? '#4C1D95' : '#EDE9FE', color: isDarkMode ? '#DDD6FE' : '#5B21B6', fontSize: '11px', fontWeight: '700', padding: '4px 8px', borderRadius: '6px' }}>
+                    <span key={idx} style={{ background: 'var(--highlight-purple-bg)', color: 'var(--highlight-purple-text)', fontSize: '11px', fontWeight: '700', padding: '4px 8px', borderRadius: '6px' }}>
                       🏷️ 근거: {s}
                     </span>
                   ))}
@@ -114,9 +114,9 @@ export default function WebPersonaPage() {
                 flex: 1,
                 padding: '14px',
                 borderRadius: '12px',
-                border: isDarkMode ? '2px solid #334155' : '1.5px solid #CBD5E1',
-                backgroundColor: isDarkMode ? '#111827' : 'white',
-                color: isDarkMode ? '#F1F5F9' : '#0F172A',
+                border: '1.5px solid var(--border-color)',
+                backgroundColor: 'var(--input-bg)',
+                color: 'var(--text-main)',
                 fontSize: '15px',
                 outline: 'none',
               }}
