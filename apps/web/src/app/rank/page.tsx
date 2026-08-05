@@ -3,16 +3,25 @@
 import React, { useState, useEffect } from 'react';
 // @ts-ignore
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { RANK_TIERS, getUserRank, UserProfile, getCurrentUser, getAllUsers, getRankByPoints } from '@dahamkke/shared';
 import { SidebarNav } from '../components/SidebarNav';
 import { RankSVGIcon } from '../components/RankSVGIcon';
 
 export default function WebRankPage() {
+  const router = useRouter();
   const [currentUser, setCurrentUser] = useState<UserProfile>(getCurrentUser());
   const [allUsers, setAllUsers] = useState<UserProfile[]>([]);
-
   const [isDarkMode, setIsDarkMode] = useState(false);
+
   useEffect(() => {
+    // Session check: if no active user session, redirect to login page
+    const savedSession = localStorage.getItem('dahamkke_current_user');
+    if (!savedSession) {
+      router.push('/login');
+      return;
+    }
+
     setIsDarkMode(localStorage.getItem('dahamkke_dark_mode') === 'true');
     loadData();
     const handleUserUpdate = (e: any) => {
@@ -30,18 +39,24 @@ export default function WebRankPage() {
 
   const currentRank = currentUser ? getUserRank(currentUser) : { name: '브론즈 1', tierGroup: 'bronze', subTier: '1', minPoints: 0, maxPoints: 19 };
 
-  // Dynamic Leaderboard sorted by Points descending!
-  const sortedLeaderboard = allUsers.map((user, index) => {
-    // Force top 5 users to be Grandmaster regardless of their actual points
-    const baseTier = getRankByPoints(user.points || 0);
-    const tier = index < 5 ? getRankByPoints(10000) : baseTier;
+  // Filter out guest users from leaderboard so guests don't clutter ranks
+  const validUsers = allUsers.filter(u => 
+    u.id !== 'guest' && 
+    u.email !== 'guest@dahamkke.kr' && 
+    !u.name.includes('게스트')
+  );
+
+  // Dynamic Leaderboard sorted by Points descending - Tiers calculated accurately!
+  const sortedLeaderboard = validUsers.map((user, index) => {
+    const tier = getRankByPoints(user.points || 0);
     return {
       rankNo: index + 1,
-      name: user.name || '임시 캐릭터',
+      name: user.name || '학생',
       points: user.points || 0,
       tier: tier.name,
       tierGroup: tier.tierGroup,
-      isUser: !!(currentUser && (user.id === currentUser.id || (Boolean(user.email) && Boolean(currentUser.email) && user.email.toLowerCase() === currentUser.email.toLowerCase()))),
+      subTier: tier.subTier || '1',
+      isUser: !!(currentUser && currentUser.id !== 'guest' && (user.id === currentUser.id || (Boolean(user.email) && Boolean(currentUser.email) && user.email.toLowerCase() === currentUser.email.toLowerCase()))),
     };
   });
 
@@ -122,7 +137,7 @@ export default function WebRankPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
                     <RankSVGIcon
                       tierGroup={item.tierGroup as any}
-                      subTier={item.tier.match(/\d$/)?.[0] || '1'}
+                      subTier={item.subTier || '1'}
                       size={64}
                     />
                     <div>

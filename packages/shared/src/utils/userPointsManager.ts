@@ -31,14 +31,18 @@ export function getAllUsers(): UserProfile[] {
       try {
         let parsed = JSON.parse(savedList);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Version migration: clear all temp users and mock initial users
+          // Version migration: clear all temp users, guest users and mock initial users
           const tempVersion = localStorage.getItem('dahamkke_temp_version');
-          if (tempVersion !== 'v7') {
+          if (tempVersion !== 'v8') {
             parsed = parsed.filter(u => 
               !u.id.startsWith('temp_') && 
+              !u.id.startsWith('guest') &&
+              u.id !== 'guest' &&
+              u.email !== 'guest@dahamkke.kr' &&
+              !u.name.includes('게스트') &&
               !['student-seojun', 'student-minjun', 'student-anna', 'teacher-jungwoong'].includes(u.id)
             );
-            localStorage.setItem('dahamkke_temp_version', 'v7');
+            localStorage.setItem('dahamkke_temp_version', 'v8');
           }
           list = parsed;
         }
@@ -50,24 +54,35 @@ export function getAllUsers(): UserProfile[] {
   if (list.length === 0) {
     list = [...INITIAL_USERS];
     if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.setItem('dahamkke_temp_version', 'v7');
+      localStorage.setItem('dahamkke_temp_version', 'v8');
     }
   }
 
-  // Ensure any lingering temp users and mock initial users are filtered out
+  // Ensure any lingering temp users, guest users and mock initial users are filtered out
   list = list.filter(u => 
     !u.id.startsWith('temp_') && 
+    !u.id.startsWith('guest') &&
+    u.id !== 'guest' &&
+    u.email !== 'guest@dahamkke.kr' &&
+    !u.name.includes('게스트') &&
     !['student-seojun', 'student-minjun', 'student-anna', 'teacher-jungwoong'].includes(u.id)
   );
 
 
-  // ALWAYS merge/sync the currently active logged-in user so they ALWAYS appear on the leaderboard!
+  // ALWAYS merge/sync the currently active logged-in user (excluding guest accounts) so real students appear on the leaderboard!
   if (typeof window !== 'undefined' && window.localStorage) {
     const savedCurrent = localStorage.getItem(STORAGE_KEY);
     if (savedCurrent) {
       try {
         const current: UserProfile = JSON.parse(savedCurrent);
-        if (current && current.id) {
+        if (
+          current && 
+          current.id && 
+          current.id !== 'guest' && 
+          !current.id.startsWith('guest') && 
+          current.email !== 'guest@dahamkke.kr' &&
+          !current.name.includes('게스트')
+        ) {
           const idx = list.findIndex(
             (u) => u.id === current.id || (u.email && current.email && u.email.toLowerCase() === current.email.toLowerCase())
           );

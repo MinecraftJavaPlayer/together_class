@@ -35,6 +35,29 @@ export default function WebLoginPage() {
     }
   };
 
+  const handleGuestLogin = () => {
+    const guestUser = {
+      id: 'guest',
+      email: 'guest@dahamkke.kr',
+      name: '게스트 학생',
+      role: 'student' as const,
+      nativeLang: 'ko',
+      points: 0,
+      completedModules: {
+        translate: false,
+        interpret: false,
+        debate: false,
+        persona: false,
+        dictation: false,
+        writing: false,
+      },
+      seasonHistory: [],
+    };
+    saveCurrentUser(guestUser);
+    alert('👋 게스트로 로그인되었습니다.');
+    router.push('/');
+  };
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC', padding: '20px' }}>
       <div style={{ background: 'white', padding: '40px', borderRadius: '24px', width: '100%', maxWidth: '440px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
@@ -81,11 +104,19 @@ export default function WebLoginPage() {
 
           <button
             type="submit"
-            style={{ width: '100%', backgroundColor: '#14B8A6', color: 'white', padding: '16px', borderRadius: '12px', fontSize: '16px', fontWeight: '800', border: 'none', cursor: 'pointer', marginBottom: '20px' }}
+            style={{ width: '100%', backgroundColor: '#14B8A6', color: 'white', padding: '16px', borderRadius: '12px', fontSize: '16px', fontWeight: '800', border: 'none', cursor: 'pointer', marginBottom: '12px' }}
           >
             이메일 로그인
           </button>
         </form>
+
+        <button
+          type="button"
+          onClick={handleGuestLogin}
+          style={{ width: '100%', backgroundColor: '#64748B', color: 'white', padding: '14px', borderRadius: '12px', fontSize: '15px', fontWeight: '700', border: 'none', cursor: 'pointer', marginBottom: '20px' }}
+        >
+          👤 게스트로 로그인하기 (체험하기)
+        </button>
 
         <div style={{ textAlign: 'center', fontSize: '14px', color: '#64748B' }}>
           계정이 없으신가요? <Link href="/signup" style={{ color: '#3B82F6', fontWeight: '700', textDecoration: 'none' }}>신규 회원가입</Link>

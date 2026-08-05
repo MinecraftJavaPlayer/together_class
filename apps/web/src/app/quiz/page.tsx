@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 // @ts-ignore
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   getShuffledEvaluationQuiz,
   QuizQuestion,
@@ -19,12 +20,20 @@ import { SidebarNav } from '../components/SidebarNav';
 import { RankSVGIcon } from '../components/RankSVGIcon';
 
 export default function WebEvaluationQuizPage() {
+  const router = useRouter();
   const [currentUser, setCurrentUser] = useState<UserProfile>(getCurrentUser());
   const [forceUnlock, setForceUnlock] = useState(false);
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
 
   const [isDarkMode, setIsDarkMode] = useState(false);
   useEffect(() => {
+    // Session check: if no active user session, redirect to login page
+    const savedSession = localStorage.getItem('dahamkke_current_user');
+    if (!savedSession) {
+      router.push('/login');
+      return;
+    }
+
     setIsDarkMode(localStorage.getItem('dahamkke_dark_mode') === 'true');
     setCurrentUser(getCurrentUser());
     setQuizQuestions(getShuffledEvaluationQuiz());
