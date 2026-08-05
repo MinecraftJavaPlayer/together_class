@@ -25,10 +25,6 @@ export interface UserProfile {
 
 export const INITIAL_USERS: UserProfile[] = [];
 
-export function getUserRank(user: UserProfile): RankTier {
-  return getRankByPoints(user.points);
-}
-
 export function isAllLearningCompleted(user: UserProfile): boolean {
   if (!user || !user.completedModules) return false;
   const m = user.completedModules;

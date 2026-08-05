@@ -205,3 +205,56 @@ export function markModuleCompleted(moduleName: keyof UserProfile['completedModu
   saveCurrentUser(updatedUser);
   return updatedUser;
 }
+
+export function getUserRank(user: UserProfile): RankTier {
+  if (!user) return getRankByPoints(0);
+
+  // Guest accounts get rank strictly based on points without leaderboard Grandmaster status
+  if (
+    user.id === 'guest' ||
+    user.id.startsWith('guest') ||
+    user.email === 'guest@dahamkke.kr' ||
+    (user.name && user.name.includes('게스트'))
+  ) {
+    return getRankByPoints(user.points || 0);
+  }
+
+  const allUsers = getAllUsers();
+  const index = allUsers.findIndex(
+    (u) => u.id === user.id || (u.email && user.email && u.email.toLowerCase() === user.email.toLowerCase())
+  );
+
+  // If user is in the TOP 5 on the leaderboard, they achieve Grandmaster tier!
+  if (index !== -1 && index < 5) {
+    return getRankByPoints(10000);
+  }
+
+  return getRankByPoints(user.points || 0);
+}
+
+export function deleteUserByEmail(email: string): boolean {
+  if (typeof window === 'undefined' || !window.localStorage) return false;
+
+  const savedList = localStorage.getItem(ALL_USERS_DB_KEY);
+  if (savedList) {
+    try {
+      let list: UserProfile[] = JSON.parse(savedList);
+      const initialLength = list.length;
+      list = list.filter((u) => u.email.toLowerCase() !== email.trim().toLowerCase());
+      localStorage.setItem(ALL_USERS_DB_KEY, JSON.stringify(list));
+
+      // If currently logged-in user is deleted, remove active session
+      const savedCurrent = localStorage.getItem(STORAGE_KEY);
+      if (savedCurrent) {
+        const current: UserProfile = JSON.parse(savedCurrent);
+        if (current && current.email && current.email.toLowerCase() === email.trim().toLowerCase()) {
+          localStorage.removeItem(STORAGE_KEY);
+        }
+      }
+
+      window.dispatchEvent(new CustomEvent('dahamkke_user_updated'));
+      return list.length < initialLength;
+    } catch (e) {}
+  }
+  return false;
+}
