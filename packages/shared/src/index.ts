@@ -6,3 +6,4 @@ export * from './constants/rankSystem';
 export * from './constants/userStore';
 export * from './utils/speechHelper';
 export * from './utils/userPointsManager';
+export * from './utils/ocrHelper';

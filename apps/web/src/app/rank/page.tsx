@@ -56,9 +56,14 @@ export default function WebRankPage() {
       tier: tier.name,
       tierGroup: tier.tierGroup,
       subTier: tier.subTier || '1',
+      color: tier.color || '#CD7F32',
+      bgColor: tier.bgColor || '#FEF3C7',
       isUser: !!(currentUser && currentUser.id !== 'guest' && (user.id === currentUser.id || (Boolean(user.email) && Boolean(currentUser.email) && user.email.toLowerCase() === currentUser.email.toLowerCase()))),
     };
   });
+
+  // Dynamic Current Season Key (e.g. 2026-08)
+  const currentSeason = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
 
   // Match active currentUser's tier on the hero banner 100% with their leaderboard tier!
   const myLeaderboardEntry = sortedLeaderboard.find(item => item.isUser);
@@ -67,8 +72,10 @@ export default function WebRankPage() {
         name: myLeaderboardEntry.tier,
         tierGroup: myLeaderboardEntry.tierGroup,
         subTier: myLeaderboardEntry.subTier,
+        color: myLeaderboardEntry.color,
+        bgColor: myLeaderboardEntry.bgColor,
       }
-    : (currentUser ? getUserRank(currentUser) : { name: '브론즈 1', tierGroup: 'bronze', subTier: '1', minPoints: 0, maxPoints: 19 });
+    : (currentUser ? getUserRank(currentUser) : { name: '브론즈 1', tierGroup: 'bronze', subTier: '1', minPoints: 0, maxPoints: 19, color: '#CD7F32', bgColor: '#FEF3C7' });
 
   return (
     <div className="dashboard-container">
@@ -83,8 +90,8 @@ export default function WebRankPage() {
           <p style={{ fontSize: '14px', color: 'var(--text-muted)', margin: 0 }}>단원 학습 후 10문항 평가를 치르고 랭크와 순위를 올려보세요! (실시간 순위 반영)</p>
         </div>
 
-        {/* Fixed Hero Current Rank Status Banner */}
-        <div style={{ flexShrink: 0, background: 'var(--card-bg)', border: '3px solid var(--border-color)', padding: '20px 28px', borderRadius: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', boxShadow: 'var(--shadow-soft)', flexWrap: 'wrap', gap: '16px' }}>
+        {/* Dynamic Hero Current Rank Status Banner - Border line auto-matched to rank color */}
+        <div style={{ flexShrink: 0, background: 'var(--card-bg)', border: `3.5px solid ${currentRank.color || '#CD7F32'}`, padding: '20px 28px', borderRadius: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', boxShadow: `0 8px 20px ${currentRank.color}25`, flexWrap: 'wrap', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
             <div style={{ position: 'relative' }}>
               <RankSVGIcon
@@ -95,8 +102,8 @@ export default function WebRankPage() {
             </div>
 
             <div>
-               <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-muted)' }}>시즌: 2026-07 | 사용자: {currentUser?.name ? currentUser.name.replace(/[()]/g, '') : '로딩 중...'}</div>
-               <h2 style={{ fontSize: '30px', fontWeight: '900', color: 'var(--text-muted)', margin: '2px 0' }}>{currentRank.name}</h2>
+               <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-muted)' }}>시즌: {currentSeason} | 사용자: {currentUser?.name ? currentUser.name.replace(/[()]/g, '') : '로딩 중...'}</div>
+               <h2 style={{ fontSize: '30px', fontWeight: '900', color: currentRank.color || 'var(--text-main)', margin: '2px 0' }}>{currentRank.name}</h2>
                <div style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-main)' }}>누적 포인트: {currentUser?.points ?? 0} pt</div>
             </div>
           </div>
@@ -126,7 +133,7 @@ export default function WebRankPage() {
                     padding: '14px 20px',
                     borderRadius: '18px',
                     backgroundColor: item.isUser ? 'var(--highlight-dialog-bg)' : 'var(--input-bg)',
-                    border: item.isUser ? '2.5px solid #3B82F6' : '1.5px solid var(--border-color)',
+                    border: item.isUser ? `3px solid ${item.color}` : '1.5px solid var(--border-color)',
                     boxShadow: item.isUser && !isDarkMode ? '0 6px 16px rgba(59, 130, 246, 0.15)' : 'none',
                     flexShrink: 0,
                   }}

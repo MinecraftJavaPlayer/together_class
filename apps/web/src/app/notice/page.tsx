@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 // @ts-ignore
 import Link from 'next/link';
-import { LANGUAGE_LIST } from '@dahamkke/shared';
+import { LANGUAGE_LIST, extractTextFromImageFile } from '@dahamkke/shared';
 import { SidebarNav } from '../components/SidebarNav';
 import { translateSourceText, speakText } from '../utils/translationHelper';
 
@@ -18,7 +18,7 @@ export default function WebNoticePage() {
   const [summary, setSummary] = useState({
     dates: ['2026년 7월 30일(목) 09:00'],
     items: ['실내화', '개인 텀블러', '도시락'],
-    deadlines: ['2026년 7월 28일(화) 17:00까지 제출'],
+    deadlines: ['2026년 7월 28일(화) 17:00까지'],
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -160,18 +160,23 @@ export default function WebNoticePage() {
     return () => clearTimeout(delayDebounceFn);
   }, [sourceText, selectedLang]);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setLoading(true);
-      setTimeout(() => {
-        const lowerName = file.name.toLowerCase();
-        if (lowerName.includes('library') || lowerName.includes('book') || lowerName.includes('도서') || lowerName.includes('책') || lowerName.includes('반납')) {
-          setSourceText('[학교 도서실 안내]\n학교 도서실 도서 대출 및 반납 기한은 8월 10일까지입니다. 연체 도서는 속히 반납하여 주시기 바랍니다. 연체 시 도서 대출이 제한될 수 있습니다.');
+      try {
+        const extracted = await extractTextFromImageFile(file);
+        if (extracted && extracted.trim()) {
+          setSourceText(extracted.trim());
         } else {
-          setSourceText('[현장체험학습 안내장]\n7월 30일(목) 현장체험학습이 실시됩니다. 학생들은 실내화, 개인 텀블러, 도시락을 지참하여 오전 9시까지 등교해 주시기 바랍니다. 신청서 제출 기한은 7월 28일(화) 17:00까지입니다.');
+          const fileNameStr = file.name.replace(/\.[^/.]+$/, '');
+          setSourceText(`[가정통신문 - ${file.name}]\n${fileNameStr}`);
         }
-      }, 600);
+      } catch (err) {
+        console.error('OCR Error:', err);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 

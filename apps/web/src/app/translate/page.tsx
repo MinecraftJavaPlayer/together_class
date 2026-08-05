@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { SidebarNav } from '../components/SidebarNav';
-import { LANGUAGE_LIST, LanguageCode, markModuleCompleted } from '@dahamkke/shared';
+import { LANGUAGE_LIST, LanguageCode, markModuleCompleted, extractTextFromImageFile } from '@dahamkke/shared';
 import { saveLearningRecord } from '../utils/recordsStore';
 import { translateSourceText, speakText } from '../utils/translationHelper';
 
@@ -48,20 +48,23 @@ export default function WebTranslatePage() {
     markModuleCompleted('translate');
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setLoading(true);
-      setTimeout(() => {
-        const lowerName = file.name.toLowerCase();
-        let newSource = '';
-        if (lowerName.includes('lee') || lowerName.includes('sun') || lowerName.includes('이순신') || lowerName.includes('대첩')) {
-          newSource = '조선 선조 때, 왜군이 수많은 군함을 끌고 우리 바다를 침략해 왔습니다. 이순신 장군은 학이 날개를 편 모양의 \'학익진\' 전법과 거북선을 활용하여 한산도 대첩에서 큰 승리를 거두었습니다.';
+      try {
+        const extracted = await extractTextFromImageFile(file);
+        if (extracted && extracted.trim()) {
+          setSourceText(extracted.trim());
         } else {
-          newSource = '옛날 옛적 어느 마을에 흥부와 놀부 형제가 살고 있었습니다. 흥부는 가난했지만 온 가족이 서로 아끼며 살았습니다.';
+          const fileNameStr = file.name.replace(/\.[^/.]+$/, '');
+          setSourceText(`[${file.name} - 이미지 텍스트 추출]\n${fileNameStr}`);
         }
-        setSourceText(newSource);
-      }, 700);
+      } catch (err) {
+        console.error('OCR Error:', err);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
