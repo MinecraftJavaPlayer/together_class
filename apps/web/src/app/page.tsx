@@ -133,6 +133,7 @@ export default function WebDashboard() {
           <div>
             <button
               onClick={handleLogout}
+              className="logout-btn"
               style={{ backgroundColor: '#FEE2E2', color: '#EF4444', border: '1px solid #FCA5A5', padding: '9px 16px', borderRadius: '12px', fontWeight: '800', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
             >
               🚪 로그아웃
@@ -200,7 +201,7 @@ export default function WebDashboard() {
                 }}
               >
                 {/* 3D-like CSS Podium (Gold, Silver, Bronze) */}
-                <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', height: '120px', gap: '4px', marginBottom: '24px' }}>
+                <div className="podium-graphic" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', height: '120px', gap: '4px', marginBottom: '24px' }}>
                   {/* 2nd place (Silver) */}
                   <div style={{ width: '44px', height: '80px', backgroundColor: '#D1D5DB', borderTopLeftRadius: '8px', borderTopRightRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 0 -10px 0 rgba(0,0,0,0.05)' }}>
                     <span style={{ fontSize: '24px', fontWeight: '900', color: '#4B5563' }}>2</span>
@@ -244,7 +245,7 @@ export default function WebDashboard() {
                 }}
               >
                 {/* 3D-like CSS Notepad & Pencil */}
-                <div style={{ position: 'relative', width: '120px', height: '120px', marginBottom: '24px' }}>
+                <div className="notepad-graphic" style={{ position: 'relative', width: '120px', height: '120px', marginBottom: '24px' }}>
                   {/* Paper sheet */}
                   <div style={{ width: '80px', height: '100px', backgroundColor: '#F8FAFC', border: '2.5px solid #CBD5E1', borderRadius: '8px', padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: '8px', position: 'absolute', left: '20px', top: '10px' }}>
                     {/* Binder rings (green dots) */}
