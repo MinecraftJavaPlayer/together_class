@@ -294,30 +294,45 @@ button {
   display: block !important;
 }
 
-/* Mobile Web Responsive Styles - Preserving PC Layout & Side-by-Side Flex Ratio */
+.mobile-toggle-btn {
+  display: none !important;
+}
+
+/* Mobile Web Responsive Styles */
 @media (max-width: 768px) {
   .dashboard-container {
-    flex-direction: row !important;
-    height: 100vh !important;
-    overflow: hidden !important;
+    flex-direction: column !important;
+    height: auto !important;
+    min-height: 100vh !important;
+    overflow-y: auto !important;
   }
   .sidebar {
-    width: 220px !important;
-    min-width: 220px !important;
-    height: 100vh !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    height: auto !important;
     position: relative !important;
-    padding: 16px 12px !important;
-    border-right: 1.5px solid var(--border-color) !important;
-    border-bottom: none !important;
-    overflow-y: auto !important;
+    padding: 12px 16px !important;
+    border-right: none !important;
+    border-bottom: 1.5px solid var(--border-color) !important;
     flex-shrink: 0 !important;
+  }
+  .mobile-toggle-btn {
+    display: block !important;
+  }
+  .sidebar:not(.mobile-open) .nav-list {
+    display: none !important;
+  }
+  .sidebar.mobile-open .nav-list {
+    display: flex !important;
+    margin-top: 12px !important;
   }
   .main-content {
     flex: 1 !important;
-    width: auto !important;
-    height: 100vh !important;
-    overflow-y: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow-y: visible !important;
     padding: 16px !important;
+    box-sizing: border-box !important;
   }
   .rank-flex-container {
     flex-direction: column !important;

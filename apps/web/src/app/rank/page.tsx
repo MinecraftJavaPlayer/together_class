@@ -90,8 +90,8 @@ export default function WebRankPage() {
           <p style={{ fontSize: '14px', color: 'var(--text-muted)', margin: 0 }}>단원 학습 후 10문항 평가를 치르고 랭크와 순위를 올려보세요! (실시간 순위 반영)</p>
         </div>
 
-        {/* Dynamic Hero Current Rank Status Banner - Border line auto-matched to rank color */}
-        <div style={{ flexShrink: 0, background: 'var(--card-bg)', border: `3.5px solid ${currentRank.color || '#CD7F32'}`, padding: '20px 28px', borderRadius: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', boxShadow: `0 8px 20px ${currentRank.color}25`, flexWrap: 'wrap', gap: '16px' }}>
+        {/* Hero Current Rank Status Banner */}
+        <div style={{ flexShrink: 0, background: 'var(--card-bg)', border: '1.5px solid var(--border-color)', padding: '20px 28px', borderRadius: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', boxShadow: 'var(--shadow-soft)', flexWrap: 'wrap', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
             <div style={{ position: 'relative' }}>
               <RankSVGIcon

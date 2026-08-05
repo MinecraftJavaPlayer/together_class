@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 // @ts-ignore
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -10,6 +10,7 @@ export function SidebarNav() {
   const pathname = usePathname() || '/';
   const currentUser = getCurrentUser();
   const isQuizUnlocked = isAllLearningCompleted(currentUser);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
     { href: '/', label: '🏠 홈 대시보드' },
@@ -31,42 +32,53 @@ export function SidebarNav() {
   ];
 
   return (
-    <aside className="sidebar">
-      {/* Brand Logo with New Cute 3D HTML SVG Mascot */}
-      <div className="brand-logo" style={{ marginBottom: '28px', padding: '0 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', boxSizing: 'border-box' }}>
-        {/* Light Mode Logo */}
-        <img
-          src="/logo_light.png"
-          alt="다함께 교실 Logo"
-          className="logo-light"
+    <aside className={`sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
+      {/* Top Header Row for Mobile & Brand Logo */}
+      <div className="sidebar-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '16px' }}>
+        <div className="brand-logo" style={{ padding: '0 10px', display: 'flex', alignItems: 'center', flex: 1 }}>
+          <img
+            src="/logo_light.png"
+            alt="다함께 교실 Logo"
+            className="logo-light"
+            style={{ width: 'auto', height: '42px', maxHeight: '42px', objectFit: 'contain' }}
+          />
+          <img
+            src="/logo_dark.png"
+            alt="다함께 교실 Logo"
+            className="logo-dark"
+            style={{ width: 'auto', height: '42px', maxHeight: '42px', objectFit: 'contain' }}
+          />
+        </div>
+
+        {/* Mobile Menu Toggle Button */}
+        <button
+          className="mobile-toggle-btn"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          aria-label="Toggle navigation menu"
           style={{
-            width: '100%',
-            height: 'auto',
-            maxHeight: '60px',
-            objectFit: 'contain',
+            background: 'var(--card-bg)',
+            border: '1.5px solid var(--border-color)',
+            color: 'var(--text-main)',
+            padding: '8px 14px',
+            borderRadius: '10px',
+            fontWeight: '800',
+            fontSize: '14px',
+            cursor: 'pointer',
           }}
-        />
-        {/* Dark Mode Logo */}
-        <img
-          src="/logo_dark.png"
-          alt="다함께 교실 Logo"
-          className="logo-dark"
-          style={{
-            width: '100%',
-            height: 'auto',
-            maxHeight: '60px',
-            objectFit: 'contain',
-          }}
-        />
+        >
+          {isMobileMenuOpen ? '✕ 닫기' : '☰ 메뉴'}
+        </button>
       </div>
 
-      <ul className="nav-list" style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '8px', padding: 0, margin: 0 }}>
+      {/* Navigation List */}
+      <ul className="nav-list" style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '8px', padding: 0, margin: 0, width: '100%' }}>
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
             <li
               key={item.href}
               className={`nav-item ${isActive ? 'active' : ''}`}
+              onClick={() => setIsMobileMenuOpen(false)}
               style={{
                 borderRadius: '12px',
                 backgroundColor: isActive ? '#CCFBF1' : item.bg || 'transparent',
@@ -92,7 +104,7 @@ export function SidebarNav() {
           );
         })}
 
-        <li className="nav-item" style={{ marginTop: 'auto', borderRadius: '12px', backgroundColor: 'var(--nav-highlight-admin-bg)' }}>
+        <li className="nav-item" onClick={() => setIsMobileMenuOpen(false)} style={{ marginTop: 'auto', borderRadius: '12px', backgroundColor: 'var(--nav-highlight-admin-bg)' }}>
           <Link
             href="/admin"
             style={{
