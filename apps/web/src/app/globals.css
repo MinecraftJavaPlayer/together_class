@@ -440,18 +440,18 @@ button {
   .podium-graphic {
     display: flex !important;
     width: 120px !important;
-    height: 80px !important;
-    transform: scale(0.7) !important;
+    height: 90px !important;
+    transform: scale(0.65) !important;
     transform-origin: center center !important;
-    margin: -10px 0 -12px 0 !important;
+    margin: -15px 0 0 0 !important;
   }
   .notepad-graphic {
     display: flex !important;
     width: 120px !important;
-    height: 80px !important;
-    transform: scale(0.7) !important;
+    height: 90px !important;
+    transform: scale(0.65) !important;
     transform-origin: center center !important;
-    margin: -10px 0 -12px 0 !important;
+    margin: -22px 0 4px 0 !important;
   }
   .rank-flex-container {
     flex-direction: column !important;
