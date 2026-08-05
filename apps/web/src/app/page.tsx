@@ -26,6 +26,13 @@ export default function WebDashboard() {
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
+    // Session check: if no active user session, redirect to login page
+    const savedSession = localStorage.getItem('dahamkke_current_user');
+    if (!savedSession) {
+      router.push('/login');
+      return;
+    }
+
     // Initial activeTab load
     const savedTab = sessionStorage.getItem('dahamkke_active_tab') as TabId;
     if (savedTab) {
@@ -77,8 +84,8 @@ export default function WebDashboard() {
 
   const handleLogout = () => {
     if (confirm('정말 로그아웃 하시겠습니까?')) {
-      localStorage.clear();
-      sessionStorage.clear();
+      localStorage.removeItem('dahamkke_current_user');
+      sessionStorage.removeItem('dahamkke_active_tab');
       router.push('/login');
     }
   };
