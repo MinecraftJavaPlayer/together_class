@@ -110,11 +110,13 @@ export default function WebDashboard() {
         {/* Top Header Card */}
         <div className="header-bar" style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--card-bg)', border: '1.5px solid var(--border-color)', padding: '16px 24px', borderRadius: '18px', marginBottom: '20px', boxShadow: 'var(--shadow-soft)' }}>
           <div className="header-info-group" style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
-            <RankSVGIcon
-              tierGroup={currentRank.tierGroup as any}
-              subTier={currentRank.subTier || '1'}
-              size={56}
-            />
+            <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <RankSVGIcon
+                tierGroup={currentRank.tierGroup as any}
+                subTier={currentRank.subTier || '1'}
+                size={56}
+              />
+            </div>
 
             <div>
               <h1 className="header-title" style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '10px', margin: 0, wordBreak: 'keep-all' }}>
