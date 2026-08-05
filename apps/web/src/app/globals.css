@@ -403,24 +403,33 @@ button {
   .tab-cards-grid {
     grid-template-columns: 1fr !important;
     max-height: none !important;
-    gap: 8px !important;
+    gap: 12px !important;
     overflow-y: visible !important;
   }
   .tab-cards-grid > div {
-    padding: 12px 14px !important;
-    border-radius: 14px !important;
-    min-height: auto !important;
-    flex-direction: row !important;
-    justify-content: space-between !important;
+    padding: 16px 20px !important;
+    border-radius: 18px !important;
+    min-height: 120px !important;
+    display: flex !important;
+    flex-direction: column !important;
     align-items: center !important;
-    gap: 12px !important;
+    justify-content: center !important;
+    text-align: center !important;
   }
   .tab-cards-grid h3 {
-    font-size: 16px !important;
-    margin: 0 !important;
+    font-size: 20px !important;
+    margin: 4px 0 0 0 !important;
   }
-  .podium-graphic, .notepad-graphic {
-    display: none !important;
+  .podium-graphic {
+    display: flex !important;
+    height: 64px !important;
+    margin-bottom: 8px !important;
+  }
+  .notepad-graphic {
+    display: flex !important;
+    width: 64px !important;
+    height: 64px !important;
+    margin-bottom: 8px !important;
   }
   .rank-flex-container {
     flex-direction: column !important;
@@ -428,5 +437,11 @@ button {
   }
   .tier-guide-card {
     width: 100% !important;
+  }
+
+  /* Universal 2-Column to 1-Column Stacking for Subpages on Mobile */
+  .main-content > div[style*="display: grid"] {
+    grid-template-columns: 1fr !important;
+    max-height: none !important;
   }
 }
