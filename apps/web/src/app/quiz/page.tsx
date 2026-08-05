@@ -188,12 +188,12 @@ export default function WebEvaluationQuizPage() {
       <SidebarNav />
 
       <main className="main-content" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '20px 28px', backgroundColor: 'var(--bg-main)', transition: 'background-color 0.2s ease' }}>
-        {/* Top Rank Status Banner */}
-        <div style={{ background: 'var(--card-bg)', border: '2.5px solid var(--border-color)', padding: '20px 28px', borderRadius: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexShrink: 0 }}>
+        {/* Top Rank Status Banner - Outer border line auto-matched to rank color */}
+        <div style={{ background: 'var(--card-bg)', border: `3.5px solid ${currentRank.color || '#CD7F32'}`, padding: '20px 28px', borderRadius: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexShrink: 0, boxShadow: `0 6px 18px ${currentRank.color}20` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
             <RankSVGIcon tierGroup={currentRank.tierGroup as any} subTier={currentRank.subTier || '1'} size={64} />
             <div>
-              <h3 style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-muted)', margin: 0 }}>현재 티어: {currentRank.name}</h3>
+              <h3 style={{ fontSize: '22px', fontWeight: '900', color: currentRank.color || 'var(--text-main)', margin: 0 }}>현재 티어: {currentRank.name}</h3>
               <p style={{ fontSize: '14px', color: 'var(--text-muted)', margin: '4px 0 0 0', fontWeight: '800' }}>학생: {currentUser.name} | 누적 포인트: {currentUser.points} pt (매월 1일 초기화)</p>
             </div>
           </div>

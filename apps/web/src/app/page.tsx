@@ -107,8 +107,8 @@ export default function WebDashboard() {
       {/* Main Content Area — 100% Zero Page Scroll */}
       <main className="main-content" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '20px 28px', backgroundColor: 'var(--bg-main)', transition: 'background-color 0.2s ease' }}>
         
-        {/* Top Header Card */}
-        <div className="header-bar" style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--card-bg)', border: '1.5px solid var(--border-color)', padding: '16px 24px', borderRadius: '18px', marginBottom: '20px', boxShadow: 'var(--shadow-soft)' }}>
+        {/* Top Header Card - Outer border line auto-matched to rank color */}
+        <div className="header-bar" style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--card-bg)', border: `3.5px solid ${currentRank.color || '#CD7F32'}`, padding: '16px 24px', borderRadius: '18px', marginBottom: '20px', boxShadow: `0 6px 18px ${currentRank.color}20` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
             <RankSVGIcon
               tierGroup={currentRank.tierGroup as any}
