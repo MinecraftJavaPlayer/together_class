@@ -37,8 +37,6 @@ export default function WebRankPage() {
     setAllUsers(getAllUsers());
   };
 
-  const currentRank = currentUser ? getUserRank(currentUser) : { name: '브론즈 1', tierGroup: 'bronze', subTier: '1', minPoints: 0, maxPoints: 19 };
-
   // Filter out guest users from leaderboard so guests don't clutter ranks
   const validUsers = allUsers.filter(u => 
     u.id !== 'guest' && 
@@ -46,9 +44,11 @@ export default function WebRankPage() {
     !u.name.includes('게스트')
   );
 
-  // Dynamic Leaderboard sorted by Points descending - Tiers calculated accurately!
+  // Dynamic Leaderboard sorted by Points descending! (Top 5 rankers achieve Grandmaster tier)
   const sortedLeaderboard = validUsers.map((user, index) => {
-    const tier = getRankByPoints(user.points || 0);
+    const baseTier = getRankByPoints(user.points || 0);
+    // Force top 5 rankers on the leaderboard to achieve Grandmaster tier
+    const tier = index < 5 ? getRankByPoints(10000) : baseTier;
     return {
       rankNo: index + 1,
       name: user.name || '학생',
@@ -60,21 +60,23 @@ export default function WebRankPage() {
     };
   });
 
-  // Top user (highest points) for hero banner with fallback when leaderboard empty
-  const topUser = sortedLeaderboard[0] || {
-    name: currentUser?.name || '로딩 중...',
-    points: currentUser?.points || 0,
-    tier: currentRank.name,
-  };
-  const topUserRank = getRankByPoints(topUser.points || 0);
+  // Match active currentUser's tier on the hero banner 100% with their leaderboard tier!
+  const myLeaderboardEntry = sortedLeaderboard.find(item => item.isUser);
+  const currentRank = myLeaderboardEntry
+    ? {
+        name: myLeaderboardEntry.tier,
+        tierGroup: myLeaderboardEntry.tierGroup,
+        subTier: myLeaderboardEntry.subTier,
+      }
+    : (currentUser ? getUserRank(currentUser) : { name: '브론즈 1', tierGroup: 'bronze', subTier: '1', minPoints: 0, maxPoints: 19 });
 
   return (
-    <div className="dashboard-container" style={{ height: '100vh', overflow: 'hidden' }}>
+    <div className="dashboard-container">
       {/* 100% Fixed Left Sidebar Nav */}
       <SidebarNav />
 
-      {/* 100% Fixed Main Page Container (Zero Page Scrolling) */}
-      <main className="main-content" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '28px 32px', backgroundColor: 'var(--bg-main)', transition: 'background-color 0.2s ease' }}>
+      {/* Main Page Container */}
+      <main className="main-content" style={{ display: 'flex', flexDirection: 'column', padding: '28px 32px', backgroundColor: 'var(--bg-main)', transition: 'background-color 0.2s ease' }}>
         {/* Fixed Title Header */}
         <div style={{ flexShrink: 0, marginBottom: '20px' }}>
           <h1 style={{ fontSize: '26px', fontWeight: '900', color: 'var(--text-main)', marginBottom: '4px' }}>🏆 월간 랭크 & 학급 실시간 리더보드</h1>
@@ -82,7 +84,7 @@ export default function WebRankPage() {
         </div>
 
         {/* Fixed Hero Current Rank Status Banner */}
-        <div style={{ flexShrink: 0, background: 'var(--card-bg)', border: '3px solid var(--border-color)', padding: '20px 28px', borderRadius: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', boxShadow: 'var(--shadow-soft)' }}>
+        <div style={{ flexShrink: 0, background: 'var(--card-bg)', border: '3px solid var(--border-color)', padding: '20px 28px', borderRadius: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', boxShadow: 'var(--shadow-soft)', flexWrap: 'wrap', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
             <div style={{ position: 'relative' }}>
               <RankSVGIcon
@@ -104,10 +106,10 @@ export default function WebRankPage() {
           </Link>
         </div>
 
-        {/* Flexible Grid Container for Dual Cards */}
-        <div style={{ flex: 1, height: 0, minHeight: 0, display: 'flex', gap: '24px' }}>
-          {/* Dynamic Class Leaderboard Card with ONLY Inner List Scroll */}
-          <div style={{ flex: 1, background: 'var(--card-bg)', border: '1.5px solid var(--border-color)', padding: '24px', borderRadius: '24px', boxShadow: 'var(--shadow-soft)', display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+        {/* Responsive Flex Container for Dual Cards */}
+        <div className="rank-flex-container" style={{ flex: 1, minHeight: 0, display: 'flex', gap: '24px' }}>
+          {/* Dynamic Class Leaderboard Card */}
+          <div style={{ flex: 1, background: 'var(--card-bg)', border: '1.5px solid var(--border-color)', padding: '24px', borderRadius: '24px', boxShadow: 'var(--shadow-soft)', display: 'flex', flexDirection: 'column', height: '100%', minHeight: '340px', overflow: 'hidden' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexShrink: 0 }}>
               <h3 style={{ fontSize: '19px', fontWeight: '800', margin: 0, color: 'var(--text-main)' }}>🥇 학급 실시간 포인트 리더보드</h3>
             </div>
@@ -158,8 +160,8 @@ export default function WebRankPage() {
             </div>
           </div>
 
-          {/* 13 Rank Tiers Guide Card with ONLY Inner List Scroll */}
-          <div style={{ width: '380px', background: 'var(--card-bg)', border: '1.5px solid var(--border-color)', padding: '24px', borderRadius: '24px', boxShadow: 'var(--shadow-soft)', display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+          {/* 13 Rank Tiers Guide Card */}
+          <div className="tier-guide-card" style={{ width: '380px', background: 'var(--card-bg)', border: '1.5px solid var(--border-color)', padding: '24px', borderRadius: '24px', boxShadow: 'var(--shadow-soft)', display: 'flex', flexDirection: 'column', height: '100%', minHeight: '340px', overflow: 'hidden' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexShrink: 0 }}>
               <h3 style={{ fontSize: '19px', fontWeight: '800', margin: 0, color: 'var(--text-main)' }}>📜 전체 13개 랭크 티어 안내</h3>
             </div>

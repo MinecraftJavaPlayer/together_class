@@ -293,3 +293,33 @@ button {
 .dark .logo-dark {
   display: block !important;
 }
+
+/* Mobile Web Responsive Styles */
+@media (max-width: 768px) {
+  .dashboard-container {
+    flex-direction: column !important;
+    height: auto !important;
+    min-height: 100vh !important;
+    overflow-y: auto !important;
+  }
+  .sidebar {
+    width: 100% !important;
+    height: auto !important;
+    position: relative !important;
+    padding: 16px !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border-color) !important;
+  }
+  .main-content {
+    height: auto !important;
+    overflow-y: visible !important;
+    padding: 16px !important;
+  }
+  .rank-flex-container {
+    flex-direction: column !important;
+    height: auto !important;
+  }
+  .tier-guide-card {
+    width: 100% !important;
+  }
+}
