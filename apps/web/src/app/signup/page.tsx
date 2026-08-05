@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 // @ts-ignore
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { SUPPORTED_LANGUAGES, registerNewUser, getAllUsers, UserProfile } from '@dahamkke/shared';
+import { SUPPORTED_LANGUAGES, registerNewUser, getAllUsers, UserProfile, syncCloudDatabase } from '@dahamkke/shared';
 
 export default function WebSignUpPage() {
   const router = useRouter();
@@ -14,6 +14,11 @@ export default function WebSignUpPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [nativeLang, setNativeLang] = useState('ru');
   const [errorMsg, setErrorMsg] = useState('');
+
+  useEffect(() => {
+    // Instantly sync user accounts from cloud DB when landing on signup page
+    syncCloudDatabase().catch(() => {});
+  }, []);
 
   const languagesList = Object.values(SUPPORTED_LANGUAGES);
 

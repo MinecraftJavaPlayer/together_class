@@ -22,7 +22,78 @@ const FALLBACK_USER: UserProfile = {
   seasonHistory: [],
 };
 
+const SHARED_CLOUD_DB_URL = 'https://jsonblob.com/api/jsonBlob/019fd017-cc94-758f-9e70-e00d93ddf029';
+let lastCloudSyncTime = 0;
+
+// Asynchronously sync cloud DB with local storage DB across PC & Mobile devices
+export async function syncCloudDatabase(): Promise<UserProfile[]> {
+  if (typeof window === 'undefined' || !navigator.onLine) return [];
+  try {
+    const res = await fetch(SHARED_CLOUD_DB_URL, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' },
+    });
+    if (res.ok) {
+      const cloudUsers: UserProfile[] = await res.json();
+      if (Array.isArray(cloudUsers)) {
+        const localListStr = localStorage.getItem(ALL_USERS_DB_KEY);
+        let localList: UserProfile[] = localListStr ? JSON.parse(localListStr) : [];
+        if (!Array.isArray(localList)) localList = [];
+
+        const userMap = new Map<string, UserProfile>();
+        
+        // Add cloud users
+        cloudUsers.forEach((u) => {
+          if (u && u.email && u.id && u.id !== 'guest' && !u.name.includes('게스트')) {
+            userMap.set(u.email.toLowerCase(), u);
+          }
+        });
+
+        // Add local users (merge points if higher)
+        localList.forEach((u) => {
+          if (u && u.email && u.id && u.id !== 'guest' && !u.name.includes('게스트')) {
+            const existing = userMap.get(u.email.toLowerCase());
+            if (!existing || (u.points || 0) >= (existing.points || 0)) {
+              userMap.set(u.email.toLowerCase(), u);
+            }
+          }
+        });
+
+        const merged = Array.from(userMap.values());
+        localStorage.setItem(ALL_USERS_DB_KEY, JSON.stringify(merged));
+        lastCloudSyncTime = Date.now();
+
+        // Push back merged state
+        pushCloudDatabase(merged);
+
+        window.dispatchEvent(new CustomEvent('dahamkke_user_updated'));
+        return merged;
+      }
+    }
+  } catch (e) {}
+  return [];
+}
+
+// Push local user list updates to shared cloud DB for Mobile & PC sync
+export function pushCloudDatabase(users: UserProfile[]): void {
+  if (typeof window === 'undefined' || !navigator.onLine) return;
+  const filteredUsers = users.filter(
+    (u) => u.id !== 'guest' && !u.id.startsWith('guest') && u.email !== 'guest@dahamkke.kr' && !u.name.includes('게스트')
+  );
+  fetch(SHARED_CLOUD_DB_URL, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify(filteredUsers),
+  }).catch(() => {});
+}
+
 export function getAllUsers(): UserProfile[] {
+  // Trigger background cloud sync if more than 5 seconds since last check
+  if (typeof window !== 'undefined' && Date.now() - lastCloudSyncTime > 5000) {
+    lastCloudSyncTime = Date.now();
+    syncCloudDatabase().catch(() => {});
+  }
+
   // Load persisted list
   let list: UserProfile[] = [];
   if (typeof window !== 'undefined' && window.localStorage) {
@@ -162,6 +233,7 @@ export function saveCurrentUser(user: UserProfile): void {
     }
 
     localStorage.setItem(ALL_USERS_DB_KEY, JSON.stringify(allUsers));
+    pushCloudDatabase(allUsers);
 
     // 3. Dispatch user update event
     window.dispatchEvent(new CustomEvent('dahamkke_user_updated', { detail: sanitizedUser }));
@@ -242,6 +314,7 @@ export function deleteUserByEmail(email: string): boolean {
       const initialLength = list.length;
       list = list.filter((u) => u.email.toLowerCase() !== email.trim().toLowerCase());
       localStorage.setItem(ALL_USERS_DB_KEY, JSON.stringify(list));
+      pushCloudDatabase(list);
 
       // If currently logged-in user is deleted, remove active session
       const savedCurrent = localStorage.getItem(STORAGE_KEY);

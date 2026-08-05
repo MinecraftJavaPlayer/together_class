@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 // @ts-ignore
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { getAllUsers, saveCurrentUser, deleteUserByEmail } from '@dahamkke/shared';
+import { getAllUsers, saveCurrentUser, deleteUserByEmail, syncCloudDatabase } from '@dahamkke/shared';
 
 export default function WebLoginPage() {
   const router = useRouter();
@@ -17,6 +17,11 @@ export default function WebLoginPage() {
   const [delEmail, setDelEmail] = useState('');
   const [delPassword, setDelPassword] = useState('');
   const [delErrorMsg, setDelErrorMsg] = useState('');
+
+  useEffect(() => {
+    // Instantly sync user accounts from cloud DB when landing on login page
+    syncCloudDatabase().catch(() => {});
+  }, []);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
