@@ -109,7 +109,7 @@ export default function WebDashboard() {
         
         {/* Top Header Card */}
         <div className="header-bar" style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--card-bg)', border: '1.5px solid var(--border-color)', padding: '16px 24px', borderRadius: '18px', marginBottom: '20px', boxShadow: 'var(--shadow-soft)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+          <div className="header-info-group" style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
             <RankSVGIcon
               tierGroup={currentRank.tierGroup as any}
               subTier={currentRank.subTier || '1'}
@@ -117,13 +117,13 @@ export default function WebDashboard() {
             />
 
             <div>
-              <h1 style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}>
-                {currentUser?.name ? currentUser.name.replace(/[()]/g, '') : '로딩 중...'}님 환영합니다!
-                  <span style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-muted)', background: currentRank.bgColor, border: `1px solid ${currentRank.color}`, padding: '3px 10px', borderRadius: '10px' }}>
-                    {currentRank.name} [{currentUser?.points ?? 0} pt]
-                  </span>
+              <h1 className="header-title" style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '10px', margin: 0, wordBreak: 'keep-all' }}>
+                <span className="header-name-text" style={{ whiteSpace: 'nowrap' }}>{currentUser?.name ? currentUser.name.replace(/[()]/g, '') : '로딩 중...'}님 환영합니다!</span>
+                <span className="header-rank-badge" style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-muted)', background: currentRank.bgColor, border: `1px solid ${currentRank.color}`, padding: '3px 10px', borderRadius: '10px', whiteSpace: 'nowrap' }}>
+                  {currentRank.name} [{currentUser?.points ?? 0} pt]
+                </span>
               </h1>
-              <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+              <p className="header-desc" style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
                 언어 장벽 없이 자유롭게 학습하고, 단원 학습을 마치고 10문항 성취도 평가를 풀어 랭크를 올려보세요.
               </p>
             </div>
@@ -134,7 +134,7 @@ export default function WebDashboard() {
             <button
               onClick={handleLogout}
               className="logout-btn"
-              style={{ backgroundColor: '#FEE2E2', color: '#EF4444', border: '1px solid #FCA5A5', padding: '9px 16px', borderRadius: '12px', fontWeight: '800', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+              style={{ backgroundColor: '#FEE2E2', color: '#EF4444', border: '1px solid #FCA5A5', padding: '9px 16px', borderRadius: '12px', fontWeight: '800', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}
             >
               🚪 로그아웃
             </button>
