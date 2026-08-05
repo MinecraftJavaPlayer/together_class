@@ -331,8 +331,40 @@ button {
     width: 100% !important;
     height: auto !important;
     overflow-y: visible !important;
-    padding: 16px !important;
+    padding: 14px !important;
     box-sizing: border-box !important;
+  }
+  .header-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    padding: 16px !important;
+  }
+  .header-bar h1 {
+    font-size: 18px !important;
+    flex-wrap: wrap !important;
+  }
+  .dashboard-tab-bar {
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    width: 100% !important;
+    gap: 8px !important;
+    padding-bottom: 4px !important;
+    scrollbar-width: none !important;
+  }
+  .dashboard-tab-btn {
+    font-size: 15px !important;
+    padding: 8px 16px !important;
+    border-radius: 16px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    border-width: 2.5px !important;
+  }
+  .tab-cards-grid {
+    grid-template-columns: 1fr !important;
+    max-height: none !important;
+    gap: 16px !important;
+    overflow-y: visible !important;
   }
   .rank-flex-container {
     flex-direction: column !important;

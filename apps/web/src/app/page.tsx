@@ -141,12 +141,13 @@ export default function WebDashboard() {
         </div>
 
         {/* Tab Selection Bar */}
-        <div style={{ flexShrink: 0, display: 'flex', gap: '16px', marginBottom: '24px' }}>
+        <div className="dashboard-tab-bar" style={{ flexShrink: 0, display: 'flex', gap: '16px', marginBottom: '24px' }}>
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
+                className="dashboard-tab-btn"
                 onClick={() => handleTabChange(tab.id as TabId)}
                 style={{
                   backgroundColor: 'transparent',
@@ -172,7 +173,7 @@ export default function WebDashboard() {
         <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
           {/* TAB 1: 랭크 (Rank) */}
           {activeTab === 'rank' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', flex: 1, maxHeight: '360px' }}>
+            <div className="tab-cards-grid rank-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', flex: 1, maxHeight: '360px' }}>
               {/* Leaderboard Card */}
               <div
                 onClick={() => router.push('/rank')}
@@ -274,7 +275,7 @@ export default function WebDashboard() {
 
           {/* TAB 2: 학습 (Learning) */}
           {activeTab === 'learning' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '24px', flex: 1, maxHeight: '360px' }}>
+            <div className="tab-cards-grid learning-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '24px', flex: 1, maxHeight: '360px' }}>
               {[
                 {
                   title: '교과서 번역',
@@ -360,7 +361,7 @@ export default function WebDashboard() {
 
           {/* TAB 3: 연습 & 기록 (Records) */}
           {activeTab === 'records' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '24px', flex: 1, maxHeight: '360px' }}>
+            <div className="tab-cards-grid practice-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '24px', flex: 1, maxHeight: '360px' }}>
               {[
                 {
                   title: '받아쓰기 연습',
