@@ -15,6 +15,8 @@ import {
   markModuleCompleted,
   UserProfile,
   RANK_TIERS,
+  playCorrectSound,
+  playWrongSound,
 } from '@dahamkke/shared';
 import { SidebarNav } from '../components/SidebarNav';
 import { RankSVGIcon } from '../components/RankSVGIcon';
@@ -89,6 +91,9 @@ export default function WebEvaluationQuizPage() {
       setIsLastAnswerCorrect(!!isCorrect);
       if (isCorrect) {
         setCorrectCount((prev) => prev + 1);
+        playCorrectSound();
+      } else {
+        playWrongSound();
       }
     } else {
       if (selectedOption === null) {
@@ -100,6 +105,9 @@ export default function WebEvaluationQuizPage() {
       setIsLastAnswerCorrect(isCorrect);
       if (isCorrect) {
         setCorrectCount((prev) => prev + 1);
+        playCorrectSound();
+      } else {
+        playWrongSound();
       }
     }
   };

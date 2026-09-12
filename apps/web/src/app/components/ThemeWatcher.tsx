@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { playClickSound } from '@dahamkke/shared';
 
 export function ThemeWatcher() {
   useEffect(() => {
@@ -25,9 +26,26 @@ export function ThemeWatcher() {
       }
     };
 
+    // 3. Global button click sound effect (Loud volume)
+    const handleGlobalClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+
+      const interactive = target.closest('button, a, [role="button"], input[type="button"], input[type="submit"], .dashboard-tab-btn, .tab-cards-grid > div, .card, .btn');
+      if (interactive) {
+        playClickSound();
+      }
+    };
+
     window.addEventListener('dahamkke_theme_changed', handleThemeChange as any);
-    return () => window.removeEventListener('dahamkke_theme_changed', handleThemeChange as any);
+    window.addEventListener('click', handleGlobalClick, true);
+
+    return () => {
+      window.removeEventListener('dahamkke_theme_changed', handleThemeChange as any);
+      window.removeEventListener('click', handleGlobalClick, true);
+    };
   }, []);
 
   return null;
 }
+

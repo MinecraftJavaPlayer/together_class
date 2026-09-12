@@ -1,5 +1,5 @@
 import { UserProfile, INITIAL_USERS } from '../constants/userStore';
-import { getRankByPoints, RankTier } from '../constants/rankSystem';
+import { getRankByPoints, RankTier, RANK_TIERS } from '../constants/rankSystem';
 
 const STORAGE_KEY = 'dahamkke_current_user';
 const ALL_USERS_DB_KEY = 'dahamkke_all_users_v2';
@@ -281,27 +281,35 @@ export function markModuleCompleted(moduleName: keyof UserProfile['completedModu
 export function getUserRank(user: UserProfile): RankTier {
   if (!user) return getRankByPoints(0);
 
-  // Guest accounts get rank strictly based on points without leaderboard Grandmaster status
+  const baseTier = getRankByPoints(user.points || 0);
+
+  // Guest accounts get rank strictly based on points without Grandmaster status
   if (
     user.id === 'guest' ||
     user.id.startsWith('guest') ||
     user.email === 'guest@dahamkke.kr' ||
     (user.name && user.name.includes('게스트'))
   ) {
-    return getRankByPoints(user.points || 0);
+    return baseTier;
   }
 
-  const allUsers = getAllUsers();
-  const index = allUsers.findIndex(
+  // Filter out guest users to get valid global leaderboard
+  const validUsers = getAllUsers().filter((u) =>
+    u.id !== 'guest' &&
+    u.email !== 'guest@dahamkke.kr' &&
+    !(u.name && u.name.includes('게스트'))
+  );
+
+  const index = validUsers.findIndex(
     (u) => u.id === user.id || (u.email && user.email && u.email.toLowerCase() === user.email.toLowerCase())
   );
 
-  // If user is in the TOP 5 on the leaderboard, they achieve Grandmaster tier!
-  if (index !== -1 && index < 5) {
-    return getRankByPoints(10000);
+  // Grandmaster is strictly selected ONLY from Masters (tierGroup === 'master') who are in World Top 5 (index < 5)!
+  if (baseTier.tierGroup === 'master' && index !== -1 && index < 5) {
+    return RANK_TIERS.find(r => r.id === 'grandmaster') || getRankByPoints(10000);
   }
 
-  return getRankByPoints(user.points || 0);
+  return baseTier;
 }
 
 export function deleteUserByEmail(email: string): boolean {

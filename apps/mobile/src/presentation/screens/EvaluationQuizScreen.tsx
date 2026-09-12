@@ -21,6 +21,8 @@ import {
   RankTier,
   RANK_TIERS,
   UserProfile,
+  playCorrectSound,
+  playWrongSound,
 } from '@dahamkke/shared';
 import { RankEmblemImage } from '../components/RankEmblemImage';
 
@@ -80,6 +82,9 @@ export const EvaluationQuizScreen = ({ navigation, route }: any) => {
       setIsLastAnswerCorrect(!!isCorrect);
       if (isCorrect) {
         setCorrectCount((prev) => prev + 1);
+        playCorrectSound();
+      } else {
+        playWrongSound();
       }
     } else {
       if (selectedOption === null) {
@@ -91,6 +96,9 @@ export const EvaluationQuizScreen = ({ navigation, route }: any) => {
       setIsLastAnswerCorrect(isCorrect);
       if (isCorrect) {
         setCorrectCount((prev) => prev + 1);
+        playCorrectSound();
+      } else {
+        playWrongSound();
       }
     }
   };

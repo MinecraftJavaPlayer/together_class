@@ -44,11 +44,11 @@ export default function WebRankPage() {
     !u.name.includes('게스트')
   );
 
-  // Dynamic Leaderboard sorted by Points descending! (Top 5 rankers achieve Grandmaster tier)
+  // Dynamic Leaderboard sorted by Points descending! (Grandmaster is selected ONLY among Masters in Top 5)
   const sortedLeaderboard = validUsers.map((user, index) => {
     const baseTier = getRankByPoints(user.points || 0);
-    // Force top 5 rankers on the leaderboard to achieve Grandmaster tier
-    const tier = index < 5 ? getRankByPoints(10000) : baseTier;
+    const isGrandmaster = baseTier.tierGroup === 'master' && index < 5;
+    const tier = isGrandmaster ? (RANK_TIERS.find(r => r.id === 'grandmaster') || getRankByPoints(10000)) : baseTier;
     return {
       rankNo: index + 1,
       name: user.name || '학생',
