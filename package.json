@@ -6,6 +6,9 @@
     "packages/*"
   ],
   "scripts": {
+    "build": "npm run build -w @dahamkke/web",
+    "dev": "npm run dev -w @dahamkke/web",
+    "start": "npm run start -w @dahamkke/web",
     "check-types": "npm run --workspaces check-types --if-present"
   }
 }
