@@ -1,10 +1,13 @@
 'use client';
 
 import { useEffect } from 'react';
-import { playClickSound } from '@dahamkke/shared';
+import { playClickSound, unlockAudio } from '@dahamkke/shared';
 
 export function ThemeWatcher() {
   useEffect(() => {
+    // Unlock audio engine on mount
+    unlockAudio();
+
     // 1. Initial theme load on client-side mount
     const applyTheme = () => {
       const isDark = localStorage.getItem('dahamkke_dark_mode') === 'true';
@@ -31,7 +34,9 @@ export function ThemeWatcher() {
       const target = e.target as HTMLElement | null;
       if (!target) return;
 
-      const interactive = target.closest('button, a, [role="button"], input[type="button"], input[type="submit"], .dashboard-tab-btn, .tab-cards-grid > div, .card, .btn');
+      const interactive = target.closest(
+        'button, a, [role="button"], input, select, label, .card, .clickable, .dashboard-tab-btn, .tab-cards-grid > div, .btn, [onclick]'
+      );
       if (interactive) {
         playClickSound();
       }
@@ -48,4 +53,3 @@ export function ThemeWatcher() {
 
   return null;
 }
-
