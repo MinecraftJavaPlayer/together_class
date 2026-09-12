@@ -671,6 +671,40 @@ export default function WebDashboard() {
           )}
 
         </div>
+
+        {/* Floating Persistent 1v1 Battle Button (Guaranteed Forced Visibility) */}
+        <button
+          onClick={() => router.push('/battle')}
+          style={{
+            position: 'fixed',
+            bottom: '32px',
+            right: '32px',
+            padding: '16px 28px',
+            backgroundColor: '#22C55E',
+            color: '#FFFFFF',
+            border: '3px solid #FFFFFF',
+            borderRadius: '9999px',
+            fontSize: '20px',
+            fontWeight: '900',
+            cursor: 'pointer',
+            boxShadow: '0 12px 28px rgba(34, 197, 94, 0.45)',
+            zIndex: 999,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            transition: 'transform 0.2s ease, background-color 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#16A34A';
+            e.currentTarget.style.transform = 'scale(1.05)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#22C55E';
+            e.currentTarget.style.transform = 'scale(1)';
+          }}
+        >
+          <span style={{ fontSize: '24px' }}>⚔️</span> 온라인 대결 바로가기
+        </button>
       </main>
     </div>
   );
