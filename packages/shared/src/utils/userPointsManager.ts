@@ -281,10 +281,12 @@ export function markModuleCompleted(moduleName: keyof UserProfile['completedModu
 export function getUserRank(user: UserProfile): RankTier {
   if (!user) return getRankByPoints(0);
 
-  const baseTier = getRankByPoints(user.points || 0);
+  const points = user.points || 0;
+  const baseTier = getRankByPoints(points);
 
-  // Guest accounts get rank strictly based on points without Grandmaster status
+  // Guest accounts or users under 5000 points cannot be Grandmaster
   if (
+    points < 5000 ||
     user.id === 'guest' ||
     user.id.startsWith('guest') ||
     user.email === 'guest@dahamkke.kr' ||
@@ -293,20 +295,23 @@ export function getUserRank(user: UserProfile): RankTier {
     return baseTier;
   }
 
-  // Filter out guest users to get valid global leaderboard
-  const validUsers = getAllUsers().filter((u) =>
-    u.id !== 'guest' &&
-    u.email !== 'guest@dahamkke.kr' &&
-    !(u.name && u.name.includes('게스트'))
-  );
+  // Get registered (non-guest) users and SORT by points descending
+  const sortedUsers = getAllUsers()
+    .filter((u) =>
+      u.id !== 'guest' &&
+      !u.id.startsWith('guest') &&
+      u.email !== 'guest@dahamkke.kr' &&
+      !(u.name && u.name.includes('게스트'))
+    )
+    .sort((a, b) => (b.points || 0) - (a.points || 0));
 
-  const index = validUsers.findIndex(
+  const rankIndex = sortedUsers.findIndex(
     (u) => u.id === user.id || (u.email && user.email && u.email.toLowerCase() === user.email.toLowerCase())
   );
 
-  // Grandmaster is strictly selected ONLY from Masters (tierGroup === 'master') who are in World Top 5 (index < 5)!
-  if (baseTier.tierGroup === 'master' && index !== -1 && index < 5) {
-    return RANK_TIERS.find(r => r.id === 'grandmaster') || getRankByPoints(10000);
+  // Grandmaster is strictly assigned ONLY to Masters (points >= 5000) in World Top 5 (rankIndex < 5)!
+  if (rankIndex !== -1 && rankIndex < 5) {
+    return RANK_TIERS.find((r) => r.id === 'grandmaster') || baseTier;
   }
 
   return baseTier;

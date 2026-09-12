@@ -40,19 +40,24 @@ export default function WebRankPage() {
   // Filter out guest users from leaderboard so guests don't clutter ranks
   const validUsers = allUsers.filter(u => 
     u.id !== 'guest' && 
+    !u.id.startsWith('guest') &&
     u.email !== 'guest@dahamkke.kr' && 
     !u.name.includes('게스트')
   );
 
-  // Dynamic Leaderboard sorted by Points descending! (Grandmaster is selected ONLY among Masters in Top 5)
-  const sortedLeaderboard = validUsers.map((user, index) => {
-    const baseTier = getRankByPoints(user.points || 0);
-    const isGrandmaster = baseTier.tierGroup === 'master' && index < 5;
-    const tier = isGrandmaster ? (RANK_TIERS.find(r => r.id === 'grandmaster') || getRankByPoints(10000)) : baseTier;
+  // MUST SORT BY POINTS DESCENDING FIRST!
+  const sortedUsers = [...validUsers].sort((a, b) => (b.points || 0) - (a.points || 0));
+
+  // Dynamic Leaderboard sorted by Points descending! (Grandmaster is selected ONLY among Masters [points >= 5000] in World Top 5 [index < 5])
+  const sortedLeaderboard = sortedUsers.map((user, index) => {
+    const pts = user.points || 0;
+    const baseTier = getRankByPoints(pts);
+    const isGrandmaster = pts >= 5000 && index < 5;
+    const tier = isGrandmaster ? (RANK_TIERS.find(r => r.id === 'grandmaster') || baseTier) : baseTier;
     return {
       rankNo: index + 1,
       name: user.name || '학생',
-      points: user.points || 0,
+      points: pts,
       tier: tier.name,
       tierGroup: tier.tierGroup,
       subTier: tier.subTier || '1',
