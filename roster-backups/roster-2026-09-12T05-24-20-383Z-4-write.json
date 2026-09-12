@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "savedAt": "2026-09-12T05:24:19.644Z",
+  "agents": [
+    {
+      "id": "god",
+      "name": "Michael",
+      "character": "michael",
+      "accent": "lemon",
+      "description": "god — runs the floor, triages requests, escalates only critical calls to you",
+      "project": "hive",
+      "tmuxTarget": "",
+      "cwd": "C:\\together_class",
+      "status": "idle",
+      "action": "awaiting",
+      "progress": 0,
+      "currentStation": "desk",
+      "ptyId": "pty-god",
+      "command": "opencode --model claude-opus-4-8",
+      "provider": "opencode",
+      "model": "claude-opus-4-8",
+      "isGod": true
+    }
+  ],
+  "archived": [],
+  "restorable": [],
+  "queues": {
+    "god": [
+      {
+        "id": "q-1789190659122-1",
+        "text": "You have new hive inbox message(s) — at least: 2026-09-12T05-24-16-690Z-7b6258. Read your inbox, act on what is pending there, and move handled ones to inbox/.done/. Your inbox directory is authoritative: work everything still pending in it, and if a named id is already in inbox/.done/ you handled it on an earlier turn and can ignore that one. Act autonomously; only message god if you genuinely need a decision.",
+        "ts": 1789190659122,
+        "precondition": "inbox-nonempty"
+      }
+    ]
+  },
+  "selectedId": "god"
+}

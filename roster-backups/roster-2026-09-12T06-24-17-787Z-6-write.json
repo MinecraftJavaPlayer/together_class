@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "savedAt": "2026-09-12T06:24:17.059Z",
+  "agents": [
+    {
+      "id": "god",
+      "name": "Michael",
+      "character": "michael",
+      "accent": "lemon",
+      "description": "god — runs the floor, triages requests, escalates only critical calls to you",
+      "project": "hive",
+      "tmuxTarget": "",
+      "cwd": "C:\\together_class",
+      "status": "idle",
+      "action": "awaiting",
+      "progress": 0,
+      "currentStation": "desk",
+      "ptyId": "pty-god",
+      "command": "opencode --model claude-opus-4-8",
+      "provider": "opencode",
+      "model": "claude-opus-4-8",
+      "isGod": true
+    }
+  ],
+  "archived": [],
+  "restorable": [],
+  "queues": {
+    "god": [
+      {
+        "id": "q-1789194256548-2",
+        "text": "/compact",
+        "ts": 1789194256548,
+        "compactUsed": 0
+      }
+    ]
+  },
+  "selectedId": "god"
+}

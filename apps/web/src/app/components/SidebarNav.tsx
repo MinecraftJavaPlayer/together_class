@@ -15,6 +15,7 @@ export function SidebarNav() {
   const navItems = [
     { href: '/', label: '🏠 홈 대시보드' },
     { href: '/rank', label: '🏆 랭크 & 시즌', highlight: true, color: 'var(--nav-highlight-rank-text)', bg: 'var(--nav-highlight-rank-bg)' },
+    { href: '/battle', label: '⚔️ 온라인 퀴즈 대결', highlight: true, color: '#16A34A', bg: '#DCFCE7' },
     {
       href: isQuizUnlocked ? '/quiz' : '/translate',
       label: isQuizUnlocked ? '📝 10문항 평가' : '🔒 10문항 평가 (잠김)',

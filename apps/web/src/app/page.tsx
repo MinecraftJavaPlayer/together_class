@@ -176,103 +176,137 @@ export default function WebDashboard() {
         <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
           {/* TAB 1: 랭크 (Rank) */}
           {activeTab === 'rank' && (
-            <div className="tab-cards-grid rank-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', flex: 1, maxHeight: '360px' }}>
-              {/* Leaderboard Card */}
-              <div
-                onClick={() => router.push('/rank')}
-                style={{
-                  backgroundColor: 'var(--card-bg)',
-                  borderRadius: '24px',
-                  boxShadow: 'var(--shadow-soft)',
-                  border: '1.5px solid var(--border-color)',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '32px',
-                  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-4px)';
-                  e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.08)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = 'var(--shadow-soft)';
-                }}
-              >
-                {/* 3D-like CSS Podium (Gold, Silver, Bronze) */}
-                <div className="podium-graphic" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', height: '120px', gap: '4px', marginBottom: '24px' }}>
-                  {/* 2nd place (Silver) */}
-                  <div style={{ width: '44px', height: '80px', backgroundColor: '#D1D5DB', borderTopLeftRadius: '8px', borderTopRightRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 0 -10px 0 rgba(0,0,0,0.05)' }}>
-                    <span style={{ fontSize: '24px', fontWeight: '900', color: '#4B5563' }}>2</span>
-                  </div>
-                  {/* 1st place (Gold) */}
-                  <div style={{ width: '48px', height: '110px', backgroundColor: '#FBBF24', borderTopLeftRadius: '8px', borderTopRightRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 0 -10px 0 rgba(0,0,0,0.05)' }}>
-                    <span style={{ fontSize: '28px', fontWeight: '900', color: '#D97706' }}>1</span>
-                  </div>
-                  {/* 3rd place (Bronze) */}
-                  <div style={{ width: '40px', height: '60px', backgroundColor: '#CA8A04', borderTopLeftRadius: '8px', borderTopRightRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 0 -10px 0 rgba(0,0,0,0.05)' }}>
-                    <span style={{ fontSize: '20px', fontWeight: '900', color: '#78350F' }}>3</span>
-                  </div>
-                </div>
-
-                <h3 style={{ fontSize: '28px', fontWeight: '900', color: 'var(--text-main)', margin: 0 }}>리더보드</h3>
-              </div>
-
-              {/* 10-Question Quiz Card */}
-              <div
-                onClick={() => router.push(isQuizUnlocked ? '/quiz' : '/translate')}
-                style={{
-                  backgroundColor: 'var(--card-bg)',
-                  borderRadius: '24px',
-                  boxShadow: 'var(--shadow-soft)',
-                  border: '1.5px solid var(--border-color)',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '32px',
-                  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-4px)';
-                  e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.08)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = 'var(--shadow-soft)';
-                }}
-              >
-                {/* 3D-like CSS Notepad & Pencil */}
-                <div className="notepad-graphic" style={{ position: 'relative', width: '120px', height: '120px', marginBottom: '24px' }}>
-                  {/* Paper sheet */}
-                  <div style={{ width: '80px', height: '100px', backgroundColor: '#F8FAFC', border: '2.5px solid #CBD5E1', borderRadius: '8px', padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: '8px', position: 'absolute', left: '20px', top: '10px' }}>
-                    {/* Binder rings (green dots) */}
-                    <div style={{ display: 'flex', gap: '5px', justifyContent: 'center', position: 'absolute', top: '-6px', left: '16px' }}>
-                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10B981' }} />
-                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10B981' }} />
-                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10B981' }} />
-                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10B981' }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', flex: 1 }}>
+              <div className="tab-cards-grid rank-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', flex: 1, maxHeight: '260px' }}>
+                {/* Leaderboard Card */}
+                <div
+                  onClick={() => router.push('/rank')}
+                  style={{
+                    backgroundColor: 'var(--card-bg)',
+                    borderRadius: '24px',
+                    boxShadow: 'var(--shadow-soft)',
+                    border: '1.5px solid var(--border-color)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '24px',
+                    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                    e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.08)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'var(--shadow-soft)';
+                  }}
+                >
+                  {/* 3D-like CSS Podium (Gold, Silver, Bronze) */}
+                  <div className="podium-graphic" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', height: '100px', gap: '4px', marginBottom: '16px' }}>
+                    {/* 2nd place (Silver) */}
+                    <div style={{ width: '40px', height: '65px', backgroundColor: '#D1D5DB', borderTopLeftRadius: '8px', borderTopRightRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 0 -10px 0 rgba(0,0,0,0.05)' }}>
+                      <span style={{ fontSize: '20px', fontWeight: '900', color: '#4B5563' }}>2</span>
                     </div>
-                    {/* Horizontal lines */}
-                    <div style={{ width: '100%', height: '3px', backgroundColor: '#E2E8F0', borderRadius: '2px' }} />
-                    <div style={{ width: '80%', height: '3px', backgroundColor: '#E2E8F0', borderRadius: '2px' }} />
-                    <div style={{ width: '90%', height: '3px', backgroundColor: '#E2E8F0', borderRadius: '2px' }} />
-                    <div style={{ width: '60%', height: '3px', backgroundColor: '#E2E8F0', borderRadius: '2px' }} />
+                    {/* 1st place (Gold) */}
+                    <div style={{ width: '44px', height: '90px', backgroundColor: '#FBBF24', borderTopLeftRadius: '8px', borderTopRightRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 0 -10px 0 rgba(0,0,0,0.05)' }}>
+                      <span style={{ fontSize: '24px', fontWeight: '900', color: '#D97706' }}>1</span>
+                    </div>
+                    {/* 3rd place (Bronze) */}
+                    <div style={{ width: '36px', height: '50px', backgroundColor: '#CA8A04', borderTopLeftRadius: '8px', borderTopRightRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 0 -10px 0 rgba(0,0,0,0.05)' }}>
+                      <span style={{ fontSize: '18px', fontWeight: '900', color: '#78350F' }}>3</span>
+                    </div>
                   </div>
-                  {/* Diagonal Orange Pencil */}
-                  <div style={{ position: 'absolute', top: '25px', right: '5px', width: '10px', height: '42px', backgroundColor: '#F97316', borderRadius: '2px', transform: 'rotate(45deg)', border: '1.5px solid #EA580C' }}>
-                    <div style={{ width: '100%', height: '8px', backgroundColor: '#FCA5A5', borderTopLeftRadius: '2px', borderTopRightRadius: '2px' }} />
-                  </div>
+
+                  <h3 style={{ fontSize: '24px', fontWeight: '900', color: 'var(--text-main)', margin: 0 }}>리더보드</h3>
                 </div>
 
-                <h3 style={{ fontSize: '28px', fontWeight: '900', color: 'var(--text-main)', margin: 0 }}>
-                  {isQuizUnlocked ? '10문항 평가' : '🔒 10문항 평가 (잠김)'}
-                </h3>
+                {/* 10-Question Quiz Card */}
+                <div
+                  onClick={() => router.push(isQuizUnlocked ? '/quiz' : '/translate')}
+                  style={{
+                    backgroundColor: 'var(--card-bg)',
+                    borderRadius: '24px',
+                    boxShadow: 'var(--shadow-soft)',
+                    border: '1.5px solid var(--border-color)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '24px',
+                    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                    e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.08)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'var(--shadow-soft)';
+                  }}
+                >
+                  {/* 3D-like CSS Notepad & Pencil */}
+                  <div className="notepad-graphic" style={{ position: 'relative', width: '100px', height: '100px', marginBottom: '16px' }}>
+                    {/* Paper sheet */}
+                    <div style={{ width: '70px', height: '85px', backgroundColor: '#F8FAFC', border: '2.5px solid #CBD5E1', borderRadius: '8px', padding: '10px 6px', display: 'flex', flexDirection: 'column', gap: '6px', position: 'absolute', left: '15px', top: '8px' }}>
+                      {/* Binder rings (green dots) */}
+                      <div style={{ display: 'flex', gap: '4px', justifyContent: 'center', position: 'absolute', top: '-6px', left: '14px' }}>
+                        <div style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#10B981' }} />
+                        <div style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#10B981' }} />
+                        <div style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#10B981' }} />
+                        <div style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#10B981' }} />
+                      </div>
+                      {/* Horizontal lines */}
+                      <div style={{ width: '100%', height: '3px', backgroundColor: '#E2E8F0', borderRadius: '2px' }} />
+                      <div style={{ width: '80%', height: '3px', backgroundColor: '#E2E8F0', borderRadius: '2px' }} />
+                      <div style={{ width: '90%', height: '3px', backgroundColor: '#E2E8F0', borderRadius: '2px' }} />
+                      <div style={{ width: '60%', height: '3px', backgroundColor: '#E2E8F0', borderRadius: '2px' }} />
+                    </div>
+                    {/* Diagonal Orange Pencil */}
+                    <div style={{ position: 'absolute', top: '20px', right: '5px', width: '9px', height: '38px', backgroundColor: '#F97316', borderRadius: '2px', transform: 'rotate(45deg)', border: '1.5px solid #EA580C' }}>
+                      <div style={{ width: '100%', height: '7px', backgroundColor: '#FCA5A5', borderTopLeftRadius: '2px', borderTopRightRadius: '2px' }} />
+                    </div>
+                  </div>
+
+                  <h3 style={{ fontSize: '24px', fontWeight: '900', color: 'var(--text-main)', margin: 0 }}>
+                    {isQuizUnlocked ? '10문항 평가' : '🔒 10문항 평가 (잠김)'}
+                  </h3>
+                </div>
               </div>
+
+              {/* Green 1v1 Battle Button (Photo 1 exact layout) */}
+              <button
+                onClick={() => router.push('/battle')}
+                style={{
+                  width: '100%',
+                  padding: '20px 24px',
+                  backgroundColor: '#22C55E',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '20px',
+                  fontSize: '26px',
+                  fontWeight: '900',
+                  cursor: 'pointer',
+                  boxShadow: '0 8px 20px rgba(34, 197, 94, 0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '12px',
+                  transition: 'transform 0.2s ease, background-color 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#16A34A';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#22C55E';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                <span style={{ fontSize: '30px' }}>⚔️</span> 대결
+              </button>
             </div>
           )}
 

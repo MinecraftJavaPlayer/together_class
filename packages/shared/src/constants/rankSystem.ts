@@ -43,6 +43,38 @@ export function calculateQuizPoints(correctCount: number): number {
   return (score - 5) * 4;
 }
 
+export function calculateBattlePoints(
+  userScore: number,
+  oppScore: number,
+  isRanked: boolean = true,
+  userPoints: number = 0,
+  oppPoints: number = 0
+): number {
+  if (!isRanked) return 0;
+
+  // Base outcome
+  let basePoints = 0;
+  if (userScore > oppScore) {
+    basePoints = 30;
+  } else if (userScore < oppScore) {
+    basePoints = -30;
+  } else {
+    basePoints = 0;
+  }
+
+  // Margin adjustment based on correct answers difference
+  const marginBonus = (userScore - oppScore) * 2; // e.g. +10 or -10 for 5 diff
+
+  // Rating difference adjustment: playing against higher ranked opponent gives small bonus
+  const pointDiff = oppPoints - userPoints;
+  const ratingBonus = Math.max(-10, Math.min(10, Math.round(pointDiff / 100)));
+
+  let totalDelta = basePoints + marginBonus + ratingBonus;
+
+  // Ensure bounds strictly between -50 and +50
+  return Math.max(-50, Math.min(50, totalDelta));
+}
+
 export interface SeasonHistoryItem {
   seasonKey: string;
   finalPoints: number;
