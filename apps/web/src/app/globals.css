@@ -243,9 +243,60 @@ button {
   --highlight-purple-text: #C084FC;
 }
 
-.dark html, .dark body {
+.dark html, .dark body, html.dark, body.dark {
   background-color: #0F172A !important;
   color: #F1F5F9 !important;
+  color-scheme: dark !important;
+}
+
+/* Global & Dark Mode Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-main);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 5px;
+  border: 2px solid var(--bg-main);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Dark Mode Scrollbars for all elements & browser scrollbar */
+.dark ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+  background-color: #0F172A !important;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #0F172A !important;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155 !important;
+  border-radius: 5px;
+  border: 2px solid #0F172A !important;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569 !important;
+}
+
+.dark ::-webkit-scrollbar-corner {
+  background: #0F172A !important;
+}
+
+.dark ::-webkit-scrollbar-button {
+  background-color: #0F172A !important;
+  color: #94A3B8 !important;
 }
 
 /* Sidebar Dark Theme */
