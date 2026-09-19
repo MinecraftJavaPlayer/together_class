@@ -446,6 +446,28 @@ export const SAMPLE_EVALUATION_QUIZ: QuizQuestion[] = [
   }
 ];
 
+function shuffleOptionsByQuestionId(options: string[], answerIndex: number, questionId: number): { shuffledOptions: string[]; newAnswerIndex: number } {
+  if (!options || options.length <= 1) {
+    return { shuffledOptions: options, newAnswerIndex: answerIndex };
+  }
+  const correctAnswerText = options[answerIndex];
+  const arr = [...options];
+
+  let seed = (questionId * 9301 + 49297) % 233280;
+  const nextRandom = () => {
+    seed = (seed * 9301 + 49297) % 233280;
+    return seed / 233280;
+  };
+
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(nextRandom() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+
+  const newAnswerIndex = arr.indexOf(correctAnswerText);
+  return { shuffledOptions: arr, newAnswerIndex: newAnswerIndex >= 0 ? newAnswerIndex : 0 };
+}
+
 /**
  * Randomly picks 10 questions from the 30-question bank, and shuffles options for multiple-choice questions!
  */
@@ -483,5 +505,16 @@ export function getShuffledEvaluationQuiz(): QuizQuestion[] {
 export function getQuizQuestionsByIds(ids: number[]): QuizQuestion[] {
   return ids
     .map((id) => SAMPLE_EVALUATION_QUIZ.find((q) => q.id === id))
-    .filter((q): q is QuizQuestion => q !== undefined);
+    .filter((q): q is QuizQuestion => q !== undefined)
+    .map((q) => {
+      if (q.type === 'short-answer' || !q.options || q.options.length === 0) {
+        return { ...q };
+      }
+      const { shuffledOptions, newAnswerIndex } = shuffleOptionsByQuestionId(q.options, q.answerIndex, q.id);
+      return {
+        ...q,
+        options: shuffledOptions,
+        answerIndex: newAnswerIndex,
+      };
+    });
 }
