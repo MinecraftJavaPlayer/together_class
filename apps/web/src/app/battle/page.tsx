@@ -349,6 +349,17 @@ export default function BattleHubPage() {
 
   const opponentRank = RANK_TIERS.find((r) => r.name === opponent.rankName) || getRankByPoints(opponent.points || 0);
 
+  const userTotalPts = updatedTotalPoints;
+  const userRankObj = getRankByPoints(userTotalPts);
+  const userRankIdx = RANK_TIERS.findIndex((r) => r.id === userRankObj.id);
+  const userNextRankObj = RANK_TIERS[userRankIdx + 1] || userRankObj;
+
+  const minP = userRankObj.minPoints;
+  const maxP = userNextRankObj.minPoints === Infinity ? userRankObj.maxPoints : userNextRankObj.minPoints;
+  const rangeP = Math.max(1, maxP - minP);
+  const pointsInTier = Math.max(0, userTotalPts - minP);
+  const progressPercent = Math.min(100, Math.max(0, Math.round((pointsInTier / rangeP) * 100)));
+
   return (
     <div className="battle-container" style={{ minHeight: '100vh', display: 'flex', backgroundColor: 'var(--bg-main)' }}>
       <SidebarNav />
@@ -828,117 +839,221 @@ export default function BattleHubPage() {
           </div>
         )}
 
-        {/* MATCH RESULT VIEW */}
+        {/* MATCH RESULT VIEW (Full-Screen Dark Overlay - Exact Photo Layout) */}
         {battleState === 'result' && (
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', maxWidth: '640px', margin: '0 auto', width: '100%' }}>
-            
-            <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '32px', border: '2px solid var(--border-color)', padding: '40px 36px', width: '100%', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }}>
-              
-              {/* Victory / Defeat Header */}
-              {userScore > oppScore ? (
-                <div style={{ fontSize: '48px', fontWeight: '900', color: '#10B981', marginBottom: '8px' }}>
-                  🎉 승리! (VICTORY)
-                </div>
-              ) : userScore < oppScore ? (
-                <div style={{ fontSize: '48px', fontWeight: '900', color: '#EF4444', marginBottom: '8px' }}>
-                  💔 패배... (DEFEAT)
-                </div>
-              ) : (
-                <div style={{ fontSize: '48px', fontWeight: '900', color: '#F59E0B', marginBottom: '8px' }}>
-                  🤝 무승부 (DRAW)
-                </div>
-              )}
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '100vh',
+              backgroundColor: '#0A0E17',
+              zIndex: 9999,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '24px',
+              userSelect: 'none',
+            }}
+          >
+            {/* Center Content Container */}
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '100%',
+                maxWidth: '680px',
+                textAlign: 'center',
+              }}
+            >
+              {/* 1. Top Emblem Badge */}
+              <div style={{ marginBottom: '16px', filter: `drop-shadow(0 0 24px ${userRankObj.color}80)` }}>
+                <RankSVGIcon tierGroup={userRankObj.tierGroup as any} subTier={userRankObj.subTier || '1'} size={68} />
+              </div>
 
-              <p style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-muted)', marginBottom: '32px' }}>
-                {isRankedMode ? '랭크전 결과 점수가 반영되었습니다.' : '일반전 퀴즈 대결이 완료되었습니다.'}
-              </p>
+              {/* 2. Large Tier Name Title: e.g. "브론즈 1" */}
+              <h1
+                style={{
+                  fontSize: '36px',
+                  fontWeight: '900',
+                  color: '#FFFFFF',
+                  margin: '0 0 20px 0',
+                  letterSpacing: '-0.5px',
+                }}
+              >
+                {userRankObj.name}
+              </h1>
 
-              {/* Score Comparison Box */}
-              <div style={{ backgroundColor: 'var(--bg-main)', borderRadius: '20px', padding: '24px', display: 'flex', justifyContent: 'space-around', alignItems: 'center', marginBottom: '28px', border: '1px solid var(--border-color)' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <RankSVGIcon tierGroup={currentRank.tierGroup as any} subTier={currentRank.subTier || '1'} size={28} />
-                    <span style={{ fontSize: '16px', fontWeight: '900', color: 'var(--text-main)' }}>{currentUser?.name}</span>
-                  </div>
-                  <div style={{ fontSize: '12px', fontWeight: '800', color: currentRank.color, backgroundColor: currentRank.bgColor, padding: '2px 10px', borderRadius: '10px' }}>
-                    {currentRank.name}
-                  </div>
-                  <div style={{ fontSize: '32px', fontWeight: '900', color: '#3B82F6', marginTop: '4px' }}>{userScore} 점</div>
+              {/* 3. Small Tier Label above Progress Track */}
+              <div style={{ fontSize: '13px', fontWeight: '800', color: 'rgba(255, 255, 255, 0.7)', marginBottom: '6px' }}>
+                {userRankObj.name}
+              </div>
+
+              {/* 4. Points Ratio Text: e.g. "0 / 20 pt" */}
+              <div style={{ fontSize: '15px', fontWeight: '800', color: '#FFFFFF', marginBottom: '14px' }}>
+                {userTotalPts} / {userNextRankObj.minPoints === Infinity ? 'MAX' : userNextRankObj.minPoints} pt
+              </div>
+
+              {/* 5. Progress Bar Row with Left/Right Emblems */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '16px',
+                  width: '100%',
+                  marginBottom: '36px',
+                }}
+              >
+                {/* Left Side: Current Rank Emblem + Text */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', minWidth: '70px' }}>
+                  <RankSVGIcon tierGroup={userRankObj.tierGroup as any} subTier={userRankObj.subTier || '1'} size={36} />
+                  <span style={{ fontSize: '12px', fontWeight: '800', color: userRankObj.color }}>{userRankObj.name}</span>
                 </div>
 
-                <div style={{ fontSize: '24px', fontWeight: '900', color: 'var(--text-muted)' }}>VS</div>
+                {/* Center Track Bar */}
+                <div style={{ flex: 1, height: '22px', backgroundColor: 'rgba(255, 255, 255, 0.12)', borderRadius: '9999px', overflow: 'hidden', padding: '3px', position: 'relative' }}>
+                  <div
+                    style={{
+                      height: '100%',
+                      width: `${progressPercent}%`,
+                      background: `linear-gradient(90deg, ${userRankObj.color}, ${userNextRankObj.color})`,
+                      borderRadius: '9999px',
+                      transition: 'width 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
+                      boxShadow: `0 0 16px ${userRankObj.color}`,
+                    }}
+                  />
+                </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <RankSVGIcon tierGroup={(opponent.tierGroup || 'gold') as any} subTier={opponent.subTier || '1'} size={28} />
-                    <span style={{ fontSize: '16px', fontWeight: '900', color: 'var(--text-main)' }}>{opponent.name}</span>
-                  </div>
-                  <div style={{ fontSize: '12px', fontWeight: '800', color: opponentRank.color, backgroundColor: opponentRank.bgColor, padding: '2px 10px', borderRadius: '10px' }}>
-                    {opponent.rankName || opponentRank.name}
-                  </div>
-                  <div style={{ fontSize: '32px', fontWeight: '900', color: '#EF4444', marginTop: '4px' }}>{oppScore} 점</div>
+                {/* Right Side: Next Rank Emblem + Text */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', minWidth: '70px' }}>
+                  <RankSVGIcon tierGroup={userNextRankObj.tierGroup as any} subTier={userNextRankObj.subTier || '1'} size={36} />
+                  <span style={{ fontSize: '12px', fontWeight: '800', color: userNextRankObj.color }}>{userNextRankObj.name}</span>
                 </div>
               </div>
 
-              {/* Ranked Points Delta Box */}
-              {isRankedMode && (
-                <div style={{ backgroundColor: pointsChange >= 0 ? '#ECFDF5' : '#FEF2F2', border: `2px solid ${pointsChange >= 0 ? '#10B981' : '#EF4444'}`, borderRadius: '20px', padding: '20px', marginBottom: '32px' }}>
-                  <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-muted)', marginBottom: '4px' }}>
-                    랭크 점수 변화
-                  </div>
-                  <div style={{ fontSize: '36px', fontWeight: '900', color: pointsChange >= 0 ? '#10B981' : '#EF4444' }}>
-                    {pointsChange >= 0 ? `+${pointsChange}` : pointsChange} pt
-                  </div>
-                  <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-main)', marginTop: '6px' }}>
-                    총 랭크 점수: <span style={{ fontWeight: '900' }}>{updatedTotalPoints} pt</span> ({currentRank.name})
-                  </div>
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              <div style={{ display: 'flex', gap: '16px' }}>
-                <button
-                  onClick={() => {
-                    playClickSound();
-                    setBattleState('selection');
-                  }}
-                  style={{
-                    flex: 1,
-                    padding: '16px 20px',
-                    backgroundColor: '#10B981',
-                    color: '#FFF',
-                    border: 'none',
-                    borderRadius: '16px',
-                    fontSize: '18px',
-                    fontWeight: '900',
-                    cursor: 'pointer',
-                    boxShadow: '0 8px 16px rgba(16, 185, 129, 0.3)',
-                  }}
-                >
-                  🔥 다시 대결하기
-                </button>
-
-                <button
-                  onClick={() => {
-                    playClickSound();
-                    router.push('/');
-                  }}
-                  style={{
-                    flex: 1,
-                    padding: '16px 20px',
-                    backgroundColor: 'var(--card-bg)',
-                    color: 'var(--text-main)',
-                    border: '2px solid var(--border-color)',
-                    borderRadius: '16px',
-                    fontSize: '18px',
-                    fontWeight: '900',
-                    cursor: 'pointer',
-                  }}
-                >
-                  🏠 대시보드로 이동
-                </button>
+              {/* 6. Huge Glowing Points Delta Text: "-16 pt" or "+25 pt" */}
+              <div
+                style={{
+                  fontSize: '84px',
+                  fontWeight: '900',
+                  color: isRankedMode
+                    ? pointsChange >= 0
+                      ? '#6EE7B7'
+                      : '#FCA5A5'
+                    : userScore >= oppScore
+                    ? '#6EE7B7'
+                    : '#FCA5A5',
+                  letterSpacing: '-2px',
+                  lineHeight: '1',
+                  marginBottom: '28px',
+                  textShadow: isRankedMode
+                    ? pointsChange >= 0
+                      ? '0 0 32px rgba(110, 231, 183, 0.5)'
+                      : '0 0 32px rgba(252, 165, 165, 0.5)'
+                    : userScore >= oppScore
+                    ? '0 0 32px rgba(110, 231, 183, 0.5)'
+                    : '0 0 32px rgba(252, 165, 165, 0.5)',
+                }}
+              >
+                {isRankedMode ? (pointsChange >= 0 ? `+${pointsChange} pt` : `${pointsChange} pt`) : userScore > oppScore ? '승리!' : userScore < oppScore ? '패배' : '무승부'}
               </div>
 
+              {/* Match Details Pill (Score Comparison vs Opponent) */}
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  padding: '8px 20px',
+                  borderRadius: '9999px',
+                  color: '#94A3B8',
+                  fontSize: '14px',
+                  fontWeight: '700',
+                }}
+              >
+                <span>👦 {currentUser?.name} <b style={{ color: '#3B82F6' }}>{userScore}점</b></span>
+                <span>VS</span>
+                <span>👧 {opponent.name} ({opponent.rankName}) <b style={{ color: '#EF4444' }}>{oppScore}점</b></span>
+              </div>
+            </div>
+
+            {/* 7. Bottom Right Navigation Buttons */}
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '40px',
+                right: '48px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                width: '160px',
+              }}
+            >
+              <button
+                onClick={() => {
+                  playClickSound();
+                  setBattleState('selection');
+                }}
+                style={{
+                  width: '100%',
+                  padding: '14px 20px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  color: '#FFFFFF',
+                  border: '2px solid rgba(255, 255, 255, 0.85)',
+                  borderRadius: '16px',
+                  fontSize: '16px',
+                  fontWeight: '800',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  textAlign: 'center',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                  e.currentTarget.style.borderColor = '#FFFFFF';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.85)';
+                }}
+              >
+                다시 대결하기
+              </button>
+
+              <button
+                onClick={() => {
+                  playClickSound();
+                  router.push('/');
+                }}
+                style={{
+                  width: '100%',
+                  padding: '14px 20px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  color: '#FFFFFF',
+                  border: '2px solid rgba(255, 255, 255, 0.85)',
+                  borderRadius: '16px',
+                  fontSize: '16px',
+                  fontWeight: '800',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  textAlign: 'center',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                  e.currentTarget.style.borderColor = '#FFFFFF';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.85)';
+                }}
+              >
+                나가기
+              </button>
             </div>
           </div>
         )}
