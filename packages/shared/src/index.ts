@@ -10,3 +10,4 @@ export * from './utils/ocrHelper';
 export * from './utils/soundEffects';
 export * from './utils/ragEngine';
 export * from './utils/onlineMatchmaker';
+export * from './utils/realtimeBattleEngine';

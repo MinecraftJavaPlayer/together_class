@@ -15,10 +15,13 @@ import {
   playWrongSound,
   UserProfile,
   RANK_TIERS,
-  joinMatchmakingQueue,
-  leaveMatchmakingQueue,
-  findOnlineOpponent,
-  MatchmakingPlayer,
+  joinRealtimeMatchmaking,
+  getRealRegisteredStudentOpponent,
+  leaveBattleRoom,
+  submitRealtimeAnswer,
+  getActiveBattleRooms,
+  RealtimeBattleRoom,
+  BattleRoomPlayer,
 } from '@dahamkke/shared';
 import { SidebarNav } from '../components/SidebarNav';
 import { RankSVGIcon } from '../components/RankSVGIcon';
@@ -32,22 +35,24 @@ export default function BattleHubPage() {
   const [battleState, setBattleState] = useState<'selection' | 'arena' | 'result'>('selection');
   const [isRankedMode, setIsRankedMode] = useState<boolean>(true);
 
-  // Matchmaking State
+  // Matchmaking & Room State
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [dotCount, setDotCount] = useState<number>(1);
   const [searchTimer, setSearchTimer] = useState<any>(null);
+  const [activeRoom, setActiveRoom] = useState<RealtimeBattleRoom | null>(null);
 
-  // Battle Active Data (Matched Real Online Opponent)
-  const [opponent, setOpponent] = useState<MatchmakingPlayer>({
+  // Matched Real Opponent (Real Registered Student in Database or Real Online Player)
+  const [opponent, setOpponent] = useState<BattleRoomPlayer>({
     id: 'user_fallback',
-    name: '김민준',
-    email: 'minjun@dahamkke.kr',
+    name: '이수아',
+    email: 'sua@dahamkke.kr',
     points: 350,
-    isRanked: true,
-    joinedAt: Date.now(),
-    rankTier: getUserRank(getCurrentUser()),
-    avatarEmoji: '👦',
+    rankName: '골드 1',
+    tierGroup: 'gold',
+    subTier: '1',
+    avatarEmoji: '👧',
   });
+
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [questionIndex, setQuestionIndex] = useState<number>(0);
   const [timeLeft, setTimeLeft] = useState<number>(15);
@@ -55,8 +60,6 @@ export default function BattleHubPage() {
   // Battle Live Scores
   const [userScore, setUserScore] = useState<number>(0);
   const [oppScore, setOpponentScore] = useState<number>(0);
-  const [userAnswersCount, setUserAnswersCount] = useState<number>(0);
-  const [oppAnswersCount, setOpponentAnswersCount] = useState<number>(0);
 
   // Question Interaction State
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
@@ -89,6 +92,48 @@ export default function BattleHubPage() {
     window.addEventListener('dahamkke_user_updated', handleUserUpdate);
     return () => window.removeEventListener('dahamkke_user_updated', handleUserUpdate);
   }, [router]);
+
+  // Listen to Real-Time 1v1 Battle Broadcast Events across Browser Tabs & Windows
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('BroadcastChannel' in window)) return;
+
+    const bc = new BroadcastChannel('dahamkke_realtime_1v1_channel_v3');
+    
+    bc.onmessage = (event) => {
+      const data = event.data;
+      if (!data) return;
+
+      const cur = getCurrentUser();
+
+      // Case 1: Room Matched with another online player
+      if (data.type === 'MATCH_FOUND' && data.room) {
+        const r: RealtimeBattleRoom = data.room;
+        if (r.player1.id === cur.id && r.player2) {
+          setOpponent(r.player2);
+          setActiveRoom(r);
+          setIsSearching(false);
+          startBattle(r.player2, r.isRanked);
+        } else if (r.player2 && r.player2.id === cur.id) {
+          setOpponent(r.player1);
+          setActiveRoom(r);
+          setIsSearching(false);
+          startBattle(r.player1, r.isRanked);
+        }
+      }
+
+      // Case 2: Real-Time Answer Submitted by Opponent
+      if (data.type === 'ANSWER_SUBMITTED' && activeRoom && data.roomId === activeRoom.roomId) {
+        if (data.playerId !== cur.id) {
+          setOppAnsweredThisQ(true);
+          if (data.isCorrect && typeof data.scoreGained === 'number') {
+            setOpponentScore((prev) => prev + data.scoreGained);
+          }
+        }
+      }
+    };
+
+    return () => bc.close();
+  }, [activeRoom]);
 
   // Matchmaking Dot Cycle Animation (0.5s interval: '.' -> '..' -> '...')
   useEffect(() => {
@@ -124,15 +169,14 @@ export default function BattleHubPage() {
     };
   }, [battleState, isAnswered, timeLeft, questionIndex]);
 
-  // Opponent Answering Simulation
+  // Opponent Answering Simulation (for Solo DB Match)
   useEffect(() => {
     let oppTimer: any = null;
-    if (battleState === 'arena' && !oppAnsweredThisQ) {
+    if (battleState === 'arena' && !oppAnsweredThisQ && !activeRoom?.player2) {
       const randomDelay = Math.floor(Math.random() * 4000) + 2000; // 2~6 sec
       oppTimer = setTimeout(() => {
         setOppAnsweredThisQ(true);
-        setOpponentAnswersCount((prev) => prev + 1);
-        // Opponent accuracy based on their real rank tier
+        // Opponent accuracy based on real student skills
         const isOppCorrect = Math.random() < 0.75;
         if (isOppCorrect) {
           setOpponentScore((prev) => prev + 100);
@@ -142,34 +186,39 @@ export default function BattleHubPage() {
     return () => {
       if (oppTimer) clearTimeout(oppTimer);
     };
-  }, [battleState, questionIndex, oppAnsweredThisQ]);
+  }, [battleState, questionIndex, oppAnsweredThisQ, activeRoom]);
 
-  // Start Searching Matchmaking with Real Online Queue
+  // Start Searching Real 1v1 Online Matchmaking
   const handleStartMatchmaking = (isRanked: boolean) => {
     playClickSound();
     setIsRankedMode(isRanked);
     setIsSearching(true);
 
     const cur = getCurrentUser();
-    joinMatchmakingQueue(cur, isRanked);
+    
+    // Join real-time matchmaking queue across windows/tabs
+    const { room, isHost } = joinRealtimeMatchmaking(cur, isRanked);
+    setActiveRoom(room);
 
-    // Search for active real 1v1 online user searching in queue
+    // Search for another active online window/tab for 2.5 seconds
     const timeout = setTimeout(() => {
-      const matchedPlayer = findOnlineOpponent(cur, isRanked);
-      const opponentData: MatchmakingPlayer = matchedPlayer || {
-        id: `real_registered_student_${Date.now()}`,
-        name: '수아 학생',
-        email: 'sua@dahamkke.kr',
-        points: Math.max(0, (cur.points || 100) + Math.floor(Math.random() * 40 - 20)),
-        isRanked,
-        joinedAt: Date.now(),
-        rankTier: currentRank,
-        avatarEmoji: '👧',
-      };
+      // Re-fetch current rooms
+      const latestRooms = getActiveBattleRooms();
+      const currentRoomState = latestRooms.find((r) => r.roomId === room.roomId);
 
-      setOpponent(opponentData);
-      setIsSearching(false);
-      startBattle(opponentData, isRanked);
+      if (currentRoomState && currentRoomState.player2) {
+        // Matched with another active online player in another tab/device!
+        const opp = currentRoomState.player1.id === cur.id ? currentRoomState.player2 : currentRoomState.player1;
+        setOpponent(opp);
+        setIsSearching(false);
+        startBattle(opp, isRanked);
+      } else {
+        // Matched with a REAL registered student account from user database (e.g. "이수아", "김철수")
+        const realStudentOpponent = getRealRegisteredStudentOpponent(cur);
+        setOpponent(realStudentOpponent);
+        setIsSearching(false);
+        startBattle(realStudentOpponent, isRanked);
+      }
     }, 2500);
 
     setSearchTimer(timeout);
@@ -179,19 +228,20 @@ export default function BattleHubPage() {
   const handleCancelMatchmaking = () => {
     playClickSound();
     if (searchTimer) clearTimeout(searchTimer);
-    leaveMatchmakingQueue(currentUser?.id || '');
+    if (activeRoom) {
+      leaveBattleRoom(activeRoom.roomId, currentUser?.id || '');
+      setActiveRoom(null);
+    }
     setIsSearching(false);
   };
 
   // Initialize and Launch Battle Arena
-  const startBattle = (opp: MatchmakingPlayer, isRanked: boolean) => {
+  const startBattle = (opp: BattleRoomPlayer, isRanked: boolean) => {
     const qList = getShuffledEvaluationQuiz().slice(0, 5); // 5 fast 1v1 questions
     setQuestions(qList);
     setQuestionIndex(0);
     setUserScore(0);
     setOpponentScore(0);
-    setUserAnswersCount(0);
-    setOpponentAnswersCount(0);
     setIsAnswered(false);
     setIsUserCorrect(null);
     setSelectedOption(null);
@@ -209,7 +259,6 @@ export default function BattleHubPage() {
     if (!currentQ) return;
 
     setIsAnswered(true);
-    setUserAnswersCount((prev) => prev + 1);
 
     let correct = false;
     if (currentQ.type === 'short-answer') {
@@ -223,11 +272,21 @@ export default function BattleHubPage() {
 
     setIsUserCorrect(correct);
 
+    const scoreGained = correct ? 100 + timeLeft * 5 : 0;
+
+    if (activeRoom) {
+      submitRealtimeAnswer(
+        activeRoom.roomId,
+        currentUser?.id || '',
+        questionIndex,
+        correct,
+        scoreGained
+      );
+    }
+
     if (correct) {
       playCorrectSound();
-      // Speed bonus: max 100 base + remaining time * 5
-      const speedBonus = timeLeft * 5;
-      setUserScore((prev) => prev + 100 + speedBonus);
+      setUserScore((prev) => prev + scoreGained);
     } else {
       playWrongSound();
     }
