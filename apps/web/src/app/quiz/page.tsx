@@ -133,7 +133,7 @@ export default function WebEvaluationQuizPage() {
       setAnimValue(0);
 
       const target = pts;
-      const duration = 1400; // 1.4s
+      const duration = 2600; // 2.6s (slower count-up)
       const steps = 30;
       const stepTime = duration / steps;
       let currentStep = 0;

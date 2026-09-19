@@ -89,8 +89,8 @@ export default function BattleHubPage() {
     }
 
     const absTarget = Math.abs(target);
-    // Duration scales proportionally with number magnitude (35ms per pt, bounded between 600ms and 1800ms)
-    const duration = Math.min(1800, Math.max(600, absTarget * 35));
+    // Slower duration scaling proportionally with number magnitude (75ms per pt, bounded between 1600ms and 3600ms)
+    const duration = Math.min(3600, Math.max(1600, absTarget * 75));
     const startTime = performance.now();
 
     let animationFrameId: number;
