@@ -52,27 +52,48 @@ export function calculateBattlePoints(
 ): number {
   if (!isRanked) return 0;
 
-  // Base outcome
-  let basePoints = 0;
+  // Rating difference (Opponent - User)
+  const ratingDiff = oppPoints - userPoints; // positive if opponent is higher rank
+
+  // 1. Victory scenario
   if (userScore > oppScore) {
-    basePoints = 30;
-  } else if (userScore < oppScore) {
-    basePoints = -30;
-  } else {
-    basePoints = 0;
+    let baseWin = 25;
+    // Score margin bonus: up to +15pt for dominant win
+    const marginBonus = Math.min(15, Math.max(0, Math.round((userScore - oppScore) / 25)));
+    
+    // Rating tier gap multiplier: defeating a higher-ranked opponent gives bonus rating
+    let tierBonus = 0;
+    if (ratingDiff > 0) {
+      tierBonus = Math.min(20, Math.round(ratingDiff / 40)); // up to +20 extra for defeating higher tier
+    } else {
+      tierBonus = Math.max(-10, Math.round(ratingDiff / 100)); // slight reduction if expected win against lower tier
+    }
+
+    const totalWin = baseWin + marginBonus + tierBonus;
+    return Math.min(50, Math.max(10, totalWin));
   }
 
-  // Margin adjustment based on correct answers difference
-  const marginBonus = (userScore - oppScore) * 2; // e.g. +10 or -10 for 5 diff
+  // 2. Defeat scenario
+  if (userScore < oppScore) {
+    let baseLoss = -25;
+    // Score margin penalty: up to -15pt for heavy loss
+    const marginPenalty = -Math.min(15, Math.max(0, Math.round((oppScore - userScore) / 25)));
 
-  // Rating difference adjustment: playing against higher ranked opponent gives small bonus
-  const pointDiff = oppPoints - userPoints;
-  const ratingBonus = Math.max(-10, Math.min(10, Math.round(pointDiff / 100)));
+    // Rating tier gap multiplier: losing to a lower-ranked opponent loses more rating
+    let tierPenalty = 0;
+    if (ratingDiff < 0) {
+      tierPenalty = -Math.min(20, Math.round(Math.abs(ratingDiff) / 40)); // heavy drop for upset loss to lower tier
+    } else {
+      tierPenalty = Math.min(15, Math.round(ratingDiff / 60)); // loss mitigation when playing higher tier
+    }
 
-  let totalDelta = basePoints + marginBonus + ratingBonus;
+    const totalLoss = baseLoss + marginPenalty + tierPenalty;
+    return Math.max(-50, Math.min(-5, totalLoss));
+  }
 
-  // Ensure bounds strictly between -50 and +50
-  return Math.max(-50, Math.min(50, totalDelta));
+  // 3. Draw scenario
+  const drawAdjustment = Math.round(ratingDiff / 100);
+  return Math.max(-10, Math.min(10, drawAdjustment));
 }
 
 export interface SeasonHistoryItem {

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   getUserRank,
+  getRankByPoints,
   getCurrentUser,
   getShuffledEvaluationQuiz,
   getQuizQuestionsByIds,
@@ -346,6 +347,8 @@ export default function BattleHubPage() {
 
   const currentQ = questions[questionIndex];
 
+  const opponentRank = RANK_TIERS.find((r) => r.name === opponent.rankName) || getRankByPoints(opponent.points || 0);
+
   return (
     <div className="battle-container" style={{ minHeight: '100vh', display: 'flex', backgroundColor: 'var(--bg-main)' }}>
       <SidebarNav />
@@ -608,16 +611,38 @@ export default function BattleHubPage() {
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', maxWidth: '900px', margin: '0 auto', width: '100%' }}>
             
             {/* Live Score Header */}
-            <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '24px', border: '1.5px solid var(--border-color)', padding: '20px 28px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: 'var(--shadow-soft)' }}>
+            <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '24px', border: '1.5px solid var(--border-color)', padding: '18px 24px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: 'var(--shadow-soft)' }}>
               
               {/* My Profile Side */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div style={{ width: '52px', height: '52px', borderRadius: '50%', backgroundColor: '#3B82F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', color: '#FFF' }}>
-                  👦
+                <div style={{ position: 'relative' }}>
+                  <div style={{ width: '54px', height: '54px', borderRadius: '50%', backgroundColor: '#3B82F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', color: '#FFF', border: '2px solid #2563EB' }}>
+                    👦
+                  </div>
+                  <div style={{ position: 'absolute', bottom: '-4px', right: '-6px' }}>
+                    <RankSVGIcon tierGroup={currentRank.tierGroup as any} subTier={currentRank.subTier || '1'} size={24} />
+                  </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '18px', fontWeight: '900', color: 'var(--text-main)' }}>{currentUser?.name}</div>
-                  <div style={{ fontSize: '14px', fontWeight: '800', color: '#3B82F6' }}>{userScore} 점</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '17px', fontWeight: '900', color: 'var(--text-main)' }}>{currentUser?.name}</span>
+                    <span
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: '800',
+                        color: currentRank.color,
+                        backgroundColor: currentRank.bgColor,
+                        padding: '2px 8px',
+                        borderRadius: '8px',
+                        border: `1px solid ${currentRank.color}40`,
+                      }}
+                    >
+                      🏆 {currentRank.name}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '14px', fontWeight: '800', color: '#3B82F6', marginTop: '2px' }}>
+                    {userScore} 점
+                  </div>
                 </div>
               </div>
 
@@ -644,11 +669,33 @@ export default function BattleHubPage() {
               {/* Opponent Profile Side */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '18px', fontWeight: '900', color: 'var(--text-main)' }}>{opponent.name}</div>
-                  <div style={{ fontSize: '14px', fontWeight: '800', color: '#EF4444' }}>{oppScore} 점</div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
+                    <span
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: '800',
+                        color: opponentRank?.color || '#F59E0B',
+                        backgroundColor: opponentRank?.bgColor || '#FEF3C7',
+                        padding: '2px 8px',
+                        borderRadius: '8px',
+                        border: `1px solid ${(opponentRank?.color || '#F59E0B')}40`,
+                      }}
+                    >
+                      🏆 {opponent.rankName || '골드 1'}
+                    </span>
+                    <span style={{ fontSize: '17px', fontWeight: '900', color: 'var(--text-main)' }}>{opponent.name}</span>
+                  </div>
+                  <div style={{ fontSize: '14px', fontWeight: '800', color: '#EF4444', marginTop: '2px' }}>
+                    {oppScore} 점
+                  </div>
                 </div>
-                <div style={{ width: '52px', height: '52px', borderRadius: '50%', backgroundColor: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', color: '#FFF' }}>
-                  {opponent.avatarEmoji}
+                <div style={{ position: 'relative' }}>
+                  <div style={{ width: '54px', height: '54px', borderRadius: '50%', backgroundColor: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', color: '#FFF', border: '2px solid #DC2626' }}>
+                    {opponent.avatarEmoji || '👧'}
+                  </div>
+                  <div style={{ position: 'absolute', bottom: '-4px', left: '-6px' }}>
+                    <RankSVGIcon tierGroup={(opponent.tierGroup || 'gold') as any} subTier={opponent.subTier || '1'} size={24} />
+                  </div>
                 </div>
               </div>
 
@@ -808,16 +855,28 @@ export default function BattleHubPage() {
 
               {/* Score Comparison Box */}
               <div style={{ backgroundColor: 'var(--bg-main)', borderRadius: '20px', padding: '24px', display: 'flex', justifyContent: 'space-around', alignItems: 'center', marginBottom: '28px', border: '1px solid var(--border-color)' }}>
-                <div>
-                  <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-muted)' }}>{currentUser?.name}</div>
-                  <div style={{ fontSize: '32px', fontWeight: '900', color: '#3B82F6' }}>{userScore} 점</div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <RankSVGIcon tierGroup={currentRank.tierGroup as any} subTier={currentRank.subTier || '1'} size={28} />
+                    <span style={{ fontSize: '16px', fontWeight: '900', color: 'var(--text-main)' }}>{currentUser?.name}</span>
+                  </div>
+                  <div style={{ fontSize: '12px', fontWeight: '800', color: currentRank.color, backgroundColor: currentRank.bgColor, padding: '2px 10px', borderRadius: '10px' }}>
+                    {currentRank.name}
+                  </div>
+                  <div style={{ fontSize: '32px', fontWeight: '900', color: '#3B82F6', marginTop: '4px' }}>{userScore} 점</div>
                 </div>
 
                 <div style={{ fontSize: '24px', fontWeight: '900', color: 'var(--text-muted)' }}>VS</div>
 
-                <div>
-                  <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-muted)' }}>{opponent.name}</div>
-                  <div style={{ fontSize: '32px', fontWeight: '900', color: '#EF4444' }}>{oppScore} 점</div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <RankSVGIcon tierGroup={(opponent.tierGroup || 'gold') as any} subTier={opponent.subTier || '1'} size={28} />
+                    <span style={{ fontSize: '16px', fontWeight: '900', color: 'var(--text-main)' }}>{opponent.name}</span>
+                  </div>
+                  <div style={{ fontSize: '12px', fontWeight: '800', color: opponentRank.color, backgroundColor: opponentRank.bgColor, padding: '2px 10px', borderRadius: '10px' }}>
+                    {opponent.rankName || opponentRank.name}
+                  </div>
+                  <div style={{ fontSize: '32px', fontWeight: '900', color: '#EF4444', marginTop: '4px' }}>{oppScore} 점</div>
                 </div>
               </div>
 
