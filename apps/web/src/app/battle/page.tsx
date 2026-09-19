@@ -73,6 +73,49 @@ export default function BattleHubPage() {
   // Battle Result State
   const [pointsChange, setPointsChange] = useState<number>(0);
   const [updatedTotalPoints, setUpdatedTotalPoints] = useState<number>(currentUser?.points || 0);
+  const [animatedDelta, setAnimatedDelta] = useState<number>(0);
+
+  // Proportional Count-Up / Count-Down Number Animation for Points Result
+  useEffect(() => {
+    if (battleState !== 'result') {
+      setAnimatedDelta(0);
+      return;
+    }
+
+    const target = isRankedMode ? pointsChange : (userScore > oppScore ? 100 : userScore < oppScore ? -100 : 0);
+    if (target === 0) {
+      setAnimatedDelta(0);
+      return;
+    }
+
+    const absTarget = Math.abs(target);
+    // Duration scales proportionally with number magnitude (35ms per pt, bounded between 600ms and 1800ms)
+    const duration = Math.min(1800, Math.max(600, absTarget * 35));
+    const startTime = performance.now();
+
+    let animationFrameId: number;
+
+    const updateCount = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(1, elapsed / duration);
+      
+      // Smooth cubic ease-out deceleration
+      const easeProgress = 1 - Math.pow(1 - progress, 3);
+      const currentVal = Math.round(target * easeProgress);
+
+      setAnimatedDelta(currentVal);
+
+      if (progress < 1) {
+        animationFrameId = requestAnimationFrame(updateCount);
+      } else {
+        setAnimatedDelta(target);
+      }
+    };
+
+    animationFrameId = requestAnimationFrame(updateCount);
+
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [battleState, pointsChange, isRankedMode, userScore, oppScore]);
 
   useEffect(() => {
     // Session check: redirect to login if user not logged in
@@ -935,13 +978,13 @@ export default function BattleHubPage() {
                 </div>
               </div>
 
-              {/* 6. Huge Glowing Points Delta Text: "-16 pt" or "+25 pt" */}
+              {/* 6. Huge Glowing Points Delta Text: Animated count-up/down ("-16 pt" or "+37 pt") */}
               <div
                 style={{
                   fontSize: '84px',
                   fontWeight: '900',
                   color: isRankedMode
-                    ? pointsChange >= 0
+                    ? animatedDelta >= 0
                       ? '#6EE7B7'
                       : '#FCA5A5'
                     : userScore >= oppScore
@@ -951,15 +994,24 @@ export default function BattleHubPage() {
                   lineHeight: '1',
                   marginBottom: '28px',
                   textShadow: isRankedMode
-                    ? pointsChange >= 0
+                    ? animatedDelta >= 0
                       ? '0 0 32px rgba(110, 231, 183, 0.5)'
                       : '0 0 32px rgba(252, 165, 165, 0.5)'
                     : userScore >= oppScore
                     ? '0 0 32px rgba(110, 231, 183, 0.5)'
                     : '0 0 32px rgba(252, 165, 165, 0.5)',
+                  transition: 'color 0.2s ease',
                 }}
               >
-                {isRankedMode ? (pointsChange >= 0 ? `+${pointsChange} pt` : `${pointsChange} pt`) : userScore > oppScore ? '승리!' : userScore < oppScore ? '패배' : '무승부'}
+                {isRankedMode
+                  ? animatedDelta > 0
+                    ? `+${animatedDelta} pt`
+                    : `${animatedDelta} pt`
+                  : userScore > oppScore
+                  ? '승리!'
+                  : userScore < oppScore
+                  ? '패배'
+                  : '무승부'}
               </div>
 
               {/* Match Details Pill (Score Comparison vs Opponent) */}
