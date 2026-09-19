@@ -276,17 +276,19 @@ export default function WebDashboard() {
                 </div>
               </div>
 
-              {/* Green 1v1 Battle Button (Photo 1 exact layout) */}
+              {/* Green 1v1 Battle Button (Shorter Width & Centered) */}
               <button
                 onClick={() => router.push('/battle')}
                 style={{
+                  maxWidth: '360px',
                   width: '100%',
-                  padding: '20px 24px',
+                  margin: '0 auto',
+                  padding: '16px 24px',
                   backgroundColor: '#22C55E',
                   color: '#FFFFFF',
                   border: 'none',
                   borderRadius: '20px',
-                  fontSize: '26px',
+                  fontSize: '24px',
                   fontWeight: '900',
                   cursor: 'pointer',
                   boxShadow: '0 8px 20px rgba(34, 197, 94, 0.3)',
@@ -305,7 +307,7 @@ export default function WebDashboard() {
                   e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
-                <span style={{ fontSize: '30px' }}>⚔️</span> 대결
+                <span style={{ fontSize: '28px' }}>⚔️</span> 대결
               </button>
             </div>
           )}
