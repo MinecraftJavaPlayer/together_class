@@ -7,6 +7,7 @@ import {
   getUserRank,
   getCurrentUser,
   getShuffledEvaluationQuiz,
+  getQuizQuestionsByIds,
   QuizQuestion,
   calculateBattlePoints,
   addPointsToCurrentUser,
@@ -211,13 +212,13 @@ export default function BattleHubPage() {
         const opp = currentRoomState.player1.id === cur.id ? currentRoomState.player2 : currentRoomState.player1;
         setOpponent(opp);
         setIsSearching(false);
-        startBattle(opp, isRanked);
+        startBattle(opp, isRanked, currentRoomState);
       } else {
         // Matched with a REAL registered student account from user database (e.g. "이수아", "김철수")
         const realStudentOpponent = getRealRegisteredStudentOpponent(cur);
         setOpponent(realStudentOpponent);
         setIsSearching(false);
-        startBattle(realStudentOpponent, isRanked);
+        startBattle(realStudentOpponent, isRanked, room);
       }
     }, 2500);
 
@@ -236,8 +237,16 @@ export default function BattleHubPage() {
   };
 
   // Initialize and Launch Battle Arena
-  const startBattle = (opp: BattleRoomPlayer, isRanked: boolean) => {
-    const qList = getShuffledEvaluationQuiz().slice(0, 5); // 5 fast 1v1 questions
+  const startBattle = (opp: BattleRoomPlayer, isRanked: boolean, roomData?: RealtimeBattleRoom | null) => {
+    let qList: QuizQuestion[] = [];
+    const targetRoom = roomData || activeRoom;
+    if (targetRoom && targetRoom.questionIds && targetRoom.questionIds.length > 0) {
+      qList = getQuizQuestionsByIds(targetRoom.questionIds);
+    }
+    if (qList.length === 0) {
+      qList = getShuffledEvaluationQuiz().slice(0, 5); // Fallback 5 questions
+    }
+
     setQuestions(qList);
     setQuestionIndex(0);
     setUserScore(0);

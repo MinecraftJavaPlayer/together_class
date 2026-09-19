@@ -458,3 +458,9 @@ export function getShuffledEvaluationQuiz(): QuizQuestion[] {
     };
   });
 }
+
+export function getQuizQuestionsByIds(ids: number[]): QuizQuestion[] {
+  return ids
+    .map((id) => SAMPLE_EVALUATION_QUIZ.find((q) => q.id === id))
+    .filter((q): q is QuizQuestion => q !== undefined);
+}

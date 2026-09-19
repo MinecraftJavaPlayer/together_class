@@ -23,6 +23,7 @@ export interface RealtimeBattleRoom {
   player1AnsweredQ: boolean;
   player2AnsweredQ: boolean;
   currentQuestionIndex: number;
+  questionIds: number[];
   createdAt: number;
   updatedAt: number;
 }
@@ -128,6 +129,11 @@ export function joinRealtimeMatchmaking(
     return { room: waitingRoom, isHost: false };
   }
 
+  // Helper to pick 5 random question IDs (from 1 to 30)
+  const randomQIds = Array.from({ length: 30 }, (_, i) => i + 1)
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 5);
+
   // 2. Create a new waiting room as Host (Player 1)
   const newRoom: RealtimeBattleRoom = {
     roomId: `room_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
@@ -140,6 +146,7 @@ export function joinRealtimeMatchmaking(
     player1AnsweredQ: false,
     player2AnsweredQ: false,
     currentQuestionIndex: 0,
+    questionIds: randomQIds,
     createdAt: Date.now(),
     updatedAt: Date.now(),
   };
