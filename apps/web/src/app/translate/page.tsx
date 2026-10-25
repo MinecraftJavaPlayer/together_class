@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { SidebarNav } from '../components/SidebarNav';
-import { LANGUAGE_LIST, LanguageCode, markModuleCompleted, extractTextFromImageFile } from '@dahamkke/shared';
+import { LANGUAGE_LIST, LanguageCode, markModuleCompleted, extractTextFromImageFile, getCurrentUser } from '@dahamkke/shared';
 import { saveLearningRecord } from '../utils/recordsStore';
 import { translateSourceText, speakText } from '../utils/translationHelper';
 
 export default function WebTranslatePage() {
   const [sourceLang, setSourceLang] = useState<LanguageCode>('ko');
-  const [targetLang, setTargetLang] = useState<LanguageCode>('ru');
+  const [targetLang, setTargetLang] = useState<LanguageCode>('vi');
   const [sourceText, setSourceText] = useState(
     '옛날 옛적 어느 마을에 흥부와 놀부 형제가 살고 있었습니다. 흥부는 가난했지만 온 가족이 서로 아끼며 살았습니다.'
   );
@@ -20,6 +20,10 @@ export default function WebTranslatePage() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   useEffect(() => {
     setIsDarkMode(localStorage.getItem('dahamkke_dark_mode') === 'true');
+    const u = getCurrentUser();
+    if (u && u.nativeLang) {
+      setTargetLang(u.nativeLang as LanguageCode);
+    }
   }, []);
 
   const triggerTranslation = async (text: string, lang: string) => {

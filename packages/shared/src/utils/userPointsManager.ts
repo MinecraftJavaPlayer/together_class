@@ -1,5 +1,5 @@
 import { UserProfile, INITIAL_USERS } from '../constants/userStore';
-import { getRankByPoints, RankTier, RANK_TIERS } from '../constants/rankSystem';
+import { getRankByPoints, RankTier, RANK_TIERS, calculatePlacementPoints, UNRANKED_TIER, MASTER_MIN_POINTS } from '../constants/rankSystem';
 
 const STORAGE_KEY = 'dahamkke_current_user';
 const ALL_USERS_DB_KEY = 'dahamkke_all_users_v2';
@@ -42,19 +42,31 @@ export async function syncCloudDatabase(): Promise<UserProfile[]> {
 
         const userMap = new Map<string, UserProfile>();
         
-        // Add cloud users
+        // Add cloud users (sanitize unplaced users to 0 points / isPlacementCompleted: false)
         cloudUsers.forEach((u) => {
           if (u && u.email && u.id && u.id !== 'guest' && !u.name.includes('게스트')) {
-            userMap.set(u.email.toLowerCase(), u);
+            const isPlaced = Boolean(u.isPlacementCompleted);
+            const sanitized = {
+              ...u,
+              isPlacementCompleted: isPlaced,
+              points: isPlaced ? Math.max(0, u.points || 0) : 0,
+            };
+            userMap.set(u.email.toLowerCase(), sanitized);
           }
         });
 
-        // Add local users (merge points if higher)
+        // Add local users
         localList.forEach((u) => {
           if (u && u.email && u.id && u.id !== 'guest' && !u.name.includes('게스트')) {
+            const isPlaced = Boolean(u.isPlacementCompleted);
+            const sanitized = {
+              ...u,
+              isPlacementCompleted: isPlaced,
+              points: isPlaced ? Math.max(0, u.points || 0) : 0,
+            };
             const existing = userMap.get(u.email.toLowerCase());
-            if (!existing || (u.points || 0) >= (existing.points || 0)) {
-              userMap.set(u.email.toLowerCase(), u);
+            if (!existing || (sanitized.points || 0) >= (existing.points || 0)) {
+              userMap.set(u.email.toLowerCase(), sanitized);
             }
           }
         });
@@ -87,7 +99,43 @@ export function pushCloudDatabase(users: UserProfile[]): void {
   }).catch(() => {});
 }
 
+function applyPlacementResetMigration(): void {
+  if (typeof window === 'undefined' || !window.localStorage) return;
+  const migrationKey = 'dahamkke_placement_reset_v10';
+  if (localStorage.getItem(migrationKey) !== 'true') {
+    localStorage.setItem(migrationKey, 'true');
+
+    // 1. Reset active current user session
+    const savedCurrent = localStorage.getItem(STORAGE_KEY);
+    if (savedCurrent) {
+      try {
+        const current = JSON.parse(savedCurrent);
+        if (current) {
+          const resetCurrent = { ...current, points: 0, isPlacementCompleted: false };
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(resetCurrent));
+        }
+      } catch (e) {}
+    }
+
+    // 2. Reset all persisted DB users
+    const savedList = localStorage.getItem(ALL_USERS_DB_KEY);
+    if (savedList) {
+      try {
+        const parsed = JSON.parse(savedList);
+        if (Array.isArray(parsed)) {
+          const resetList = parsed.map((u) => ({ ...u, points: 0, isPlacementCompleted: false }));
+          localStorage.setItem(ALL_USERS_DB_KEY, JSON.stringify(resetList));
+          pushCloudDatabase(resetList);
+        }
+      } catch (e) {}
+    }
+  }
+}
+
 export function getAllUsers(): UserProfile[] {
+  // Reset all existing accounts to Unranked for placement match testing
+  applyPlacementResetMigration();
+
   // Trigger background cloud sync if more than 5 seconds since last check
   if (typeof window !== 'undefined' && Date.now() - lastCloudSyncTime > 5000) {
     lastCloudSyncTime = Date.now();
@@ -121,22 +169,22 @@ export function getAllUsers(): UserProfile[] {
     }
   }
 
-  // If no persisted users, start with the preset INITIAL_USERS
-  if (list.length === 0) {
+  // If no persisted users or only empty list, load preset INITIAL_USERS
+  const nonGuestCount = list.filter(u => u.id !== 'guest' && !u.id.startsWith('guest')).length;
+  if (nonGuestCount === 0 && INITIAL_USERS.length > 0) {
     list = [...INITIAL_USERS];
     if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.setItem('dahamkke_temp_version', 'v8');
+      localStorage.setItem('dahamkke_temp_version', 'v9');
     }
   }
 
-  // Ensure any lingering temp users, guest users and mock initial users are filtered out
+  // Ensure any lingering temp users and guest users are filtered out
   list = list.filter(u => 
     !u.id.startsWith('temp_') && 
     !u.id.startsWith('guest') &&
     u.id !== 'guest' &&
     u.email !== 'guest@dahamkke.kr' &&
-    !u.name.includes('게스트') &&
-    !['student-seojun', 'student-minjun', 'student-anna', 'teacher-jungwoong'].includes(u.id)
+    !u.name.includes('게스트')
   );
 
 
@@ -154,21 +202,34 @@ export function getAllUsers(): UserProfile[] {
           current.email !== 'guest@dahamkke.kr' &&
           !current.name.includes('게스트')
         ) {
+          const isPlaced = Boolean(current.isPlacementCompleted);
+          const sanitizedCurrent = {
+            ...current,
+            isPlacementCompleted: isPlaced,
+            points: isPlaced ? Math.max(0, current.points || 0) : 0,
+          };
           const idx = list.findIndex(
             (u) => u.id === current.id || (u.email && current.email && u.email.toLowerCase() === current.email.toLowerCase())
           );
           if (idx !== -1) {
-            list[idx] = { ...list[idx], ...current, points: Math.max(0, current.points || 0) };
+            list[idx] = { ...list[idx], ...sanitizedCurrent };
           } else {
-            list.push({ ...current, points: Math.max(0, current.points || 0) });
+            list.push(sanitizedCurrent);
           }
         }
       } catch (e) {}
     }
   }
 
-  // Ensure points are non-negative
-  list = list.map(u => ({ ...u, points: Math.max(0, u.points || 0) }));
+  // Ensure unplaced users have 0 points
+  list = list.map(u => {
+    const isPlaced = Boolean(u.isPlacementCompleted);
+    return {
+      ...u,
+      isPlacementCompleted: isPlaced,
+      points: isPlaced ? Math.max(0, u.points || 0) : 0,
+    };
+  });
 
   // Save merged list back to DB
   if (typeof window !== 'undefined' && window.localStorage) {
@@ -182,15 +243,20 @@ export function getAllUsers(): UserProfile[] {
 }
 
 export function getCurrentUser(): UserProfile {
+  applyPlacementResetMigration();
+
   if (typeof window !== 'undefined' && window.localStorage) {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
         const user = JSON.parse(saved);
         if (user && typeof user.id === 'string' && user.id) {
+          const points = typeof user.points === 'number' ? Math.max(0, user.points) : 0;
+          const isPlaced = Boolean(user.isPlacementCompleted) || points > 0;
           return {
             ...user,
-            points: typeof user.points === 'number' ? Math.max(0, user.points) : 0,
+            isPlacementCompleted: isPlaced,
+            points,
           };
         }
       } catch (e) {}
@@ -250,18 +316,33 @@ export function registerNewUser(newUser: UserProfile): void {
 
 export function addPointsToCurrentUser(pointsGained: number): { updatedUser: UserProfile; oldRank: RankTier; newRank: RankTier } {
   const user = getCurrentUser();
-  const oldRank = getRankByPoints(user.points);
+  const oldRank = getUserRank(user);
   const newPoints = Math.max(0, user.points + pointsGained);
-  const newRank = getRankByPoints(newPoints);
-
+  
   const updatedUser: UserProfile = {
     ...user,
     points: newPoints,
+    isPlacementCompleted: true, // Playing ranked games marks placement as complete
   };
 
   saveCurrentUser(updatedUser);
+  const newRank = getUserRank(updatedUser);
 
   return { updatedUser, oldRank, newRank };
+}
+
+export function applyPlacementResult(correctCount: number): { updatedUser: UserProfile; assignedRank: RankTier; startingPoints: number } {
+  const user = getCurrentUser();
+  const startingPoints = calculatePlacementPoints(correctCount);
+  const updatedUser: UserProfile = {
+    ...user,
+    points: startingPoints,
+    isPlacementCompleted: true,
+  };
+
+  saveCurrentUser(updatedUser);
+  const assignedRank = getRankByPoints(startingPoints);
+  return { updatedUser, assignedRank, startingPoints };
 }
 
 export function markModuleCompleted(moduleName: keyof UserProfile['completedModules']): UserProfile {
@@ -279,14 +360,20 @@ export function markModuleCompleted(moduleName: keyof UserProfile['completedModu
 }
 
 export function getUserRank(user: UserProfile): RankTier {
-  if (!user) return getRankByPoints(0);
+  if (!user) return UNRANKED_TIER;
 
-  const points = user.points || 0;
+  const points = typeof user.points === 'number' ? Math.max(0, user.points) : 0;
+
+  // Unranked user who hasn't completed placement match and has no points
+  if (points <= 0 && !user.isPlacementCompleted) {
+    return UNRANKED_TIER;
+  }
+
   const baseTier = getRankByPoints(points);
 
-  // Guest accounts or users under 5000 points cannot be Grandmaster
+  // Guest accounts or users below Master cannot be Grandmaster
   if (
-    points < 5000 ||
+    points < MASTER_MIN_POINTS ||
     user.id === 'guest' ||
     user.id.startsWith('guest') ||
     user.email === 'guest@dahamkke.kr' ||
@@ -309,12 +396,34 @@ export function getUserRank(user: UserProfile): RankTier {
     (u) => u.id === user.id || (u.email && user.email && u.email.toLowerCase() === user.email.toLowerCase())
   );
 
-  // Grandmaster is strictly assigned ONLY to Masters (points >= 5000) in World Top 5 (rankIndex < 5)!
+  // Grandmaster is strictly assigned ONLY to Masters (points >= MASTER_MIN_POINTS) in World Top 5 (rankIndex < 5)!
   if (rankIndex !== -1 && rankIndex < 5) {
     return RANK_TIERS.find((r) => r.id === 'grandmaster') || baseTier;
   }
 
   return baseTier;
+}
+
+export function setUserPointsAndTier(points: number): UserProfile {
+  const user = getCurrentUser();
+  const updatedUser: UserProfile = {
+    ...user,
+    points: Math.max(0, points),
+    isPlacementCompleted: points > 0,
+  };
+  saveCurrentUser(updatedUser);
+  return updatedUser;
+}
+
+export function resetUserPlacement(): UserProfile {
+  const user = getCurrentUser();
+  const updatedUser: UserProfile = {
+    ...user,
+    points: 0,
+    isPlacementCompleted: false,
+  };
+  saveCurrentUser(updatedUser);
+  return updatedUser;
 }
 
 export function deleteUserByEmail(email: string): boolean {

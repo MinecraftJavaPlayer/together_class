@@ -1,4 +1,4 @@
-export interface RankTier {
+﻿export interface RankTier {
   id: string;
   name: string;
   subTier: string;
@@ -7,11 +7,26 @@ export interface RankTier {
   color: string;
   bgColor: string;
   icon: string;
-  tierGroup: 'bronze' | 'silver' | 'gold' | 'diamond' | 'master' | 'grandmaster';
+  tierGroup: 'unranked' | 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond' | 'expert' | 'master' | 'grandmaster';
 }
 
+/** Minimum points required to reach Master (and to be eligible for Grandmaster). */
+export const MASTER_MIN_POINTS = 30000;
+
+export const UNRANKED_TIER: RankTier = {
+  id: 'unranked',
+  name: '언랭크',
+  subTier: 'UNRANKED',
+  minPoints: -1,
+  maxPoints: -1,
+  color: '#CBD5E1',
+  bgColor: '#FFFFFF',
+  icon: '⭕',
+  tierGroup: 'unranked',
+};
+
 export const RANK_TIERS: RankTier[] = [
-  { id: 'bronze-1', name: '브론즈 1', subTier: '1', minPoints: 0, maxPoints: 19, color: '#CD7F32', bgColor: '#FEF3C7', icon: '🥉', tierGroup: 'bronze' },
+  { id: 'bronze-1', name: '브론즈 1', subTier: '1', minPoints: 1, maxPoints: 19, color: '#CD7F32', bgColor: '#FEF3C7', icon: '🥉', tierGroup: 'bronze' },
   { id: 'bronze-2', name: '브론즈 2', subTier: '2', minPoints: 20, maxPoints: 49, color: '#B45309', bgColor: '#FEF3C7', icon: '🥉', tierGroup: 'bronze' },
   { id: 'bronze-3', name: '브론즈 3', subTier: '3', minPoints: 50, maxPoints: 99, color: '#92400E', bgColor: '#FEF3C7', icon: '🥉', tierGroup: 'bronze' },
   
@@ -23,17 +38,59 @@ export const RANK_TIERS: RankTier[] = [
   { id: 'gold-2', name: '골드 2', subTier: '2', minPoints: 800, maxPoints: 1199, color: '#D97706', bgColor: '#FEF3C7', icon: '🥇', tierGroup: 'gold' },
   { id: 'gold-3', name: '골드 3', subTier: '3', minPoints: 1200, maxPoints: 1699, color: '#B45309', bgColor: '#FEF3C7', icon: '🥇', tierGroup: 'gold' },
 
-  { id: 'diamond-1', name: '다이아 1', subTier: '1', minPoints: 1700, maxPoints: 2499, color: '#06B6D4', bgColor: '#ECFEFF', icon: '💎', tierGroup: 'diamond' },
-  { id: 'diamond-2', name: '다이아 2', subTier: '2', minPoints: 2500, maxPoints: 3499, color: '#0891B2', bgColor: '#ECFEFF', icon: '💎', tierGroup: 'diamond' },
-  { id: 'diamond-3', name: '다이아 3', subTier: '3', minPoints: 3500, maxPoints: 4999, color: '#0E7490', bgColor: '#ECFEFF', icon: '💎', tierGroup: 'diamond' },
+  { id: 'platinum-1', name: '플레티넘 1', subTier: '1', minPoints: 1700, maxPoints: 2499, color: '#10B981', bgColor: '#ECFDF5', icon: '💠', tierGroup: 'platinum' },
+  { id: 'platinum-2', name: '플레티넘 2', subTier: '2', minPoints: 2500, maxPoints: 3499, color: '#059669', bgColor: '#ECFDF5', icon: '💠', tierGroup: 'platinum' },
+  { id: 'platinum-3', name: '플레티넘 3', subTier: '3', minPoints: 3500, maxPoints: 4999, color: '#047857', bgColor: '#ECFDF5', icon: '💠', tierGroup: 'platinum' },
 
-  { id: 'master', name: '마스터', subTier: 'MAX', minPoints: 5000, maxPoints: Infinity, color: '#8B5CF6', bgColor: '#F3E8FF', icon: '👑', tierGroup: 'master' },
-  { id: 'grandmaster', name: '그랜드마스터', subTier: 'MAX', minPoints: 5000, maxPoints: Infinity, color: '#FF0000', bgColor: '#FFE5E5', icon: '👑', tierGroup: 'grandmaster' },
+  { id: 'diamond-1', name: '다이아 1', subTier: '1', minPoints: 5000, maxPoints: 6699, color: '#06B6D4', bgColor: '#ECFEFF', icon: '💎', tierGroup: 'diamond' },
+  { id: 'diamond-2', name: '다이아 2', subTier: '2', minPoints: 6700, maxPoints: 8999, color: '#0891B2', bgColor: '#ECFEFF', icon: '💎', tierGroup: 'diamond' },
+  { id: 'diamond-3', name: '다이아 3', subTier: '3', minPoints: 9000, maxPoints: 11999, color: '#0E7490', bgColor: '#ECFEFF', icon: '💎', tierGroup: 'diamond' },
+
+  { id: 'expert-1', name: '익스퍼트 1', subTier: '1', minPoints: 12000, maxPoints: 15999, color: '#F97316', bgColor: '#FFF7ED', icon: '🔥', tierGroup: 'expert' },
+  { id: 'expert-2', name: '익스퍼트 2', subTier: '2', minPoints: 16000, maxPoints: 22499, color: '#EA580C', bgColor: '#FFF7ED', icon: '🔥', tierGroup: 'expert' },
+  { id: 'expert-3', name: '익스퍼트 3', subTier: '3', minPoints: 22500, maxPoints: 29999, color: '#C2410C', bgColor: '#FFF7ED', icon: '🔥', tierGroup: 'expert' },
+
+  { id: 'master', name: '마스터', subTier: 'MAX', minPoints: MASTER_MIN_POINTS, maxPoints: Infinity, color: '#8B5CF6', bgColor: '#F3E8FF', icon: '👑', tierGroup: 'master' },
+  { id: 'grandmaster', name: '그랜드마스터', subTier: 'MAX', minPoints: MASTER_MIN_POINTS, maxPoints: Infinity, color: '#FF0000', bgColor: '#FFE5E5', icon: '👑', tierGroup: 'grandmaster' },
 ];
 
 export function getRankByPoints(points: number): RankTier {
+  if (points <= 0 || points === -1 || points === undefined || points === null) {
+    return UNRANKED_TIER;
+  }
   const rank = RANK_TIERS.find(r => r.id !== 'grandmaster' && points >= r.minPoints && points <= r.maxPoints);
-  return rank || RANK_TIERS[0];
+  return rank || UNRANKED_TIER;
+}
+
+/**
+ * Placement match tier calculation:
+ * 1개 맞을 시 : 브론즈 1 (10pt)
+ * 2개 : 브론즈 2 (20pt)
+ * 3개 : 브론즈 3 (50pt)
+ * 4개 : 실버 1 (100pt)
+ * 5개 : 실버 2 (170pt)
+ * 6개 : 실버 3 (300pt)
+ * 7개 : 골드 1 (550pt)
+ * 8개 : 골드 2 (800pt)
+ * 9개 : 골드 3 (1200pt)
+ * 10개 : 플레티넘 1 (1700pt)  ※ 플레티넘/익스퍼트 도입으로 1700pt는 이제 플레티넘 1 구간
+ */
+export function calculatePlacementPoints(correctCount: number): number {
+  const count = Math.max(0, Math.min(10, Math.round(correctCount)));
+  const placementMap: Record<number, number> = {
+    0: 0,     // 브론즈 1
+    1: 10,    // 브론즈 1
+    2: 20,    // 브론즈 2
+    3: 50,    // 브론즈 3
+    4: 100,   // 실버 1
+    5: 170,   // 실버 2
+    6: 300,   // 실버 3
+    7: 550,   // 골드 1
+    8: 800,   // 골드 2
+    9: 1200,  // 골드 3
+    10: 1700, // 플레티넘 1
+  };
+  return placementMap[count] ?? 0;
 }
 
 export function calculateQuizPoints(correctCount: number): number {

@@ -7,6 +7,8 @@ import {
   getAllRAGChunks,
   searchRAGContext,
   clearAllRAGChunks,
+  deleteRAGChunk,
+  getCurrentUser,
   RAGChunk,
   RAGSearchResult,
 } from '@dahamkke/shared';
@@ -14,6 +16,7 @@ import { SidebarNav } from '../components/SidebarNav';
 
 export default function TeacherAdminPage() {
   const [activeTab, setActiveTab] = useState<'rag' | 'search' | 'persona'>('rag');
+  const [isTeacher, setIsTeacher] = useState<boolean | null>(null);
   
   // Ingestion Form State
   const [subject, setSubject] = useState('국어');
@@ -43,11 +46,35 @@ export default function TeacherAdminPage() {
   };
 
   useEffect(() => {
+    // Role check: Only allow teacher accounts
+    const user = getCurrentUser();
+    if (user && user.role === 'teacher') {
+      setIsTeacher(true);
+    } else {
+      setIsTeacher(false);
+    }
+
+    // Load saved teacher persona
+    const savedPersona = localStorage.getItem('dahamkke_teacher_persona');
+    if (savedPersona) {
+      try {
+        const parsed = JSON.parse(savedPersona);
+        if (parsed.characterName) setCharacterName(parsed.characterName);
+        if (parsed.systemPrompt) setSystemPrompt(parsed.systemPrompt);
+      } catch (e) {}
+    }
+
     refreshRAGList();
     const handleUpdate = () => refreshRAGList();
     window.addEventListener('dahamkke_rag_updated', handleUpdate);
     return () => window.removeEventListener('dahamkke_rag_updated', handleUpdate);
   }, []);
+
+  const handleSavePersona = () => {
+    localStorage.setItem('dahamkke_teacher_persona', JSON.stringify({ characterName, systemPrompt }));
+    window.dispatchEvent(new CustomEvent('dahamkke_persona_updated'));
+    setStatusMessage(`💾 '${characterName}' 커스텀 페르소나가 저장되어 교실 서비스 전체에 반영되었습니다!`);
+  };
 
   // Handle RAG Vector Ingestion
   const handleIngest = async () => {
@@ -105,6 +132,72 @@ export default function TeacherAdminPage() {
       setSearchResults([]);
     }
   };
+
+  if (isTeacher === false) {
+    const user = getCurrentUser();
+    return (
+      <div className="dashboard-container" style={{ minHeight: '100vh', display: 'flex', backgroundColor: 'var(--bg-main)' }}>
+        <SidebarNav />
+
+        <main className="main-content" style={{ flex: 1, padding: '40px 32px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <div
+            style={{
+              backgroundColor: 'var(--card-bg)',
+              border: '2px solid #EF4444',
+              borderRadius: '24px',
+              padding: '48px 40px',
+              maxWidth: '540px',
+              width: '100%',
+              textAlign: 'center',
+              boxShadow: '0 20px 40px rgba(239, 68, 68, 0.15)',
+            }}
+          >
+            <div style={{ fontSize: '64px', marginBottom: '16px' }}>🔒</div>
+            <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#DC2626', marginBottom: '12px' }}>
+              교사 전용 관리자 페이지입니다
+            </h2>
+            <p style={{ fontSize: '15px', color: 'var(--text-muted)', lineHeight: '1.6', marginBottom: '28px' }}>
+              교사 콘솔(RAG 지문 학습 및 벡터 서버 관리)은 <strong>선생님 계정 (Role: Teacher)</strong>만 접근이 가능합니다.<br /><br />
+              현재 계정(<strong>{user?.name || '게스트'}</strong> / {user?.role === 'student' ? '학생 계정' : '권한 없음'})은 접근 권한이 없으니 메인 화면으로 돌아가 주시기 바랍니다.
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Link
+                href="/"
+                style={{
+                  display: 'inline-block',
+                  padding: '14px 24px',
+                  backgroundColor: '#64748B',
+                  color: '#FFFFFF',
+                  borderRadius: '16px',
+                  fontWeight: '900',
+                  fontSize: '15px',
+                  textDecoration: 'none',
+                }}
+              >
+                🏠 메인 화면으로
+              </Link>
+              <Link
+                href="/login"
+                style={{
+                  display: 'inline-block',
+                  padding: '14px 24px',
+                  backgroundColor: '#4F46E5',
+                  color: '#FFFFFF',
+                  borderRadius: '16px',
+                  fontWeight: '900',
+                  fontSize: '15px',
+                  textDecoration: 'none',
+                  boxShadow: '0 6px 16px rgba(79, 70, 229, 0.3)',
+                }}
+              >
+                👨‍🏫 교사 계정으로 로그인 / 가입
+              </Link>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard-container" style={{ minHeight: '100vh', display: 'flex', backgroundColor: 'var(--bg-main)' }}>
@@ -278,13 +371,36 @@ export default function TeacherAdminPage() {
               <div style={{ flex: 1, overflowY: 'auto', maxHeight: '480px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {ragChunks.map((chunk) => (
                   <div key={chunk.id} style={{ backgroundColor: 'var(--bg-main)', border: '1px solid var(--border-color)', borderRadius: '14px', padding: '14px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                       <span style={{ fontSize: '12px', fontWeight: '800', color: '#4338CA', backgroundColor: '#EEF2FF', padding: '2px 8px', borderRadius: '8px' }}>
                         {chunk.subject}
                       </span>
-                      <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)' }}>
-                        단락 #{chunk.paragraphIndex}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)' }}>
+                          단락 #{chunk.paragraphIndex}
+                        </span>
+                        <button
+                          onClick={() => {
+                            if (confirm('이 교과서 지문 단락을 삭제하시겠습니까?')) {
+                              deleteRAGChunk(chunk.id);
+                              refreshRAGList();
+                              setStatusMessage('🗑️ 지문 단락이 삭제되었습니다.');
+                            }
+                          }}
+                          style={{
+                            backgroundColor: '#FEE2E2',
+                            color: '#EF4444',
+                            border: 'none',
+                            padding: '2px 8px',
+                            borderRadius: '6px',
+                            fontSize: '11px',
+                            fontWeight: '800',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          삭제
+                        </button>
+                      </div>
                     </div>
                     <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-main)', marginBottom: '4px' }}>
                       {chunk.unitTitle}
@@ -390,7 +506,7 @@ export default function TeacherAdminPage() {
             </div>
 
             <button
-              onClick={() => alert(`'${characterName}' 인물 페르소나가 성공적으로 저장되었습니다!`)}
+              onClick={handleSavePersona}
               style={{
                 padding: '16px 28px',
                 backgroundColor: '#7C3AED',

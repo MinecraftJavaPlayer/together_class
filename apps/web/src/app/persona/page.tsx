@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 // @ts-ignore
 import Link from 'next/link';
-import { SAMPLE_TEXTBOOKS } from '@dahamkke/shared';
+import { SAMPLE_TEXTBOOKS, searchRAGContext } from '@dahamkke/shared';
 import { SidebarNav } from '../components/SidebarNav';
 import { saveLearningRecord } from '../utils/recordsStore';
 
@@ -14,8 +14,8 @@ export default function WebPersonaPage() {
     {
       id: '1',
       character: '흥부',
-      answer: '반갑구나! 나는 교과서 5학년 1학기 지문에 나오는 흥부란다. 착하게 살면 언젠가 좋은 일이 찾아온단다. 나에게 어떤 질문이든 해보렴.',
-      sources: ['국어 5-1 나 2단원 1문단', '국어 5-1 나 2단원 3문단'],
+      answer: '반갑구나! 나는 교과서 5학년 1학기 지문에 나오는 흥부란다. 선생님이 교사 콘솔에 올리신 교과서 지문도 학습했단다. 나에게 어떤 질문이든 해보렴.',
+      sources: ['국어 5-1 나 2단원 1문단', '📖 Teacher RAG Engine Active'],
     },
   ]);
 
@@ -28,6 +28,23 @@ export default function WebPersonaPage() {
 
   const getAIResponse = (character: string, query: string): { answer: string; sources: string[] } => {
     const normQuery = query.toLowerCase();
+
+    // 1. Prioritize Teacher Console RAG Vector Engine
+    const ragMatches = searchRAGContext(query, 2);
+    if (ragMatches.length > 0 && ragMatches[0].score > 0.05) {
+      const top = ragMatches[0].chunk;
+      const sources = ragMatches.map((r) => `📖 교사 RAG: ${r.chunk.subject} (${r.chunk.unitTitle})`);
+      
+      let answer = '';
+      if (character === '흥부') {
+        answer = `반갑구나! 네가 물어본 내용은 선생님께서 교사 콘솔에 등록해 주신 [${top.unitTitle}] 지문에 이렇게 명시되어 있단다:\n\n"${top.content}"\n\n착한 마음으로 교과서를 열심히 공부하니 참 대견하구나!`;
+      } else if (character === '이순신') {
+        answer = `반갑소! 그대가 물어본 내용은 선생님께서 교사 콘솔에 등록하신 [${top.unitTitle}] 지문 기록에 자세히 나와 있소:\n\n"${top.content}"\n\n학업에 매진하는 그대의 자세가 참으로 듬직하오!`;
+      } else {
+        answer = `반갑습니다! 선생님께서 교사 콘솔에 등록하신 [${top.unitTitle}] 지문 근거입니다:\n\n"${top.content}"`;
+      }
+      return { answer, sources };
+    }
     
     if (character === '흥부') {
       if (normQuery.includes('놀부') || normQuery.includes('형')) {

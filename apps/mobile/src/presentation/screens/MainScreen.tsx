@@ -47,12 +47,14 @@ export const MainScreen = ({ navigation }: any) => {
     },
     {
       id: 'EvaluationQuiz',
-      title: isQuizUnlocked ? '📝 학습 평가 10문항' : '🔒 학습 평가 10문항 (잠김)',
-      desc: isQuizUnlocked ? '🔓 단원 학습 완료! 10문제 풀고 성취도 0~20pt 획득' : '🔒 단원 학습(번역, 통역, 토론 등)을 최소 1개 완성해야 해제됩니다',
-      icon: isQuizUnlocked ? '📝' : '🔒',
-      color: isQuizUnlocked ? '#EC4899' : '#94A3B8',
+      title: !currentUser.isPlacementCompleted ? '🎯 10문항 배치고사' : (isQuizUnlocked ? '📝 학습 평가 10문항' : '🔒 학습 평가 10문항 (잠김)'),
+      desc: !currentUser.isPlacementCompleted ? '🎯 10문제 다 맞히면 최소 플레티넘 1 (1700pt) 즉시 부여!' : (isQuizUnlocked ? '🔓 단원 학습 완료! 10문제 풀고 성취도 ±20pt 변동' : '🔒 단원 학습(번역, 통역 등)을 완료해야 해제됩니다'),
+      icon: !currentUser.isPlacementCompleted ? '🎯' : (isQuizUnlocked ? '📝' : '🔒'),
+      color: !currentUser.isPlacementCompleted ? '#10B981' : (isQuizUnlocked ? '#EC4899' : '#94A3B8'),
+      bgColor: !currentUser.isPlacementCompleted ? '#ECFDF5' : (isQuizUnlocked ? '#FDF2F8' : '#F1F5F9'),
       screen: 'EvaluationQuiz',
-      highlight: isQuizUnlocked,
+      params: { isPlacement: !currentUser.isPlacementCompleted },
+      highlight: true,
     },
     {
       id: 'Translate',
@@ -142,7 +144,7 @@ export const MainScreen = ({ navigation }: any) => {
                   style={[styles.rankTierBadge, { backgroundColor: currentRank.bgColor, borderColor: currentRank.color }]}
                   onPress={() => navigation.navigate('Rank')}
                 >
-                  <RankEmblemImage tierGroup={currentRank.tierGroup} style={{ width: 18, height: 18, marginRight: 4 }} />
+                  <RankEmblemImage tierGroup={currentRank.tierGroup} subTier={currentRank.subTier} style={{ width: 18, height: 18, marginRight: 4 }} />
                   <Text style={[styles.rankTierText, { color: currentRank.color }]}>
                     {currentRank.name}
                   </Text>
@@ -195,7 +197,7 @@ export const MainScreen = ({ navigation }: any) => {
         {/* Quick Stats Pill Row */}
         <View style={styles.statsRow}>
           <TouchableOpacity style={styles.statPill} onPress={() => navigation.navigate('Rank')}>
-            <RankEmblemImage tierGroup={currentRank.tierGroup} style={{ width: 28, height: 28, marginBottom: 2 }} />
+            <RankEmblemImage tierGroup={currentRank.tierGroup} subTier={currentRank.subTier} style={{ width: 28, height: 28, marginBottom: 2 }} />
             <Text style={styles.statVal}>{currentRank.name}</Text>
             <Text style={styles.statLabel}>현재 랭크</Text>
           </TouchableOpacity>
@@ -227,7 +229,7 @@ export const MainScreen = ({ navigation }: any) => {
                 { borderLeftColor: item.color, backgroundColor: item.bgColor },
                 item.highlight && styles.highlightCard,
               ]}
-              onPress={() => navigation.navigate(item.screen)}
+              onPress={() => navigation.navigate(item.screen, (item as any).params)}
               activeOpacity={0.85}
             >
               <View style={styles.cardTop}>

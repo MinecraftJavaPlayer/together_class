@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 // @ts-ignore
 import Link from 'next/link';
+import { searchRAGContext } from '@dahamkke/shared';
 import { SidebarNav } from '../components/SidebarNav';
 import { saveLearningRecord } from '../utils/recordsStore';
 
@@ -21,9 +22,9 @@ export default function WebDebatePage() {
     {
       id: '1',
       sender: 'ai',
-      textKo: '안녕! 나는 국어 교과서로 공부한 반장 민준이야. 오늘의 토론 주제에 대해 넌 찬성하니, 반대하니?',
-      textUser: 'Привет! Я Минжун. Ты за или против сегодняшней темы дебатов?',
-      sources: ['국어 6-1 가 1단원 (비판적 사고와 토론) 2문단'],
+      textKo: '안녕! 나는 국어 교과서와 선생님의 교사 콘솔 RAG 지식을 학습한 반장 민준이야. 오늘의 토론 주제에 대해 넌 찬성하니, 반대하니?',
+      textUser: 'Привет! Я Минжун. Ты за 또는 против сегодняшней темы дебатов?',
+      sources: ['국어 6-1 가 1단원 (비판적 사고와 토론) 2문단', '📖 Teacher RAG Active'],
     },
   ]);
 
@@ -34,6 +35,18 @@ export default function WebDebatePage() {
 
   const getDebateResponse = (query: string): { textKo: string; textUser: string; sources: string[] } => {
     const normQuery = query.toLowerCase();
+
+    // 1. Check real-time RAG context from Teacher Console
+    const ragMatches = searchRAGContext(query, 2);
+    if (ragMatches.length > 0 && ragMatches[0].score > 0.05) {
+      const top = ragMatches[0].chunk;
+      const sources = ragMatches.map((r) => `📖 교사 RAG: ${r.chunk.subject} (${r.chunk.unitTitle})`);
+      
+      const textKo = `선생님께서 교사 콘솔에 등록해 두신 [${top.unitTitle}] 지문에서도 볼 수 있듯이, "${top.content}"라는 근거가 나와 있어! 너는 이 교과서 지문에 대해 어떻게 생각하니?`;
+      const textUser = `Как видно из текста [${top.unitTitle}], загруженного учителем: "${top.content}". Что ты думаешь об этом?`;
+
+      return { textKo, textUser, sources };
+    }
     
     if (normQuery.includes('찬성') || normQuery.includes('법') || normQuery.includes('금지') || normQuery.includes('동의') || normQuery.includes('맞아') || normQuery.includes('필요')) {
       return {

@@ -15,7 +15,10 @@ import {
   getShuffledEvaluationQuiz,
   QuizQuestion,
   getRankByPoints,
+  getUserRank,
   calculateQuizPoints,
+  calculatePlacementPoints,
+  applyPlacementResult,
   getCurrentUser,
   addPointsToCurrentUser,
   RankTier,
@@ -30,9 +33,12 @@ export const EvaluationQuizScreen = ({ navigation, route }: any) => {
   const [isUnlocked, setIsUnlocked] = useState(route?.params?.fromLesson ?? true);
   const [currentUser, setCurrentUser] = useState<UserProfile>(getCurrentUser());
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
+  const [isPlacementMode, setIsPlacementMode] = useState<boolean>(!getCurrentUser().isPlacementCompleted || route?.params?.isPlacement);
 
   useEffect(() => {
-    setCurrentUser(getCurrentUser());
+    const cur = getCurrentUser();
+    setCurrentUser(cur);
+    setIsPlacementMode(!cur.isPlacementCompleted || route?.params?.isPlacement);
     setQuizQuestions(getShuffledEvaluationQuiz());
   }, []);
 
@@ -57,7 +63,7 @@ export const EvaluationQuizScreen = ({ navigation, route }: any) => {
     answerIndex: 0,
     explanation: '',
   };
-  const currentRank = getRankByPoints(currentUser.points);
+  const currentRank = getUserRank(currentUser);
 
   // Find next rank tier for progress bar
   const currentRankIndex = RANK_TIERS.findIndex((r) => r.id === currentRank.id);
@@ -112,9 +118,20 @@ export const EvaluationQuizScreen = ({ navigation, route }: any) => {
     if (currentIdx + 1 < quizQuestions.length) {
       setCurrentIdx((prev) => prev + 1);
     } else {
-      // Calculate points (-20 to +20)
-      const pts = calculateQuizPoints(correctCount);
-      const { updatedUser } = addPointsToCurrentUser(pts);
+      let pts = 0;
+      let updatedUser: UserProfile;
+
+      if (isPlacementMode) {
+        // Placement Match: 10 correct = 1700 pt (플레티넘 1)
+        const res = applyPlacementResult(correctCount);
+        pts = res.startingPoints;
+        updatedUser = res.updatedUser;
+      } else {
+        // Regular Evaluation Quiz: -20 to +20 pt
+        pts = calculateQuizPoints(correctCount);
+        const res = addPointsToCurrentUser(pts);
+        updatedUser = res.updatedUser;
+      }
 
       setEarnedPoints(pts);
       setCurrentUser(updatedUser);
@@ -180,7 +197,7 @@ export const EvaluationQuizScreen = ({ navigation, route }: any) => {
         {/* Header Rank Badge Status Bar */}
         <View style={[styles.rankStatusBar, { backgroundColor: currentRank.bgColor, borderColor: currentRank.color }]}>
           <View style={styles.rankStatusHeader}>
-            <RankEmblemImage tierGroup={currentRank.tierGroup} style={{ width: 36, height: 36, marginRight: 12 }} />
+            <RankEmblemImage tierGroup={currentRank.tierGroup} subTier={currentRank.subTier} style={{ width: 36, height: 36, marginRight: 12 }} />
             <View style={{ flex: 1 }}>
               <Text style={[styles.rankStatusTitle, { color: currentRank.color }]}>
                 현재 랭크: {currentRank.name}
@@ -192,8 +209,52 @@ export const EvaluationQuizScreen = ({ navigation, route }: any) => {
           </View>
         </View>
 
-        <Text style={styles.title}>📝 학습 성취도 10문항 평가 (Quiz)</Text>
-        <Text style={styles.subtitle}>단원 학습을 마치고 10문제를 풀어 성취도에 따라 -20pt ~ +20pt를 획득/차감하세요!</Text>
+        <Text style={styles.title}>
+          {isPlacementMode ? '🎯 10문항 배치고사 (Placement)' : '📝 10문항 학습 성취도 평가 (Quiz)'}
+        </Text>
+        <Text style={styles.subtitle}>
+          {isPlacementMode
+            ? '배치고사 10문항을 모두 맞히면 최소 플레티넘 1 (1700pt) 티어가 부여됩니다!'
+            : '단원 학습을 마치고 10문제를 풀어 성취도에 따라 -20pt ~ +20pt를 획득/차감하세요!'}
+        </Text>
+
+        {/* Placement vs Regular Toggle */}
+        <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
+          <TouchableOpacity
+            style={{
+              flex: 1,
+              paddingVertical: 10,
+              paddingHorizontal: 12,
+              borderRadius: 12,
+              backgroundColor: isPlacementMode ? '#10B981' : '#F1F5F9',
+              alignItems: 'center',
+              borderWidth: 1.5,
+              borderColor: isPlacementMode ? '#059669' : '#CBD5E1',
+            }}
+            onPress={() => setIsPlacementMode(true)}
+          >
+            <Text style={{ fontSize: 13, fontWeight: '800', color: isPlacementMode ? '#FFF' : '#475569' }}>
+              🎯 배치고사 모드 (10개=플레1)
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{
+              flex: 1,
+              paddingVertical: 10,
+              paddingHorizontal: 12,
+              borderRadius: 12,
+              backgroundColor: !isPlacementMode ? '#3B82F6' : '#F1F5F9',
+              alignItems: 'center',
+              borderWidth: 1.5,
+              borderColor: !isPlacementMode ? '#2563EB' : '#CBD5E1',
+            }}
+            onPress={() => setIsPlacementMode(false)}
+          >
+            <Text style={{ fontSize: 13, fontWeight: '800', color: !isPlacementMode ? '#FFF' : '#475569' }}>
+              📝 일반 평가 모드 (±20pt)
+            </Text>
+          </TouchableOpacity>
+        </View>
 
         {!isUnlocked ? (
           <View style={styles.lockedCard}>
@@ -316,6 +377,7 @@ export const EvaluationQuizScreen = ({ navigation, route }: any) => {
               <View style={styles.modalEmblemBox}>
                 <RankEmblemImage
                   tierGroup={currentRank.tierGroup}
+                  subTier={currentRank.subTier}
                   style={{ width: 100, height: 100, borderRadius: 20, borderWidth: 3, borderColor: currentRank.color }}
                 />
               </View>
@@ -327,7 +389,7 @@ export const EvaluationQuizScreen = ({ navigation, route }: any) => {
               <View style={styles.progressBarBox}>
                 <View style={styles.progressHeaderRow}>
                   <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <RankEmblemImage tierGroup={currentRank.tierGroup} style={{ width: 24, height: 24, borderRadius: 6, marginRight: 4 }} />
+                    <RankEmblemImage tierGroup={currentRank.tierGroup} subTier={currentRank.subTier} style={{ width: 24, height: 24, borderRadius: 6, marginRight: 4 }} />
                     <Text style={[styles.progressTierName, { color: currentRank.color }]}>{currentRank.name}</Text>
                   </View>
 
@@ -337,7 +399,7 @@ export const EvaluationQuizScreen = ({ navigation, route }: any) => {
 
                   <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <Text style={[styles.progressTierName, { color: nextRank.color, marginRight: 4 }]}>{nextRank.name}</Text>
-                    <RankEmblemImage tierGroup={nextRank.tierGroup} style={{ width: 24, height: 24, borderRadius: 6 }} />
+                    <RankEmblemImage tierGroup={nextRank.tierGroup} subTier={nextRank.subTier} style={{ width: 24, height: 24, borderRadius: 6 }} />
                   </View>
                 </View>
 

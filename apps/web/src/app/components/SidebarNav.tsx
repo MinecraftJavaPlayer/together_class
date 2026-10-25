@@ -120,7 +120,7 @@ export function SidebarNav() {
               boxSizing: 'border-box',
             }}
           >
-            👨‍🏫 교사 콘솔 (RAG)
+            {currentUser?.role === 'teacher' ? '👨‍🏫 교사 콘솔 (RAG)' : '🔒 교사 콘솔 (선생님 전용)'}
           </Link>
         </li>
       </ul>

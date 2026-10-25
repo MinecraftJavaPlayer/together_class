@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { SidebarNav } from '../components/SidebarNav';
-import { LANGUAGE_LIST, LanguageCode, markModuleCompleted } from '@dahamkke/shared';
+import { LANGUAGE_LIST, LanguageCode, markModuleCompleted, getCurrentUser } from '@dahamkke/shared';
 import { saveLearningRecord } from '../utils/recordsStore';
 
 interface InterpretMessage {
@@ -20,7 +20,7 @@ interface InterpretMessage {
 }
 
 export default function WebInterpretPage() {
-  const [userNativeLang, setUserNativeLang] = useState<LanguageCode>('ru');
+  const [userNativeLang, setUserNativeLang] = useState<LanguageCode>('vi');
   const [isMicActive, setIsMicActive] = useState(false);
   const [micStatusText, setMicStatusText] = useState('마이크 대기 중');
   const [audioLevel, setAudioLevel] = useState(0);
@@ -29,6 +29,10 @@ export default function WebInterpretPage() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   useEffect(() => {
     setIsDarkMode(localStorage.getItem('dahamkke_dark_mode') === 'true');
+    const u = getCurrentUser();
+    if (u && u.nativeLang) {
+      setUserNativeLang(u.nativeLang as LanguageCode);
+    }
   }, []);
 
   const [messages, setMessages] = useState<InterpretMessage[]>([

@@ -53,5 +53,6 @@ export function playCorrectSound(): void {
 
 export function playWrongSound(): void {
   if (typeof window === 'undefined') return;
-  playAudioFile('/sounds/wrong.mp3', 1.0).catch(() => {});
+  // Make '미션실패' wrong sound noticeably quieter (0.38 volume) as requested
+  playAudioFile('/sounds/wrong.mp3', 0.38).catch(() => {});
 }

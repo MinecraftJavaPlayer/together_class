@@ -11,6 +11,7 @@ import {
   calculateQuizPoints,
   getCurrentUser,
   addPointsToCurrentUser,
+  applyPlacementResult,
   isAllLearningCompleted,
   markModuleCompleted,
   UserProfile,
@@ -26,6 +27,7 @@ export default function WebEvaluationQuizPage() {
   const [currentUser, setCurrentUser] = useState<UserProfile>(getCurrentUser());
   const [forceUnlock, setForceUnlock] = useState(false);
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
+  const [isPlacementMatch, setIsPlacementMatch] = useState(false);
 
   const [isDarkMode, setIsDarkMode] = useState(false);
   useEffect(() => {
@@ -37,7 +39,9 @@ export default function WebEvaluationQuizPage() {
     }
 
     setIsDarkMode(localStorage.getItem('dahamkke_dark_mode') === 'true');
-    setCurrentUser(getCurrentUser());
+    const u = getCurrentUser();
+    setCurrentUser(u);
+    setIsPlacementMatch(!u.isPlacementCompleted);
     setQuizQuestions(getShuffledEvaluationQuiz());
 
     const handleUserUpdate = (e: any) => {
@@ -121,9 +125,21 @@ export default function WebEvaluationQuizPage() {
     if (currentIdx + 1 < quizQuestions.length) {
       setCurrentIdx((prev) => prev + 1);
     } else {
-      // Calculate points (-20 to +20)
-      const pts = calculateQuizPoints(correctCount);
-      const { updatedUser } = addPointsToCurrentUser(pts);
+      const isPlacement = !currentUser.isPlacementCompleted || isPlacementMatch;
+      let pts = 0;
+      let updatedUser: UserProfile;
+
+      if (isPlacement) {
+        // Placement Match: 10 correct = 1700 pt (플레티넘 1)
+        const res = applyPlacementResult(correctCount);
+        pts = res.startingPoints;
+        updatedUser = res.updatedUser;
+      } else {
+        // Regular Evaluation Quiz: -20 to +20 pt
+        pts = calculateQuizPoints(correctCount);
+        const res = addPointsToCurrentUser(pts);
+        updatedUser = res.updatedUser;
+      }
 
       setEarnedPoints(pts);
       setCurrentUser(updatedUser);
@@ -197,16 +213,49 @@ export default function WebEvaluationQuizPage() {
 
       <main className="main-content" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '20px 28px', backgroundColor: 'var(--bg-main)', transition: 'background-color 0.2s ease' }}>
         {/* Top Rank Status Banner */}
-        <div style={{ background: 'var(--card-bg)', border: '1.5px solid var(--border-color)', padding: '20px 28px', borderRadius: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexShrink: 0 }}>
+        <div style={{ background: 'var(--card-bg)', border: '1.5px solid var(--border-color)', padding: '18px 24px', borderRadius: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexShrink: 0, flexWrap: 'wrap', gap: '14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-            <RankSVGIcon tierGroup={currentRank.tierGroup as any} subTier={currentRank.subTier || '1'} size={64} />
+            <RankSVGIcon tierGroup={currentRank.tierGroup as any} subTier={currentRank.subTier || '1'} size={60} />
             <div>
               <h3 style={{ fontSize: '22px', fontWeight: '900', color: currentRank.color || 'var(--text-main)', margin: 0 }}>현재 티어: {currentRank.name}</h3>
-              <p style={{ fontSize: '14px', color: 'var(--text-muted)', margin: '4px 0 0 0', fontWeight: '800' }}>학생: {currentUser.name} | 누적 포인트: {currentUser.points} pt (매월 1일 초기화)</p>
+              <p style={{ fontSize: '14px', color: 'var(--text-muted)', margin: '4px 0 0 0', fontWeight: '800' }}>
+                학생: {currentUser.name} | 누적 포인트: {currentUser.points} pt
+                {isPlacementMatch && <span style={{ color: '#10B981', marginLeft: '8px', fontWeight: '900' }}>[🎯 10문항 배치 모드 작동 중]</span>}
+              </p>
             </div>
           </div>
-          <div style={{ background: 'var(--highlight-warning-bg)', border: '1.5px solid var(--highlight-warning-border)', padding: '10px 18px', borderRadius: '14px', fontSize: '14px', fontWeight: '900', color: 'var(--highlight-warning-text)' }}>
-            🎁 성적 따라 -20pt ~ +20pt 변동
+
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <button
+              onClick={() => setIsPlacementMatch(true)}
+              style={{
+                backgroundColor: isPlacementMatch ? '#10B981' : 'var(--input-bg)',
+                color: isPlacementMatch ? '#FFFFFF' : 'var(--text-muted)',
+                border: isPlacementMatch ? '2px solid #059669' : '1.5px solid var(--border-color)',
+                padding: '8px 16px',
+                borderRadius: '12px',
+                fontWeight: '800',
+                fontSize: '13px',
+                cursor: 'pointer',
+              }}
+            >
+              🎯 배치고사 모드 (10개=플레티넘 1)
+            </button>
+            <button
+              onClick={() => setIsPlacementMatch(false)}
+              style={{
+                backgroundColor: !isPlacementMatch ? '#3B82F6' : 'var(--input-bg)',
+                color: !isPlacementMatch ? '#FFFFFF' : 'var(--text-muted)',
+                border: !isPlacementMatch ? '2px solid #2563EB' : '1.5px solid var(--border-color)',
+                padding: '8px 16px',
+                borderRadius: '12px',
+                fontWeight: '800',
+                fontSize: '13px',
+                cursor: 'pointer',
+              }}
+            >
+              📝 일반 평가 모드 (±20pt)
+            </button>
           </div>
         </div>
 

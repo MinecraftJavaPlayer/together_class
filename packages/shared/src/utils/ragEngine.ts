@@ -224,6 +224,18 @@ export function generateRAGAugmentedResponse(
 }
 
 /**
+ * Delete a specific RAG chunk by ID
+ */
+export function deleteRAGChunk(id: string): boolean {
+  if (typeof window === 'undefined' || !window.localStorage) return false;
+  const chunks = getAllRAGChunks();
+  const filtered = chunks.filter((c) => c.id !== id);
+  localStorage.setItem(RAG_STORAGE_KEY, JSON.stringify(filtered));
+  window.dispatchEvent(new CustomEvent('dahamkke_rag_updated'));
+  return filtered.length < chunks.length;
+}
+
+/**
  * Delete all RAG chunks for a specific unit title
  */
 export function deleteRAGUnit(unitTitle: string): boolean {
@@ -244,3 +256,4 @@ export function clearAllRAGChunks(): void {
     window.dispatchEvent(new CustomEvent('dahamkke_rag_updated'));
   }
 }
+

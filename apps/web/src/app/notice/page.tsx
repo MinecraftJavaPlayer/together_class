@@ -3,12 +3,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 // @ts-ignore
 import Link from 'next/link';
-import { LANGUAGE_LIST, extractTextFromImageFile } from '@dahamkke/shared';
+import { LANGUAGE_LIST, extractTextFromImageFile, getCurrentUser } from '@dahamkke/shared';
 import { SidebarNav } from '../components/SidebarNav';
 import { translateSourceText, speakText } from '../utils/translationHelper';
 
 export default function WebNoticePage() {
-  const [selectedLang, setSelectedLang] = useState('ru');
+  const [selectedLang, setSelectedLang] = useState('vi');
   const [sourceText, setSourceText] = useState(
     '[현장체험학습 안내장]\n7월 30일(목) 현장체험학습이 실시됩니다. 학생들은 실내화, 개인 텀블러, 도시락을 지참하여 오전 9시까지 등교해 주시기 바랍니다. 신청서 제출 기한은 7월 28일(화) 17:00까지입니다.'
   );
@@ -25,6 +25,10 @@ export default function WebNoticePage() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   useEffect(() => {
     setIsDarkMode(localStorage.getItem('dahamkke_dark_mode') === 'true');
+    const u = getCurrentUser();
+    if (u && u.nativeLang) {
+      setSelectedLang(u.nativeLang);
+    }
   }, []);
 
   // Parse summary metadata dynamically from the sourceText using regex & search keys

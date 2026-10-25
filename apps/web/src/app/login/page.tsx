@@ -65,8 +65,31 @@ export default function WebLoginPage() {
       seasonHistory: [],
     };
     saveCurrentUser(guestUser);
-    alert('👋 게스트로 로그인되었습니다.');
+    alert('👋 게스트 학생으로 로그인되었습니다.');
     router.push('/');
+  };
+
+  const handleTeacherGuestLogin = () => {
+    const teacherUser = {
+      id: 'teacher-guest',
+      email: 'teacher@dahamkke.kr',
+      name: '김선생님 (교사)',
+      role: 'teacher' as const,
+      nativeLang: 'ko',
+      points: 0,
+      completedModules: {
+        translate: true,
+        interpret: true,
+        debate: true,
+        persona: true,
+        dictation: true,
+        writing: true,
+      },
+      seasonHistory: [],
+    };
+    saveCurrentUser(teacherUser);
+    alert('👋 김선생님(교사) 계정으로 로그인되었습니다.\n👨‍🏫 교사 콘솔에 접근할 수 있습니다.');
+    router.push('/admin');
   };
 
   const handleDeleteAccount = (e: React.FormEvent) => {
@@ -150,13 +173,23 @@ export default function WebLoginPage() {
           </button>
         </form>
 
-        <button
-          type="button"
-          onClick={handleGuestLogin}
-          style={{ width: '100%', backgroundColor: '#64748B', color: 'white', padding: '14px', borderRadius: '12px', fontSize: '15px', fontWeight: '700', border: 'none', cursor: 'pointer', marginBottom: '20px' }}
-        >
-          👤 게스트로 로그인하기 (체험하기)
-        </button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
+          <button
+            type="button"
+            onClick={handleTeacherGuestLogin}
+            style={{ width: '100%', backgroundColor: '#4F46E5', color: 'white', padding: '14px', borderRadius: '12px', fontSize: '15px', fontWeight: '800', border: 'none', cursor: 'pointer' }}
+          >
+            👨‍🏫 교사(선생님)로 즉시 체험 로그인
+          </button>
+
+          <button
+            type="button"
+            onClick={handleGuestLogin}
+            style={{ width: '100%', backgroundColor: '#64748B', color: 'white', padding: '14px', borderRadius: '12px', fontSize: '15px', fontWeight: '700', border: 'none', cursor: 'pointer' }}
+          >
+            🎒 학생 게스트로 로그인 (체험하기)
+          </button>
+        </div>
 
         <div style={{ textAlign: 'center', fontSize: '14px', color: '#64748B' }}>
           계정이 없으신가요? <Link href="/signup" style={{ color: '#3B82F6', fontWeight: '700', textDecoration: 'none' }}>신규 회원가입</Link>

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 // @ts-ignore
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { RANK_TIERS, getUserRank, UserProfile, getCurrentUser, getAllUsers, getRankByPoints } from '@dahamkke/shared';
+import { RANK_TIERS, UNRANKED_TIER, MASTER_MIN_POINTS, getUserRank, UserProfile, getCurrentUser, getAllUsers, getRankByPoints } from '@dahamkke/shared';
 import { SidebarNav } from '../components/SidebarNav';
 import { RankSVGIcon } from '../components/RankSVGIcon';
 
@@ -48,11 +48,12 @@ export default function WebRankPage() {
   // MUST SORT BY POINTS DESCENDING FIRST!
   const sortedUsers = [...validUsers].sort((a, b) => (b.points || 0) - (a.points || 0));
 
-  // Dynamic Leaderboard sorted by Points descending! (Grandmaster is selected ONLY among Masters [points >= 5000] in World Top 5 [index < 5])
+  // Dynamic Leaderboard sorted by Points descending!
   const sortedLeaderboard = sortedUsers.map((user, index) => {
     const pts = user.points || 0;
-    const baseTier = getRankByPoints(pts);
-    const isGrandmaster = pts >= 5000 && index < 5;
+    const isUnranked = !user.isPlacementCompleted && (!user.points || user.points <= 0);
+    const baseTier = isUnranked ? UNRANKED_TIER : getRankByPoints(pts);
+    const isGrandmaster = !isUnranked && pts >= MASTER_MIN_POINTS && index < 5;
     const tier = isGrandmaster ? (RANK_TIERS.find(r => r.id === 'grandmaster') || baseTier) : baseTier;
     return {
       rankNo: index + 1,
@@ -70,17 +71,7 @@ export default function WebRankPage() {
   // Dynamic Current Season Key (e.g. 2026-08)
   const currentSeason = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
 
-  // Match active currentUser's tier on the hero banner 100% with their leaderboard tier!
-  const myLeaderboardEntry = sortedLeaderboard.find(item => item.isUser);
-  const currentRank = myLeaderboardEntry
-    ? {
-        name: myLeaderboardEntry.tier,
-        tierGroup: myLeaderboardEntry.tierGroup,
-        subTier: myLeaderboardEntry.subTier,
-        color: myLeaderboardEntry.color,
-        bgColor: myLeaderboardEntry.bgColor,
-      }
-    : (currentUser ? getUserRank(currentUser) : { name: '브론즈 1', tierGroup: 'bronze', subTier: '1', minPoints: 0, maxPoints: 19, color: '#CD7F32', bgColor: '#FEF3C7' });
+  const currentRank = getUserRank(currentUser);
 
   return (
     <div className="dashboard-container">
@@ -109,12 +100,14 @@ export default function WebRankPage() {
             <div>
                <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-muted)' }}>시즌: {currentSeason} | 사용자: {currentUser?.name ? currentUser.name.replace(/[()]/g, '') : '로딩 중...'}</div>
                <h2 style={{ fontSize: '30px', fontWeight: '900', color: currentRank.color || 'var(--text-main)', margin: '2px 0' }}>{currentRank.name}</h2>
-               <div style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-main)' }}>누적 포인트: {currentUser?.points ?? 0} pt</div>
+               <div style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-main)' }}>
+                 {currentRank.tierGroup === 'unranked' ? '📋 배치고사 미완료 (10문항 평가 또는 1v1 대전 필요)' : `누적 포인트: ${currentUser?.points ?? 0} pt`}
+               </div>
             </div>
           </div>
 
           <Link href="/quiz" style={{ backgroundColor: '#14B8A6', color: 'white', padding: '14px 24px', borderRadius: '16px', fontWeight: '900', fontSize: '15px', textDecoration: 'none', boxShadow: '0 4px 12px rgba(20, 184, 166, 0.3)' }}>
-            📝 10문항 학습 성취도 평가 풀기 ➔
+            {currentRank.tierGroup === 'unranked' ? '📋 배치고사 (10문항 평가) 풀기 ➔' : '📝 10문항 학습 성취도 평가 풀기 ➔'}
           </Link>
         </div>
 
@@ -175,7 +168,7 @@ export default function WebRankPage() {
           {/* 13 Rank Tiers Guide Card */}
           <div className="tier-guide-card" style={{ width: '380px', background: 'var(--card-bg)', border: '1.5px solid var(--border-color)', padding: '24px', borderRadius: '24px', boxShadow: 'var(--shadow-soft)', display: 'flex', flexDirection: 'column', height: '100%', minHeight: '340px', overflow: 'hidden' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexShrink: 0 }}>
-              <h3 style={{ fontSize: '19px', fontWeight: '800', margin: 0, color: 'var(--text-main)' }}>📜 전체 13개 랭크 티어 안내</h3>
+              <h3 style={{ fontSize: '19px', fontWeight: '800', margin: 0, color: 'var(--text-main)' }}>📜 전체 {RANK_TIERS.length}개 랭크 티어 안내</h3>
             </div>
 
             {/* ONLY Inner Items List Scrolls! */}
@@ -184,7 +177,7 @@ export default function WebRankPage() {
                 <div key={tier.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderRadius: '12px', borderBottom: '1px solid var(--border-color)', flexShrink: 0 }}>
                   <RankSVGIcon tierGroup={tier.tierGroup as any} subTier={tier.subTier || '1'} size={46} />
                   <span style={{ fontWeight: '800', fontSize: '15px', color: (tier as any).color, flex: 1, marginLeft: '12px' }}>{tier.name}</span>
-                  <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '700' }}>{tier.id === 'grandmaster' ? '세계 TOP 5' : tier.id === 'master' ? '5000 ~ MAX' : `${tier.minPoints} ~ ${tier.maxPoints === Infinity ? 'MAX' : `${tier.maxPoints} pt`}`}</span>
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '700' }}>{tier.id === 'grandmaster' ? '세계 TOP 5' : tier.id === 'master' ? `${MASTER_MIN_POINTS} ~ MAX` : `${tier.minPoints} ~ ${tier.maxPoints === Infinity ? 'MAX' : `${tier.maxPoints} pt`}`}</span>
                 </div>
               ))}
             </div>

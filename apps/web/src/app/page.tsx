@@ -6,8 +6,12 @@ import { useRouter } from 'next/navigation';
 import {
   getUserRank,
   getCurrentUser,
+  saveCurrentUser,
+  setUserPointsAndTier,
+  resetUserPlacement,
   isAllLearningCompleted,
   UserProfile,
+  UNRANKED_TIER,
 } from '@dahamkke/shared';
 import { SidebarNav } from './components/SidebarNav';
 import { RankSVGIcon } from './components/RankSVGIcon';
@@ -22,6 +26,7 @@ export default function WebDashboard() {
   const [currentUser, setCurrentUser] = useState<UserProfile>(getCurrentUser());
   const [isConsoleExpanded, setIsConsoleExpanded] = useState(false);
   const [isInfoExpanded, setIsInfoExpanded] = useState(false);
+  const [isPatchExpanded, setIsPatchExpanded] = useState(false);
 
   const [isDarkMode, setIsDarkMode] = useState(false);
 
@@ -90,7 +95,20 @@ export default function WebDashboard() {
     }
   };
 
-  const currentRank = currentUser ? getUserRank(currentUser) : { name: '브론즈 1', tierGroup: 'bronze', subTier: '1', minPoints: 0, maxPoints: 19, bgColor: '#FEF3C7', color: '#CD7F32' };
+  const handleToggleRole = () => {
+    const nextRole = currentUser.role === 'teacher' ? 'student' : 'teacher';
+    const baseName = currentUser.name.replace(/\s*\((선생님|학생|교사)\)/g, '').trim();
+    const updatedUser = {
+      ...currentUser,
+      role: nextRole as 'student' | 'teacher',
+      name: `${baseName} (${nextRole === 'teacher' ? '선생님' : '학생'})`,
+    };
+    saveCurrentUser(updatedUser);
+    setCurrentUser(updatedUser);
+    alert(`✅ 계정 권한이 '${nextRole === 'teacher' ? '교사(선생님)' : '학생'}'(으)로 변경되었습니다!${nextRole === 'teacher' ? '\n👨‍🏫 이제 교사 콘솔에 접근할 수 있습니다.' : ''}`);
+  };
+
+  const currentRank = currentUser ? getUserRank(currentUser) : UNRANKED_TIER;
   const isQuizUnlocked = currentUser ? isAllLearningCompleted(currentUser) : false;
 
   const tabs = [
@@ -121,8 +139,8 @@ export default function WebDashboard() {
             <div>
               <h1 className="header-title" style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '10px', margin: 0, wordBreak: 'keep-all' }}>
                 <span className="header-name-text" style={{ whiteSpace: 'nowrap' }}>{currentUser?.name ? currentUser.name.replace(/[()]/g, '') : '로딩 중...'}님 환영합니다!</span>
-                <span className="header-rank-badge" style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-muted)', background: currentRank.bgColor, border: `1px solid ${currentRank.color}`, padding: '3px 10px', borderRadius: '10px', whiteSpace: 'nowrap' }}>
-                  {currentRank.name} [{currentUser?.points ?? 0} pt]
+                <span className="header-rank-badge" style={{ fontSize: '14px', fontWeight: '800', color: currentRank.color || 'var(--text-muted)', background: currentRank.bgColor || 'var(--card-bg)', border: `1px solid ${currentRank.color || 'var(--border-color)'}`, padding: '3px 10px', borderRadius: '10px', whiteSpace: 'nowrap' }}>
+                  {currentRank.tierGroup === 'unranked' ? '언랭크 (배치 미완료)' : `${currentRank.name} [${currentUser?.points ?? 0} pt]`}
                 </span>
               </h1>
               <p className="header-desc" style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
@@ -479,7 +497,7 @@ export default function WebDashboard() {
 
           {/* TAB 4: 설정 (Settings) */}
           {activeTab === 'settings' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: 1 }}>
+            <div className="inner-scroll" style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: 1, minHeight: 0, overflowY: 'auto', paddingRight: '4px', paddingBottom: '16px' }}>
               
               {/* Row 1: 다크 모드 */}
               <div
@@ -570,15 +588,22 @@ export default function WebDashboard() {
                     }}
                   >
                     <div>
-                      <h4 style={{ fontSize: '18px', fontWeight: '900', color: 'var(--text-main)', margin: 0 }}>👨‍🏫 교사용 RAG 관리자 대시보드</h4>
+                      <h4 style={{ fontSize: '18px', fontWeight: '900', color: 'var(--text-main)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        👨‍🏫 교사용 RAG 관리자 대시보드
+                        {currentUser?.role !== 'teacher' && (
+                          <span style={{ fontSize: '12px', fontWeight: '800', color: '#EF4444', backgroundColor: '#FEE2E2', padding: '2px 8px', borderRadius: '8px' }}>
+                            🔒 선생님 계정 전용
+                          </span>
+                        )}
+                      </h4>
                       <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '6px', marginBottom: 0 }}>
-                        교안 자료(PDF) 파일을 업로드하여 AI 인물 인터뷰의 지식 범위를 학습 및 관리합니다.
+                        교과서 단원 원문을 입력/색인하여 AI 인물 인터뷰 및 토론 학습의 지식 기반(RAG)을 관리합니다.
                       </p>
                     </div>
                     <button
                       onClick={() => router.push('/admin')}
                       style={{
-                        backgroundColor: '#4F46E5',
+                        backgroundColor: currentUser?.role === 'teacher' ? '#4F46E5' : '#64748B',
                         color: 'white',
                         border: 'none',
                         padding: '12px 24px',
@@ -589,7 +614,7 @@ export default function WebDashboard() {
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      교사 콘솔 이동 ➔
+                      {currentUser?.role === 'teacher' ? '교사 콘솔 이동 ➔' : '🔒 교사 콘솔 (권한 제한) ➔'}
                     </button>
                   </div>
                 )}
@@ -642,29 +667,162 @@ export default function WebDashboard() {
                       <div style={{ fontSize: '15px', color: 'var(--text-main)', lineHeight: '2.0' }}>
                         👤 <strong>이름:</strong> {currentUser.name.replace(/[()]/g, '')}
                       </div>
+                      <div style={{ fontSize: '15px', color: 'var(--text-main)', lineHeight: '2.0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        🏷️ <strong>계정 구분:</strong>
+                        <span style={{ backgroundColor: currentUser.role === 'teacher' ? '#EEF2FF' : '#EFF6FF', color: currentUser.role === 'teacher' ? '#4338CA' : '#1D4ED8', padding: '2px 8px', borderRadius: '6px', fontWeight: '800', fontSize: '13px' }}>
+                          {currentUser.role === 'teacher' ? '👨‍🏫 교사 (Teacher)' : '🎒 학생 (Student)'}
+                        </span>
+                      </div>
                       <div style={{ fontSize: '15px', color: 'var(--text-main)', lineHeight: '2.0' }}>
                         ✉️ <strong>이메일:</strong> {currentUser.email}
                       </div>
                       <div style={{ fontSize: '15px', color: 'var(--text-main)', lineHeight: '2.0' }}>
-                        🏆 <strong>현재 등급:</strong> {currentRank.name} ({currentUser.points} pt)
+                        🏆 <strong>현재 등급:</strong> <span style={{ color: currentRank.color, fontWeight: '900' }}>{currentRank.name}</span> ({currentUser.points} pt)
+                      </div>
+                      {/* Quick Rank Tier Test Buttons */}
+                      <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px dashed var(--border-color)' }}>
+                        <div style={{ fontSize: '12px', fontWeight: '800', color: 'var(--text-muted)', marginBottom: '6px' }}>⚡ 랭크 & 배치 테스트 (원클릭 즉시 적용)</div>
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                          <button
+                            onClick={() => { const u = setUserPointsAndTier(1700); setCurrentUser(u); }}
+                            style={{ backgroundColor: '#10B981', color: 'white', border: 'none', borderRadius: '8px', padding: '4px 8px', fontSize: '11px', fontWeight: '800', cursor: 'pointer' }}
+                          >
+                            🎯 10개 만점 배치 (플레티넘 1 / 1700pt)
+                          </button>
+                          <button
+                            onClick={() => { const u = setUserPointsAndTier(2500); setCurrentUser(u); }}
+                            style={{ backgroundColor: '#059669', color: 'white', border: 'none', borderRadius: '8px', padding: '4px 8px', fontSize: '11px', fontWeight: '800', cursor: 'pointer' }}
+                          >
+                            💠 플레티넘 2 (2500pt)
+                          </button>
+                          <button
+                            onClick={() => { const u = setUserPointsAndTier(5000); setCurrentUser(u); }}
+                            style={{ backgroundColor: '#06B6D4', color: 'white', border: 'none', borderRadius: '8px', padding: '4px 8px', fontSize: '11px', fontWeight: '800', cursor: 'pointer' }}
+                          >
+                            💎 다이아 1 (5000pt)
+                          </button>
+                          <button
+                            onClick={() => { const u = setUserPointsAndTier(12000); setCurrentUser(u); }}
+                            style={{ backgroundColor: '#F97316', color: 'white', border: 'none', borderRadius: '8px', padding: '4px 8px', fontSize: '11px', fontWeight: '800', cursor: 'pointer' }}
+                          >
+                            🔥 익스퍼트 1 (12000pt)
+                          </button>
+                          <button
+                            onClick={() => { const u = setUserPointsAndTier(30000); setCurrentUser(u); }}
+                            style={{ backgroundColor: '#8B5CF6', color: 'white', border: 'none', borderRadius: '8px', padding: '4px 8px', fontSize: '11px', fontWeight: '800', cursor: 'pointer' }}
+                          >
+                            👑 마스터 (30000pt)
+                          </button>
+                          <button
+                            onClick={() => { const u = resetUserPlacement(); setCurrentUser(u); }}
+                            style={{ backgroundColor: '#94A3B8', color: 'white', border: 'none', borderRadius: '8px', padding: '4px 8px', fontSize: '11px', fontWeight: '800', cursor: 'pointer' }}
+                          >
+                            🔄 언랭크 리셋
+                          </button>
+                        </div>
                       </div>
                     </div>
-                    <button
-                      onClick={handleLogout}
-                      style={{
-                        backgroundColor: '#EF4444',
-                        color: 'white',
-                        padding: '12px 24px',
-                        borderRadius: '12px',
-                        fontWeight: '800',
-                        border: 'none',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      🚪 로그아웃 실행
-                    </button>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <button
+                        onClick={handleToggleRole}
+                        style={{
+                          backgroundColor: currentUser.role === 'teacher' ? '#3B82F6' : '#4F46E5',
+                          color: 'white',
+                          padding: '10px 18px',
+                          borderRadius: '12px',
+                          fontWeight: '800',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontSize: '13px',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {currentUser.role === 'teacher' ? '🎒 학생 계정으로 전환' : '👨‍🏫 교사 계정으로 전환'}
+                      </button>
+                      <button
+                        onClick={handleLogout}
+                        style={{
+                          backgroundColor: '#EF4444',
+                          color: 'white',
+                          padding: '10px 18px',
+                          borderRadius: '12px',
+                          fontWeight: '800',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontSize: '13px',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        🚪 로그아웃 실행
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Row 4: 패치노트 */}
+              <div>
+                <div
+                  onClick={() => setIsPatchExpanded(!isPatchExpanded)}
+                  style={{
+                    backgroundColor: 'var(--card-bg)',
+                    borderRadius: '24px',
+                    boxShadow: 'var(--shadow-soft)',
+                    border: '2.5px solid var(--border-color)',
+                    padding: '20px 36px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span style={{ fontSize: '32px', fontWeight: '900', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    패치노트
+                    <span style={{ fontSize: '14px', fontWeight: '900', color: '#FFFFFF', background: 'linear-gradient(135deg, #6366F1, #A855F7)', padding: '4px 12px', borderRadius: '10px' }}>
+                      Beta 1.0
+                    </span>
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '36px',
+                      fontWeight: '900',
+                      color: 'var(--text-main)',
+                      transform: isPatchExpanded ? 'rotate(180deg)' : 'none',
+                      transition: 'transform 0.2s ease',
+                    }}
+                  >
+                    ∨
+                  </span>
+                </div>
+
+                {isPatchExpanded && (
+                  <div
+                    style={{
+                      backgroundColor: 'var(--bg-main)',
+                      border: '1.5px solid var(--border-color)',
+                      borderRadius: '24px',
+                      padding: '24px 36px',
+                      marginTop: '8px',
+                      color: 'var(--text-main)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '14px' }}>
+                      <h4 style={{ fontSize: '20px', fontWeight: '900', margin: 0 }}>🚀 Beta 1.0</h4>
+                      <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)' }}>현재 버전 · 첫 베타 출시</span>
+                    </div>
+                    {[
+                      { title: '🏆 랭크 & 배치고사', items: ['언랭크(흰색 링 엠블럼) 도입 — 배치 전 모든 계정은 언랭크', '10문항 평가 또는 1:1 대결 1회로 배치 완료 (브론즈 1 ~ 플레티넘 1)', '신규 랭크 플레티넘(민트) · 익스퍼트(주황) 추가 및 랭크 포인트 구간 개편', '랭크 그룹마다 서로 다른 엠블럼 모양 적용', '포인트 카운트업/카운트다운 애니메이션'] },
+                      { title: '👨‍🏫 교사 콘솔', items: ['선생님 계정만 접근 가능하도록 권한 제한', '교사가 등록한 교과서 지문(RAG)이 인물 인터뷰·토론 친구에 실시간 반영', '지문 단락 개별 삭제 및 페르소나 저장 기능'] },
+                      { title: '🌐 학습 기능', items: ['교과서 번역 · 실시간 통역 · 가정통신문 번역', '토론 친구(민준) · 인물 인터뷰 · 받아쓰기', '회원가입 시 선택한 모국어가 자동 적용되도록 수정'] },
+                      { title: '🔊 기타', items: ['오답 효과음 볼륨 감소, 나머지 효과음 볼륨 증가', '다크 모드 지원'] },
+                    ].map((sec) => (
+                      <div key={sec.title} style={{ marginBottom: '14px' }}>
+                        <div style={{ fontSize: '15px', fontWeight: '900', marginBottom: '6px' }}>{sec.title}</div>
+                        <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '14px', lineHeight: '1.8', color: 'var(--text-muted)', fontWeight: '600' }}>
+                          {sec.items.map((it) => <li key={it}>{it}</li>)}
+                        </ul>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>

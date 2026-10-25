@@ -12,6 +12,7 @@ import {
   QuizQuestion,
   calculateBattlePoints,
   addPointsToCurrentUser,
+  applyPlacementResult,
   playClickSound,
   playCorrectSound,
   playWrongSound,
@@ -62,6 +63,7 @@ export default function BattleHubPage() {
   // Battle Live Scores
   const [userScore, setUserScore] = useState<number>(0);
   const [oppScore, setOpponentScore] = useState<number>(0);
+  const [userCorrectCount, setUserCorrectCount] = useState<number>(0);
 
   // Question Interaction State
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
@@ -295,6 +297,7 @@ export default function BattleHubPage() {
     setQuestionIndex(0);
     setUserScore(0);
     setOpponentScore(0);
+    setUserCorrectCount(0);
     setIsAnswered(false);
     setIsUserCorrect(null);
     setSelectedOption(null);
@@ -340,6 +343,7 @@ export default function BattleHubPage() {
     if (correct) {
       playCorrectSound();
       setUserScore((prev) => prev + scoreGained);
+      setUserCorrectCount((prev) => prev + 1);
     } else {
       playWrongSound();
     }
@@ -364,25 +368,40 @@ export default function BattleHubPage() {
   const finishBattle = () => {
     setBattleState('result');
 
-    const finalUserPoints = currentUser?.points || 0;
-    const finalOppPoints = opponent.points;
-
-    const delta = calculateBattlePoints(
-      userScore,
-      oppScore,
-      isRankedMode,
-      finalUserPoints,
-      finalOppPoints
-    );
-
-    setPointsChange(delta);
-
-    if (isRankedMode && delta !== 0) {
-      const { updatedUser } = addPointsToCurrentUser(delta);
+    const isUnranked = !currentUser?.isPlacementCompleted;
+    if (isUnranked && isRankedMode) {
+      // Unranked player completes placement match via 1v1 battle!
+      // Map 5-question battle score to 10-question equivalent (each battle correct = 2 questions)
+      // plus bonus for winning 1v1 match
+      let equivalentCount = Math.min(10, Math.max(0, (isUserCorrect ? userCorrectCount : userCorrectCount) * 2));
+      if (userScore > oppScore && equivalentCount < 10) {
+        equivalentCount = Math.min(10, equivalentCount + 1);
+      }
+      const { updatedUser, startingPoints } = applyPlacementResult(equivalentCount);
       setCurrentUser(updatedUser);
-      setUpdatedTotalPoints(updatedUser.points);
+      setPointsChange(startingPoints);
+      setUpdatedTotalPoints(startingPoints);
     } else {
-      setUpdatedTotalPoints(finalUserPoints);
+      const finalUserPoints = currentUser?.points || 0;
+      const finalOppPoints = opponent.points;
+
+      const delta = calculateBattlePoints(
+        userScore,
+        oppScore,
+        isRankedMode,
+        finalUserPoints,
+        finalOppPoints
+      );
+
+      setPointsChange(delta);
+
+      if (isRankedMode && delta !== 0) {
+        const { updatedUser } = addPointsToCurrentUser(delta);
+        setCurrentUser(updatedUser);
+        setUpdatedTotalPoints(updatedUser.points);
+      } else {
+        setUpdatedTotalPoints(finalUserPoints);
+      }
     }
   };
 
