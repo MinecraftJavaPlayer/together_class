@@ -39,9 +39,44 @@ export function RankResultOverlay({
 }: RankResultOverlayProps) {
   // Stages:
   // 'initial'       : 0.0s ~ 1.0s (Show prev/unranked icon, delta if not placement, NO bar)
-  // 'rank_revealed' : 1.0s ~ 2.0s (Show new/placed rank icon, play sound, NO bar)
-  // 'bar_revealed'  : 2.0s+       (Show progress bar and action buttons)
+  // 'rank_revealed' : 1.0s ~ 1.5s (Show new/placed rank icon, play sound, NO bar)
+  // 'bar_revealed'  : 1.5s+       (Show progress bar and action buttons)
   const [stage, setStage] = useState<'initial' | 'rank_revealed' | 'bar_revealed'>('initial');
+  const [animatedDelta, setAnimatedDelta] = useState<number>(0);
+
+  // Sequential 0 -> target count up/down animation
+  useEffect(() => {
+    if (isPlacement || pointsDelta === 0) {
+      setAnimatedDelta(0);
+      return;
+    }
+
+    const target = pointsDelta;
+    const duration = 850; // 850ms smooth counter
+    const startTime = performance.now();
+    let frameId: number;
+
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(1, elapsed / duration);
+      // Smooth cubic ease-out deceleration
+      const ease = 1 - Math.pow(1 - progress, 3);
+      const val = Math.round(target * ease);
+      setAnimatedDelta(val);
+
+      if (progress < 1) {
+        frameId = requestAnimationFrame(animate);
+      } else {
+        setAnimatedDelta(target);
+      }
+    };
+
+    frameId = requestAnimationFrame(animate);
+
+    return () => {
+      cancelAnimationFrame(frameId);
+    };
+  }, [pointsDelta, isPlacement]);
 
   // Determine promotion/demotion
   const prevIdx = RANK_TIERS.findIndex((r) => r.id === prevRank?.id);
@@ -120,11 +155,20 @@ export function RankResultOverlay({
   const pointsInTier = Math.max(0, totalPoints - minP);
   const progressPercent = nextRank.minPoints === Infinity ? 100 : Math.min(100, Math.max(0, Math.round((pointsInTier / rangeP) * 100)));
 
-  // Delta color and text
-  const isPositive = pointsDelta > 0;
-  const isNegative = pointsDelta < 0;
+  // Delta color and text (sequentially animated from 0)
+  const isPositive = animatedDelta > 0 || (animatedDelta === 0 && pointsDelta > 0);
+  const isNegative = animatedDelta < 0 || (animatedDelta === 0 && pointsDelta < 0);
   const deltaColor = isPositive ? '#34D399' : isNegative ? '#F87171' : '#FBBF24';
-  const deltaFormatted = isPositive ? `+${pointsDelta} pt` : isNegative ? `${pointsDelta} pt` : `+0 pt`;
+  const deltaFormatted =
+    animatedDelta > 0
+      ? `+${animatedDelta} pt`
+      : animatedDelta < 0
+      ? `${animatedDelta} pt`
+      : pointsDelta > 0
+      ? `+0 pt`
+      : pointsDelta < 0
+      ? `-0 pt`
+      : `+0 pt`;
 
   return (
     <div
