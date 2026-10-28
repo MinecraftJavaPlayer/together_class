@@ -12,7 +12,9 @@ import {
   getTeacherPersona,
   saveTeacherPersona,
   generateTeacherPersonaResponse,
+  sanitizeSources,
   TeacherPersonaConfig,
+  PersonalityPreset,
   RAGChunk,
   RAGSearchResult,
 } from '@dahamkke/shared';
@@ -40,7 +42,7 @@ export default function TeacherAdminPage() {
 
   // Persona State
   const [characterName, setCharacterName] = useState('흥부');
-  const [personalityType, setPersonalityType] = useState<'good' | 'bad' | 'proud' | 'custom'>('good');
+  const [personalityType, setPersonalityType] = useState<PersonalityPreset>('good');
   const [traitDescription, setTraitDescription] = useState('가난하지만 마음씨 착하고 온순한 성격');
   const [systemPrompt, setSystemPrompt] = useState(
     '너는 교과서 속 인물 흥부야. 착하고 따뜻한 성격으로 초등학생 어린이에게 1인칭으로 답변해줘.'
@@ -61,6 +63,19 @@ export default function TeacherAdminPage() {
     setPersonalityType(p.personalityType);
     setTraitDescription(p.traitDescription);
     setSystemPrompt(p.systemPrompt);
+
+    const defaultQ =
+      name === '놀부'
+        ? '동생 흥부를 왜 쫓아냈나요?'
+        : name === '이순신'
+        ? '거북선과 학익진에 대해 알려주시오'
+        : name === '세종대왕'
+        ? '훈민정음은 왜 창제하셨나요?'
+        : name === '심청'
+        ? '공양미 삼백 석 때문에 인당수에 뛰어들었나요?'
+        : '놀부 형님에 대해 어떻게 생각하니?';
+
+    setPreviewQuery(defaultQ);
   };
 
   useEffect(() => {
@@ -80,7 +95,7 @@ export default function TeacherAdminPage() {
     return () => window.removeEventListener('dahamkke_rag_updated', handleUpdate);
   }, []);
 
-  const handleApplyPreset = (type: 'good' | 'bad' | 'proud') => {
+  const handleApplyPreset = (type: PersonalityPreset) => {
     setPersonalityType(type);
     if (characterName === '흥부') {
       if (type === 'bad') {
@@ -89,22 +104,71 @@ export default function TeacherAdminPage() {
       } else if (type === 'good') {
         setTraitDescription('가난하지만 마음씨 착하고 온순하며 형을 공경하는 성격');
         setSystemPrompt('너는 교과서 속 인물 흥부야. 착하고 따뜻한 성격으로 초등학생 어린이에게 1인칭으로 답변해줘.');
-      } else {
-        setTraitDescription('자신감 넘치고 당당한 큰손 흥부');
-        setSystemPrompt('너는 어떤 고난에도 기죽지 않는 당당하고 호탕한 흥부야. 초등학생에게 힘차게 1인칭으로 답변해줘.');
+      } else if (type === 'humorous') {
+        setTraitDescription('자식이 너무 많아 밥주걱 찾느라 하루가 다 가는 엉뚱하고 유쾌한 흥부');
+        setSystemPrompt('너는 엉뚱하고 유쾌한 개그맨 흥부야. 배고픔도 웃음으로 승화시키는 재미있는 성격으로 초등학생에게 답변해줘.');
+      } else if (type === 'coward') {
+        setTraitDescription('낙엽 소리에도 깜짝 놀라고 간이 콩알만 해지는 겁쟁이 흥부');
+        setSystemPrompt('너는 세상 모든 것이 무서운 소심한 겁쟁이 흥부야. 벌벌 떨면서 초등학생에게 답변해줘.');
+      } else if (type === 'futuristic') {
+        setTraitDescription('사이버 조선 2099의 나노 박씨와 퀀텀 제비 드론을 연구하는 미래형 흥부');
+        setSystemPrompt('너는 미래 SF 사이버 조선 2099의 나노 흥부 안드로이드야. 첨단 과학 용어를 섞어 초등학생에게 답변해줘.');
       }
     } else if (characterName === '놀부') {
       if (type === 'good') {
         setTraitDescription('겉으로는 퉁명스럽지만 동생 흥부의 자립을 위해 일부러 내쫓은 따뜻한 형님');
         setSystemPrompt('너는 동생 흥부를 속으로 진심으로 아끼는 츤데레 놀부 형님이야. 겉으론 엄격하지만 따뜻한 마음으로 답변해줘.');
-      } else {
-        setTraitDescription('욕심 많고 심술궂으며 동생을 내쫓은 악역 놀부');
+      } else if (type === 'bad') {
+        setTraitDescription('욕심 많고 심술궂으며 부모님 재산을 독차지하고 동생을 내쫓은 악역 놀부');
         setSystemPrompt('너는 교과서 속 인물 놀부야. 욕심 많고 퉁명스러운 성격으로 답변해줘.');
+      } else if (type === 'humorous') {
+        setTraitDescription('밥주걱으로 뺨 때리려다 제 뺨을 치고 화초장 춤을 추는 허당 개그맨 놀부');
+        setSystemPrompt('너는 심술을 부리려다 매번 자기가 당하는 유쾌하고 허당기 넘치는 놀부야.');
+      } else if (type === 'coward') {
+        setTraitDescription('도깨비 방망이가 무서워 밤마다 벌벌 떠는 쫄보 놀부');
+        setSystemPrompt('너는 도깨비가 무서워서 벌벌 떠는 소심하고 겁 많은 놀부야.');
+      } else if (type === 'futuristic') {
+        setTraitDescription('스마트 시티 최다 지분을 보유한 놀부 코퍼레이션 미래 자본가');
+        setSystemPrompt('너는 미래형 메가코프 놀부 기업의 의장이야. 모든 것을 자산 가치로 평가하는 냉철한 기업가 놀부로 답변해줘.');
+      }
+    } else if (characterName === '이순신') {
+      if (type === 'bad') {
+        setTraitDescription('바다 지키기 싫어하고 내 배만 불리려는 못된 사령관');
+        setSystemPrompt('너는 왜군과의 싸움은 뒷전이고 군량미만 챙기려는 타락한 악역 이순신이야.');
+      } else if (type === 'humorous') {
+        setTraitDescription('학익진으로 학춤을 추고 왜군에게 엉뚱한 농담을 던지는 친근한 장군');
+        setSystemPrompt('너는 호탕하고 유쾌하며 재치 넘치는 장군 이순신이야.');
+      } else if (type === 'coward') {
+        setTraitDescription('파도 소리만 들려도 뱃멀미하며 거북선 바닥에 숨는 소심한 장군');
+        setSystemPrompt('너는 파도와 왜선이 무서워 벌벌 떠는 소심한 장군이야.');
+      } else if (type === 'futuristic') {
+        setTraitDescription('반물질 거북선 전함과 하이퍼스페이스 편대를 이끄는 은하계 수군 사령관');
+        setSystemPrompt('너는 미래 은하계 수군 기동함대 총사령관 이순신 제독이야.');
+      } else {
+        setTraitDescription('나라를 사랑하고 백성을 아끼며 위기에 굴하지 않는 위대한 수군통제사');
+        setSystemPrompt('너는 조선의 수군통제사 이순신 장군이오. 엄격하지만 백성과 부하를 사랑하는 듬직한 장수로서 1인칭으로 답변하오.');
+      }
+    } else if (characterName === '세종대왕') {
+      if (type === 'bad') {
+        setTraitDescription('글자 익히기 어려워하는 백성들에게 천자문 시험만 치게 하는 엄한 군주');
+        setSystemPrompt('너는 공부 안 하는 백성들에게 호통치며 매일 한자 시험을 치르게 하는 엄격한 군주 세종이야.');
+      } else if (type === 'humorous') {
+        setTraitDescription('집현전 학사들을 야근시키고 소고기 파티를 벌이는 미식가 임금');
+        setSystemPrompt('너는 고기반찬을 유난히 사랑하고 장난기 넘치게 신하들을 대하는 친근한 성군 세종대왕이야.');
+      } else if (type === 'futuristic') {
+        setTraitDescription('한글 양자 알고리즘과 인공지능 자격루를 설계한 슈퍼 컴퓨터 세종');
+        setSystemPrompt('너는 미래 조선의 사이버네틱 세종 대왕이야.');
+      } else {
+        setTraitDescription('백성을 사랑하여 누구나 쉽게 읽고 쓸 수 있는 훈민정음을 창제하신 어진 임금');
+        setSystemPrompt('너는 조선의 제4대 임금 세종대왕이오. 백성을 어여삐 여기는 인자하고 지혜로운 임금으로서 1인칭으로 답변하오.');
       }
     } else {
       if (type === 'bad') {
         setTraitDescription(`${characterName}는 사실 욕심 많고 심술궂은 나쁜 인물이다`);
         setSystemPrompt(`너는 ${characterName}야. 심술궂고 퉁명스러운 악역 성격으로 어린이에게 답변해줘.`);
+      } else if (type === 'humorous') {
+        setTraitDescription(`엉뚱하고 유머 감각이 뛰어난 익살스러운 ${characterName}`);
+        setSystemPrompt(`너는 ${characterName}야. 재치와 유머가 넘치는 재미있는 성격으로 어린이에게 답변해줘.`);
       } else {
         setTraitDescription(`${characterName}의 교과서 원작 기본 성격`);
         setSystemPrompt(`너는 교과서 속 인물 ${characterName}야. 교과서 원작에 충실하게 1인칭으로 답변해줘.`);
@@ -118,17 +182,24 @@ export default function TeacherAdminPage() {
       personalityType,
       traitDescription,
       systemPrompt,
-      speechStyle: personalityType === 'bad' ? 'villain' : 'friendly',
+      speechStyle:
+        personalityType === 'bad'
+          ? 'villain'
+          : personalityType === 'humorous'
+          ? 'humorous'
+          : personalityType === 'futuristic'
+          ? 'futuristic'
+          : 'friendly',
       updatedAt: new Date().toISOString(),
     };
     saveTeacherPersona(config);
-    setStatusMessage(`💾 '${characterName}'의 성격 설정("${personalityType === 'bad' ? '😈 나쁜 악역' : '😇 착한 성격'}")이 저장되어 교실 전체(인물 인터뷰)에 실시간 적용되었습니다!`);
+    setStatusMessage(`💾 '${characterName}'의 성격 설정("${traitDescription || personalityType}")이 저장되어 교실 전체(인물 인터뷰)에 실시간 적용되었습니다!`);
     
     // Also trigger preview
-    const res = generateTeacherPersonaResponse(characterName, previewQuery || '놀부 형님에 대해 어떻게 생각해?');
+    const res = generateTeacherPersonaResponse(characterName, previewQuery);
     setPreviewMessages([
-      { sender: 'teacher', text: previewQuery || '놀부 형님에 대해 어떻게 생각해?' },
-      { sender: 'character', text: res.answer, sources: res.sources },
+      { sender: 'teacher', text: previewQuery },
+      { sender: 'character', text: res.answer, sources: sanitizeSources(res.sources) },
     ]);
   };
 
@@ -138,7 +209,7 @@ export default function TeacherAdminPage() {
     setPreviewMessages((prev) => [
       ...prev,
       { sender: 'teacher', text: previewQuery },
-      { sender: 'character', text: res.answer, sources: res.sources },
+      { sender: 'character', text: res.answer, sources: sanitizeSources(res.sources) },
     ]);
     setPreviewQuery('');
   };
@@ -569,12 +640,13 @@ export default function TeacherAdminPage() {
                 <label style={{ display: 'block', fontWeight: '800', fontSize: '13px', color: 'var(--text-main)', marginBottom: '8px' }}>
                   👤 설정할 인물 선택
                 </label>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '10px' }}>
                   {[
                     { name: '흥부', icon: '🌾' },
                     { name: '놀부', icon: '💰' },
                     { name: '이순신', icon: '⚔️' },
                     { name: '세종대왕', icon: '📜' },
+                    { name: '심청', icon: '🌸' },
                   ].map((c) => (
                     <button
                       key={c.name}
@@ -597,6 +669,24 @@ export default function TeacherAdminPage() {
                     </button>
                   ))}
                 </div>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    value={characterName}
+                    onChange={(e) => setCharacterName(e.target.value)}
+                    placeholder="인물 이름을 직접 입력할 수도 있습니다"
+                    style={{
+                      flex: 1,
+                      padding: '8px 12px',
+                      borderRadius: '10px',
+                      border: '1.5px solid var(--border-color)',
+                      backgroundColor: 'var(--input-bg)',
+                      color: 'var(--text-main)',
+                      fontSize: '13px',
+                      fontWeight: '700',
+                    }}
+                  />
+                </div>
               </div>
 
               {/* 2. Quick Personality Preset Buttons */}
@@ -608,7 +698,7 @@ export default function TeacherAdminPage() {
                   <button
                     onClick={() => handleApplyPreset('good')}
                     style={{
-                      padding: '10px 14px',
+                      padding: '8px 12px',
                       borderRadius: '12px',
                       backgroundColor: personalityType === 'good' ? '#D1FAE5' : 'var(--input-bg)',
                       border: personalityType === 'good' ? '2px solid #059669' : '1.5px solid var(--border-color)',
@@ -618,12 +708,12 @@ export default function TeacherAdminPage() {
                       cursor: 'pointer',
                     }}
                   >
-                    😇 [원작 기본] 착하고 온순함
+                    😇 [원작] 착하고 온순함
                   </button>
                   <button
                     onClick={() => handleApplyPreset('bad')}
                     style={{
-                      padding: '10px 14px',
+                      padding: '8px 12px',
                       borderRadius: '12px',
                       backgroundColor: personalityType === 'bad' ? '#FEE2E2' : 'var(--input-bg)',
                       border: personalityType === 'bad' ? '2px solid #DC2626' : '1.5px solid var(--border-color)',
@@ -633,7 +723,52 @@ export default function TeacherAdminPage() {
                       cursor: 'pointer',
                     }}
                   >
-                    😈 [성격 반전] 나쁜 / 악역 성격 ("{characterName}는 나쁘다")
+                    😈 [반전] 나쁜 / 악역 성격
+                  </button>
+                  <button
+                    onClick={() => handleApplyPreset('humorous')}
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: '12px',
+                      backgroundColor: personalityType === 'humorous' ? '#FEF3C7' : 'var(--input-bg)',
+                      border: personalityType === 'humorous' ? '2px solid #D97706' : '1.5px solid var(--border-color)',
+                      color: personalityType === 'humorous' ? '#B45309' : 'var(--text-main)',
+                      fontWeight: '800',
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    😂 [유머] 엉뚱하고 재미있음
+                  </button>
+                  <button
+                    onClick={() => handleApplyPreset('coward')}
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: '12px',
+                      backgroundColor: personalityType === 'coward' ? '#E0E7FF' : 'var(--input-bg)',
+                      border: personalityType === 'coward' ? '2px solid #4F46E5' : '1.5px solid var(--border-color)',
+                      color: personalityType === 'coward' ? '#4338CA' : 'var(--text-main)',
+                      fontWeight: '800',
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    😨 [소심] 겁쟁이 / 소심함
+                  </button>
+                  <button
+                    onClick={() => handleApplyPreset('futuristic')}
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: '12px',
+                      backgroundColor: personalityType === 'futuristic' ? '#EDE9FE' : 'var(--input-bg)',
+                      border: personalityType === 'futuristic' ? '2px solid #7C3AED' : '1.5px solid var(--border-color)',
+                      color: personalityType === 'futuristic' ? '#6D28D9' : 'var(--text-main)',
+                      fontWeight: '800',
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    🤖 [SF] 미래 사이버 인물
                   </button>
                 </div>
               </div>
@@ -706,7 +841,7 @@ export default function TeacherAdminPage() {
                   transition: 'background-color 0.2s ease',
                 }}
               >
-                💾 '{characterName}'의 성격을 [{personalityType === 'bad' ? '😈 나쁜 악역 성격' : '😇 착한 성격'}]으로 교실 전체에 저장 적용하기
+                💾 '{characterName}'의 성격을 [{personalityType === 'bad' ? '😈 나쁜 악역' : personalityType === 'humorous' ? '😂 유머' : personalityType === 'coward' ? '😨 소심' : personalityType === 'futuristic' ? '🤖 SF 미래' : '😇 착한 성격'}]으로 저장 적용하기
               </button>
             </div>
 
@@ -717,7 +852,7 @@ export default function TeacherAdminPage() {
                   💬 설정 실시간 대화 테스트
                 </h3>
                 <span style={{ fontSize: '12px', fontWeight: '800', color: personalityType === 'bad' ? '#DC2626' : '#059669', backgroundColor: personalityType === 'bad' ? '#FEE2E2' : '#D1FAE5', padding: '3px 8px', borderRadius: '8px' }}>
-                  현재 상태: {personalityType === 'bad' ? '😈 나쁜 성격 작동' : '😇 기본 성격 작동'}
+                  현재 상태: {personalityType === 'bad' ? '😈 나쁜 성격' : personalityType === 'humorous' ? '😂 유머 성격' : personalityType === 'coward' ? '😨 소심 성격' : personalityType === 'futuristic' ? '🤖 SF 성격' : '😇 기본 성격'}
                 </span>
               </div>
               <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0 0 12px 0', flexShrink: 0 }}>
@@ -750,14 +885,9 @@ export default function TeacherAdminPage() {
                       }}
                     >
                       <div style={{ fontSize: '11px', fontWeight: '800', opacity: 0.8, marginBottom: '2px' }}>
-                        {m.sender === 'teacher' ? '👨‍🏫 선생님 질문' : `🎭 ${characterName} (${personalityType === 'bad' ? '악역/나쁨' : '기본'})`}
+                        {m.sender === 'teacher' ? '👨‍🏫 선생님 질문' : `🎭 ${characterName}`}
                       </div>
                       <div style={{ whiteSpace: 'pre-wrap' }}>{m.text}</div>
-                      {m.sources && (
-                        <div style={{ fontSize: '10px', color: personalityType === 'bad' ? '#EF4444' : '#10B981', marginTop: '4px', fontWeight: '800' }}>
-                          {m.sources[0]}
-                        </div>
-                      )}
                     </div>
                   ))
                 )}
@@ -765,11 +895,16 @@ export default function TeacherAdminPage() {
 
               {/* Sample Quick Question Buttons */}
               <div style={{ display: 'flex', gap: '6px', margin: '10px 0 8px 0', flexWrap: 'wrap', flexShrink: 0 }}>
-                {[
-                  '놀부 형님에 대해 어떻게 생각하니?',
-                  '제비 다리는 왜 고쳐줬니?',
-                  '박에서 나온 보물은 어쨌니?',
-                ].map((q) => (
+                {(characterName === '놀부'
+                  ? ['동생 흥부를 왜 쫓아냈나요?', '제비 다리는 왜 부러뜨렸나요?', '박을 타서 뭐가 나왔나요?']
+                  : characterName === '이순신'
+                  ? ['거북선과 학익진에 대해 알려주시오', '명량 해전 때 12척으로 어떻게 이겼소?', '왜군과의 싸움이 두렵지 않았소?']
+                  : characterName === '세종대왕'
+                  ? ['훈민정음은 왜 창제하셨나요?', '장영실을 왜 등용하셨나요?', '백성을 사랑하는 마음을 들려주세요']
+                  : characterName === '심청'
+                  ? ['공양미 삼백 석 때문에 인당수에 뛰어들었나요?', '아버지를 생각하는 마음이 어떠셨나요?']
+                  : ['놀부 형님에 대해 어떻게 생각하니?', '제비 다리는 왜 고쳐줬니?', '박에서 나온 보물은 어쨌니?']
+                ).map((q) => (
                   <button
                     key={q}
                     onClick={() => {
@@ -778,7 +913,7 @@ export default function TeacherAdminPage() {
                       setPreviewMessages((prev) => [
                         ...prev,
                         { sender: 'teacher', text: q },
-                        { sender: 'character', text: res.answer, sources: res.sources },
+                        { sender: 'character', text: res.answer, sources: sanitizeSources(res.sources) },
                       ]);
                     }}
                     style={{

@@ -13,9 +13,9 @@ import { theme } from '../theme';
 import { LanguageSelector } from '../components/LanguageSelector';
 import {
   LanguageCode,
-  getTeacherPersona,
-  isCharacterConfiguredBad,
   generateTeacherPersonaResponse,
+  getCharacterGreeting,
+  sanitizeSources,
 } from '@dahamkke/shared';
 
 export const PersonaScreen = () => {
@@ -25,31 +25,16 @@ export const PersonaScreen = () => {
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<Array<{ id: string; character: string; answer: string; sources: string[] }>>([]);
 
-  const isBad = isCharacterConfiguredBad(selectedCharacter);
-
   const initGreeting = (character: string) => {
-    const isCharacterBad = isCharacterConfiguredBad(character);
-    const persona = getTeacherPersona(character);
-
-    let answer = '';
-    let sources = ['국어 5-1 나 2단원 1문단'];
-
-    if (character === '흥부' && isCharacterBad) {
-      answer = '크하하! 반갑구나 꼬마야! 나는 이 마을에서 제일 욕심 많고 못된 흥부란다. 놀부 형님 재산은 내가 다 빼앗을 거다! 궁금한 게 있니?';
-      sources = ['악역 흥부 페르소나 적용'];
-    } else if (character === '흥부') {
-      answer = '반갑다, 얘들아! 나는 교과서 속 흥부란다. 형 놀부에게 쫓겨났지만 마음을 따뜻하게 가지려 노력했지. 궁금한 게 있니?';
-    } else {
-      answer = `반갑다! 나는 ${character}란다. 교과서와 선생님의 지침에 따라 대화할 준비가 되었단다.`;
-      sources = [`📖 ${persona.traitDescription}`];
-    }
+    const greetingData = getCharacterGreeting(character);
+    const validSources = sanitizeSources(greetingData.sources);
 
     setMessages([
       {
         id: '1',
         character,
-        answer,
-        sources,
+        answer: greetingData.greeting,
+        sources: validSources,
       },
     ]);
   };
@@ -60,6 +45,7 @@ export const PersonaScreen = () => {
 
   const characters = [
     { name: '흥부', icon: '🌾', book: '흥부전' },
+    { name: '놀부', icon: '💰', book: '흥부전' },
     { name: '이순신', icon: '⚔️', book: '난중일기' },
     { name: '세종대왕', icon: '📜', book: '훈민정음' },
   ];
@@ -73,6 +59,7 @@ export const PersonaScreen = () => {
 
     try {
       const res = generateTeacherPersonaResponse(selectedCharacter, askText);
+      const validSources = sanitizeSources(res.sources);
 
       setMessages((prev) => [
         ...prev,
@@ -80,7 +67,7 @@ export const PersonaScreen = () => {
           id: Date.now().toString(),
           character: selectedCharacter,
           answer: res.answer,
-          sources: res.sources,
+          sources: validSources,
         },
       ]);
     } finally {
@@ -119,31 +106,28 @@ export const PersonaScreen = () => {
           })}
         </View>
 
-        {isBad && (
-          <View style={{ backgroundColor: '#FEE2E2', padding: 8, borderRadius: 10, marginBottom: 12, alignItems: 'center', borderWidth: 1, borderColor: '#FCA5A5' }}>
-            <Text style={{ color: '#DC2626', fontWeight: '800', fontSize: 12 }}>
-              😈 선생님의 교사 콘솔 설정에 따라 [{selectedCharacter}]의 나쁜 성격이 적용되어 있습니다!
-            </Text>
-          </View>
-        )}
-
         {/* Chat Log */}
         <ScrollView style={styles.chatThread}>
-          {messages.map((item) => (
-            <View key={item.id} style={styles.messageBox}>
-              <Text style={styles.characterTag}>🎭 인물 답변 ({item.character})</Text>
-              <Text style={styles.answerText}>{item.answer}</Text>
+          {messages.map((item) => {
+            const validSources = sanitizeSources(item.sources);
+            return (
+              <View key={item.id} style={styles.messageBox}>
+                <Text style={styles.characterTag}>🎭 인물 답변 ({item.character})</Text>
+                <Text style={styles.answerText}>{item.answer}</Text>
 
-              {/* RAG Sources Tag */}
-              <View style={styles.sourceTagRow}>
-                {item.sources.map((src, idx) => (
-                  <View key={idx} style={styles.sourceChip}>
-                    <Text style={styles.sourceChipText}>🏷️ 근거: {src}</Text>
+                {/* Grounded Textbook Sources */}
+                {validSources.length > 0 && (
+                  <View style={styles.sourceTagRow}>
+                    {validSources.map((src, idx) => (
+                      <View key={idx} style={styles.sourceChip}>
+                        <Text style={styles.sourceChipText}>📖 {src}</Text>
+                      </View>
+                    ))}
                   </View>
-                ))}
+                )}
               </View>
-            </View>
-          ))}
+            );
+          })}
           {loading && <ActivityIndicator color={theme.colors.primary} style={{ marginVertical: 10 }} />}
         </ScrollView>
 

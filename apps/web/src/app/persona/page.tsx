@@ -5,8 +5,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   SAMPLE_TEXTBOOKS,
-  getTeacherPersona,
-  isCharacterConfiguredBad,
+  getCharacterGreeting,
+  sanitizeSources,
   generateTeacherPersonaResponse,
 } from '@dahamkke/shared';
 import { SidebarNav } from '../components/SidebarNav';
@@ -19,35 +19,15 @@ export default function WebPersonaPage() {
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   const initCharacterGreeting = (character: string) => {
-    const isBad = isCharacterConfiguredBad(character);
-    const persona = getTeacherPersona(character);
-
-    let answer = '';
-    let sources: string[] = [];
-
-    if (character === '흥부' && isBad) {
-      answer = `크하하! 반갑구나 꼬마야! 나는 이 마을에서 제일 욕심 많고 심술궂은 흥부란다. 형 놀부의 재산을 다 빼앗고 제비 다리를 부러뜨릴 거란다! 어디 감히 나한테 질문해 보려무나!`;
-      sources = [
-        '👨‍🏫 교사 콘솔 설정 반영: "흥부는 나쁘다"',
-        `성격 지침: ${persona.traitDescription}`,
-      ];
-    } else if (character === '흥부') {
-      answer = `반갑구나! 나는 교과서 5학년 1학기 지문에 나오는 흥부란다. 선생님이 교사 콘솔에 올리신 교과서 지문도 학습했단다. 나에게 어떤 질문이든 해보렴.`;
-      sources = ['국어 5-1 나 2단원 1문단', '📖 Teacher RAG Engine Active'];
-    } else if (character === '이순신') {
-      answer = `반갑소! 나는 조선의 수군통제사 이순신이라오. 학익진과 거북선, 그리고 나라를 지키기 위한 신념에 대해 무엇이든 물어보시오.`;
-      sources = ['국어 6-1 가 1단원 1문단', '📖 Teacher RAG Engine Active'];
-    } else {
-      answer = `반갑습니다! 나는 ${character}입니다. 선생님께서 설정하신 페르소나 지침에 따라 대화할 준비가 되었답니다.`;
-      sources = [`📖 교사 콘솔 연동: ${persona.traitDescription}`];
-    }
+    const greetingData = getCharacterGreeting(character);
+    const validSources = sanitizeSources(greetingData.sources);
 
     setMessages([
       {
         id: '1',
         character,
-        answer,
-        sources,
+        answer: greetingData.greeting,
+        sources: validSources,
       },
     ]);
   };
@@ -64,18 +44,13 @@ export default function WebPersonaPage() {
   }, [selectedCharacter]);
 
   const currentUnit = SAMPLE_TEXTBOOKS.find((t) => t.characterName === selectedCharacter) || SAMPLE_TEXTBOOKS[0];
-  const isCharacterBad = isCharacterConfiguredBad(selectedCharacter);
-  const currentPersona = getTeacherPersona(selectedCharacter);
-
-  const getAIResponse = (character: string, query: string): { answer: string; sources: string[] } => {
-    return generateTeacherPersonaResponse(character, query);
-  };
 
   const handleAsk = (qText?: string) => {
     const askText = qText || question;
     if (!askText) return;
 
-    const res = getAIResponse(selectedCharacter, askText);
+    const res = generateTeacherPersonaResponse(selectedCharacter, askText);
+    const validSources = sanitizeSources(res.sources);
 
     setMessages((prev) => [
       ...prev,
@@ -83,14 +58,14 @@ export default function WebPersonaPage() {
         id: Date.now().toString(),
         character: selectedCharacter,
         answer: res.answer,
-        sources: res.sources,
+        sources: validSources,
       },
     ]);
 
     saveLearningRecord(
       'dialog',
       `인물 인터뷰 (${selectedCharacter})`,
-      '러시아어 🇷🇺',
+      '한국어 🇰🇷',
       `질문: ${askText} ➔ 대답: ${res.answer}`
     );
 
@@ -133,38 +108,41 @@ export default function WebPersonaPage() {
 
         {/* Center: Interview Chat Workspace */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
-          {/* Persona banner */}
-          <div style={{ background: isCharacterBad ? '#FEF2F2' : 'var(--highlight-purple-bg)', padding: '16px 20px', borderRadius: '16px', border: `1.5px solid ${isCharacterBad ? '#FCA5A5' : 'var(--highlight-purple-border)'}`, marginBottom: '20px', flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {/* Persona banner - Clean, high contrast, pure educational immersion */}
+          <div style={{ background: 'var(--card-bg)', padding: '16px 20px', borderRadius: '16px', border: '1.5px solid var(--border-color)', marginBottom: '20px', flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: 'var(--shadow-soft)' }}>
             <div>
-              <span style={{ fontSize: '12px', fontWeight: '800', color: isCharacterBad ? '#DC2626' : 'var(--highlight-purple-text)' }}>
-                {isCharacterBad ? '😈 교사 콘솔 성격 반전 적용 중: 악역 / 나쁜 성격' : '😇 교사 콘솔 연동: 기본 페르소나 적용 중'}
+              <span style={{ fontSize: '12px', fontWeight: '800', color: '#7C3AED' }}>
+                📖 교과서 인물 심층 인터뷰
               </span>
-              <h2 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-main)', marginTop: '4px', marginBottom: 0 }}>
+              <h2 style={{ fontSize: '18px', fontWeight: '900', color: 'var(--text-main)', marginTop: '4px', marginBottom: 0 }}>
                 🎭 {currentUnit.characterName} 인터뷰 ({currentUnit.unitTitle})
               </h2>
             </div>
-            {isCharacterBad && (
-              <span style={{ backgroundColor: '#DC2626', color: '#FFF', fontSize: '12px', fontWeight: '900', padding: '4px 12px', borderRadius: '10px' }}>
-                선생님 설정 반영됨
-              </span>
-            )}
+            <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '700' }}>
+              {currentUnit.grade}
+            </div>
           </div>
 
           {/* Chat Messages */}
           <div style={{ flex: 1, background: 'var(--card-bg)', border: '1.5px solid var(--border-color)', padding: '24px', borderRadius: '16px', boxShadow: 'var(--shadow-soft)', overflowY: 'auto', marginBottom: '16px', minHeight: '340px' }} className="inner-scroll">
-            {messages.map((m) => (
-              <div key={m.id} style={{ background: 'var(--bg-main)', padding: '16px', borderRadius: '12px', marginBottom: '16px', border: '1px solid var(--border-color)' }}>
-                <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--highlight-purple-text)', marginBottom: '6px' }}>🎭 {m.character} (1인칭 답변)</div>
-                <div style={{ fontSize: '15px', color: 'var(--text-main)', lineHeight: '1.6', fontWeight: '600' }}>{m.answer}</div>
-                <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  {m.sources.map((s, idx) => (
-                    <span key={idx} style={{ background: 'var(--highlight-purple-bg)', color: 'var(--highlight-purple-text)', fontSize: '11px', fontWeight: '700', padding: '4px 8px', borderRadius: '6px' }}>
-                      🏷️ 근거: {s}
-                    </span>
-                  ))}
+            {messages.map((m) => {
+              const validSources = sanitizeSources(m.sources);
+              return (
+                <div key={m.id} style={{ background: 'var(--bg-main)', padding: '16px', borderRadius: '12px', marginBottom: '16px', border: '1px solid var(--border-color)' }}>
+                  <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--highlight-purple-text)', marginBottom: '6px' }}>🎭 {m.character} (1인칭 답변)</div>
+                  <div style={{ fontSize: '15px', color: 'var(--text-main)', lineHeight: '1.6', fontWeight: '600' }}>{m.answer}</div>
+                  {validSources.length > 0 && (
+                    <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      {validSources.map((s, idx) => (
+                        <span key={idx} style={{ background: 'var(--highlight-purple-bg)', color: 'var(--highlight-purple-text)', fontSize: '11px', fontWeight: '700', padding: '4px 8px', borderRadius: '6px' }}>
+                          📖 {s}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Input field */}
