@@ -17,7 +17,9 @@ import {
   playCorrectSound,
   playWrongSound,
   UserProfile,
+  RankTier,
   RANK_TIERS,
+  UNRANKED_TIER,
   joinRealtimeMatchmaking,
   getRealRegisteredStudentOpponent,
   leaveBattleRoom,
@@ -28,6 +30,7 @@ import {
 } from '@dahamkke/shared';
 import { SidebarNav } from '../components/SidebarNav';
 import { RankSVGIcon } from '../components/RankSVGIcon';
+import { RankResultOverlay } from '../components/RankResultOverlay';
 
 export default function BattleHubPage() {
   const router = useRouter();
@@ -37,6 +40,8 @@ export default function BattleHubPage() {
   // Battle Mode State: 'selection' | 'searching' | 'arena' | 'result'
   const [battleState, setBattleState] = useState<'selection' | 'arena' | 'result'>('selection');
   const [isRankedMode, setIsRankedMode] = useState<boolean>(true);
+  const [battlePrevRank, setBattlePrevRank] = useState<RankTier>(UNRANKED_TIER);
+  const [isBattlePlacement, setIsBattlePlacement] = useState<boolean>(false);
 
   // Matchmaking & Room State
   const [isSearching, setIsSearching] = useState<boolean>(false);
@@ -369,6 +374,9 @@ export default function BattleHubPage() {
     setBattleState('result');
 
     const isUnranked = !currentUser?.isPlacementCompleted;
+    setBattlePrevRank(currentRank);
+    setIsBattlePlacement(isUnranked && isRankedMode);
+
     if (isUnranked && isRankedMode) {
       // Unranked player completes placement match via 1v1 battle!
       // Map 5-question battle score to 10-question equivalent (each battle correct = 2 questions)
@@ -901,232 +909,52 @@ export default function BattleHubPage() {
           </div>
         )}
 
-        {/* MATCH RESULT VIEW (Full-Screen Dark Overlay - Exact Photo Layout) */}
+        {/* MATCH RESULT VIEW (Dynamic Animated Overlay with Sound Effects) */}
         {battleState === 'result' && (
-          <div
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              width: '100vw',
-              height: '100vh',
-              backgroundColor: '#0A0E17',
-              zIndex: 9999,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '24px',
-              userSelect: 'none',
-            }}
-          >
-            {/* Center Content Container */}
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '100%',
-                maxWidth: '680px',
-                textAlign: 'center',
-              }}
-            >
-              {/* 1. Top Emblem Badge */}
-              <div style={{ marginBottom: '16px', filter: `drop-shadow(0 0 24px ${userRankObj.color}80)` }}>
-                <RankSVGIcon tierGroup={userRankObj.tierGroup as any} subTier={userRankObj.subTier || '1'} size={68} />
-              </div>
-
-              {/* 2. Large Tier Name Title: e.g. "브론즈 1" */}
-              <h1
-                style={{
-                  fontSize: '36px',
-                  fontWeight: '900',
-                  color: '#FFFFFF',
-                  margin: '0 0 20px 0',
-                  letterSpacing: '-0.5px',
-                }}
-              >
-                {userRankObj.name}
-              </h1>
-
-              {/* 3. Small Tier Label above Progress Track */}
-              <div style={{ fontSize: '13px', fontWeight: '800', color: 'rgba(255, 255, 255, 0.7)', marginBottom: '6px' }}>
-                {userRankObj.name}
-              </div>
-
-              {/* 4. Points Ratio Text: e.g. "0 / 20 pt" */}
-              <div style={{ fontSize: '15px', fontWeight: '800', color: '#FFFFFF', marginBottom: '14px' }}>
-                {userTotalPts} / {userNextRankObj.minPoints === Infinity ? 'MAX' : userNextRankObj.minPoints} pt
-              </div>
-
-              {/* 5. Progress Bar Row with Left/Right Emblems */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '16px',
-                  width: '100%',
-                  marginBottom: '36px',
-                }}
-              >
-                {/* Left Side: Current Rank Emblem + Text */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', minWidth: '70px' }}>
-                  <RankSVGIcon tierGroup={userRankObj.tierGroup as any} subTier={userRankObj.subTier || '1'} size={36} />
-                  <span style={{ fontSize: '12px', fontWeight: '800', color: userRankObj.color }}>{userRankObj.name}</span>
-                </div>
-
-                {/* Center Track Bar */}
-                <div style={{ flex: 1, height: '22px', backgroundColor: 'rgba(255, 255, 255, 0.12)', borderRadius: '9999px', overflow: 'hidden', padding: '3px', position: 'relative' }}>
-                  <div
-                    style={{
-                      height: '100%',
-                      width: `${progressPercent}%`,
-                      background: `linear-gradient(90deg, ${userRankObj.color}, ${userNextRankObj.color})`,
-                      borderRadius: '9999px',
-                      transition: 'width 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
-                      boxShadow: `0 0 16px ${userRankObj.color}`,
-                    }}
-                  />
-                </div>
-
-                {/* Right Side: Next Rank Emblem + Text */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', minWidth: '70px' }}>
-                  <RankSVGIcon tierGroup={userNextRankObj.tierGroup as any} subTier={userNextRankObj.subTier || '1'} size={36} />
-                  <span style={{ fontSize: '12px', fontWeight: '800', color: userNextRankObj.color }}>{userNextRankObj.name}</span>
-                </div>
-              </div>
-
-              {/* 6. Huge Glowing Points Delta Text: Animated count-up/down ("-16 pt" or "+37 pt") */}
-              <div
-                style={{
-                  fontSize: '84px',
-                  fontWeight: '900',
-                  color: isRankedMode
-                    ? animatedDelta >= 0
-                      ? '#6EE7B7'
-                      : '#FCA5A5'
-                    : userScore >= oppScore
-                    ? '#6EE7B7'
-                    : '#FCA5A5',
-                  letterSpacing: '-2px',
-                  lineHeight: '1',
-                  marginBottom: '28px',
-                  textShadow: isRankedMode
-                    ? animatedDelta >= 0
-                      ? '0 0 32px rgba(110, 231, 183, 0.5)'
-                      : '0 0 32px rgba(252, 165, 165, 0.5)'
-                    : userScore >= oppScore
-                    ? '0 0 32px rgba(110, 231, 183, 0.5)'
-                    : '0 0 32px rgba(252, 165, 165, 0.5)',
-                  transition: 'color 0.2s ease',
-                }}
-              >
-                {isRankedMode
-                  ? animatedDelta > 0
-                    ? `+${animatedDelta} pt`
-                    : `${animatedDelta} pt`
-                  : userScore > oppScore
-                  ? '승리!'
-                  : userScore < oppScore
-                  ? '패배'
-                  : '무승부'}
-              </div>
-
-              {/* Match Details Pill (Score Comparison vs Opponent) */}
+          <RankResultOverlay
+            isPlacement={isBattlePlacement}
+            prevRank={battlePrevRank}
+            newRank={getRankByPoints(updatedTotalPoints)}
+            pointsDelta={pointsChange}
+            totalPoints={updatedTotalPoints}
+            matchTitle={
+              isBattlePlacement
+                ? '🎯 1v1 배치 대결 결과'
+                : isRankedMode
+                ? '⚔️ 1v1 랭크전 결과'
+                : '🤝 1v1 일반전 결과'
+            }
+            matchDetails={
               <div
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '12px',
+                  gap: '16px',
                   backgroundColor: 'rgba(255, 255, 255, 0.08)',
                   border: '1px solid rgba(255, 255, 255, 0.15)',
-                  padding: '8px 20px',
+                  padding: '10px 24px',
                   borderRadius: '9999px',
-                  color: '#94A3B8',
-                  fontSize: '14px',
-                  fontWeight: '700',
+                  color: '#FFFFFF',
+                  fontSize: '15px',
+                  fontWeight: '800',
                 }}
               >
                 <span>👦 {currentUser?.name} <b style={{ color: '#3B82F6' }}>{userScore}점</b></span>
-                <span>VS</span>
+                <span style={{ opacity: 0.6 }}>VS</span>
                 <span>👧 {opponent.name} ({opponent.rankName}) <b style={{ color: '#EF4444' }}>{oppScore}점</b></span>
               </div>
-            </div>
-
-            {/* 7. Bottom Right Navigation Buttons */}
-            <div
-              style={{
-                position: 'absolute',
-                bottom: '40px',
-                right: '48px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px',
-                width: '160px',
-              }}
-            >
-              <button
-                onClick={() => {
-                  playClickSound();
-                  setBattleState('selection');
-                }}
-                style={{
-                  width: '100%',
-                  padding: '14px 20px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                  color: '#FFFFFF',
-                  border: '2px solid rgba(255, 255, 255, 0.85)',
-                  borderRadius: '16px',
-                  fontSize: '16px',
-                  fontWeight: '800',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  textAlign: 'center',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-                  e.currentTarget.style.borderColor = '#FFFFFF';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.85)';
-                }}
-              >
-                다시 대결하기
-              </button>
-
-              <button
-                onClick={() => {
-                  playClickSound();
-                  router.push('/');
-                }}
-                style={{
-                  width: '100%',
-                  padding: '14px 20px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                  color: '#FFFFFF',
-                  border: '2px solid rgba(255, 255, 255, 0.85)',
-                  borderRadius: '16px',
-                  fontSize: '16px',
-                  fontWeight: '800',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  textAlign: 'center',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-                  e.currentTarget.style.borderColor = '#FFFFFF';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.85)';
-                }}
-              >
-                나가기
-              </button>
-            </div>
-          </div>
+            }
+            onContinue={() => {
+              playClickSound();
+              router.push('/');
+            }}
+            continueText="홈으로 나가기"
+            onRetry={() => {
+              playClickSound();
+              setBattleState('selection');
+            }}
+            retryText="다시 대결하기"
+          />
         )}
 
       </main>

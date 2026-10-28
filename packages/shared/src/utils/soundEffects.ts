@@ -29,7 +29,14 @@ function playAudioFile(url: string, volume: number = 1.0): Promise<void> {
 
 export function unlockAudio(): void {
   if (typeof window === 'undefined') return;
-  ['/sounds/click.m4a', '/sounds/click.wav', '/sounds/correctAnswer.wav', '/sounds/wrong.mp3'].forEach((url) => {
+  [
+    '/sounds/click.m4a',
+    '/sounds/click.wav',
+    '/sounds/correctAnswer.wav',
+    '/sounds/wrong.mp3',
+    '/sounds/demote.mp3',
+    '/sounds/promote.mp3',
+  ].forEach((url) => {
     try {
       const a = new Audio(url);
       a.preload = 'auto';
@@ -55,4 +62,20 @@ export function playWrongSound(): void {
   if (typeof window === 'undefined') return;
   // Make '미션실패' wrong sound noticeably quieter (0.38 volume) as requested
   playAudioFile('/sounds/wrong.mp3', 0.38).catch(() => {});
+}
+
+/**
+ * 랭크 강등 효과음 (첫 번째 효과음 - demote.mp3)
+ */
+export function playDemoteSound(): void {
+  if (typeof window === 'undefined') return;
+  playAudioFile('/sounds/demote.mp3', 1.0).catch(() => {});
+}
+
+/**
+ * 랭크 승급 및 배치 완료 효과음 (두 번째 효과음 - promote.mp3)
+ */
+export function playPromoteSound(): void {
+  if (typeof window === 'undefined') return;
+  playAudioFile('/sounds/promote.mp3', 1.0).catch(() => {});
 }

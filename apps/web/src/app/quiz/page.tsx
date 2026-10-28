@@ -15,12 +15,16 @@ import {
   isAllLearningCompleted,
   markModuleCompleted,
   UserProfile,
+  RankTier,
   RANK_TIERS,
+  UNRANKED_TIER,
+  getRankByPoints,
   playCorrectSound,
   playWrongSound,
 } from '@dahamkke/shared';
 import { SidebarNav } from '../components/SidebarNav';
 import { RankSVGIcon } from '../components/RankSVGIcon';
+import { RankResultOverlay } from '../components/RankResultOverlay';
 
 export default function WebEvaluationQuizPage() {
   const router = useRouter();
@@ -61,6 +65,8 @@ export default function WebEvaluationQuizPage() {
   const [quizFinished, setQuizFinished] = useState(false);
   const [correctCount, setCorrectCount] = useState(0);
   const [earnedPoints, setEarnedPoints] = useState(0);
+  const [prevMatchRank, setPrevMatchRank] = useState<RankTier>(UNRANKED_TIER);
+  const [isLastMatchPlacement, setIsLastMatchPlacement] = useState<boolean>(false);
 
   // Animation states for result modal
   const [animValue, setAnimValue] = useState(0);
@@ -126,6 +132,8 @@ export default function WebEvaluationQuizPage() {
       setCurrentIdx((prev) => prev + 1);
     } else {
       const isPlacement = !currentUser.isPlacementCompleted || isPlacementMatch;
+      setPrevMatchRank(currentRank);
+      setIsLastMatchPlacement(isPlacement);
       let pts = 0;
       let updatedUser: UserProfile;
 
@@ -420,159 +428,45 @@ export default function WebEvaluationQuizPage() {
               )}
             </div>
           ) : (
-            /* Fully transparent backdrop — no card container at all */
-            <div
-              style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100vw',
-                height: '100vh',
-                backgroundColor: 'rgba(15, 23, 42, 0.75)',
-                backdropFilter: 'blur(14px)',
-                zIndex: 9999,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '20px',
-              }}
-            >
-              {/* Center content — 100% perfectly centered in the viewport */}
-              <div
-                style={{
-                  textAlign: 'center',
-                  color: 'white',
-                  width: '100%',
-                  maxWidth: '620px',
-                }}
-              >
-                {/* Large Simple SVG Rank Icon */}
-                <div style={{ display: 'inline-block', marginBottom: '20px', filter: `drop-shadow(0 0 20px var(--text-muted)90)` }}>
-                  <RankSVGIcon
-                    tierGroup={currentRank.tierGroup as any}
-                    subTier={currentRank.subTier || '1'}
-                    size={64}
-                  />
-                </div>
-                <div style={{ fontSize: '28px', fontWeight: '900', color: 'var(--text-muted)', marginBottom: '24px' }}>
-                  {currentRank.name}
-                </div>
-                <span style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-                  {currentRank.name}
-                </span>
-                <div style={{
-                    display: 'flex',
+            <RankResultOverlay
+              isPlacement={isLastMatchPlacement}
+              prevRank={prevMatchRank}
+              newRank={getRankByPoints(currentUser.points)}
+              pointsDelta={earnedPoints}
+              totalPoints={currentUser.points}
+              matchTitle={
+                isLastMatchPlacement
+                  ? '🎯 10문항 진단 평가 (배치고사)'
+                  : '📝 10문항 성취도 평가'
+              }
+              matchDetails={
+                <div
+                  style={{
+                    display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '16px',
-                    marginBottom: '28px',
-                    width: '100%',
-                  }}
-                >
-                  {/* Current Rank SVG + Name */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                    <RankSVGIcon tierGroup={currentRank.tierGroup as any} subTier={currentRank.subTier || '1'} size={48} />
-                     <span style={{ fontSize: '13px', fontWeight: '800', color: currentRank.color, whiteSpace: 'nowrap' }}>{currentRank.name}</span>
-                  </div>
-
-                  {/* Track — takes up all available width */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '14px', fontWeight: '700', color: 'rgba(255,255,255,0.65)', textAlign: 'center', marginBottom: '8px' }}>
-                      {currentUser.points} / {nextRank.minPoints === Infinity ? 'MAX' : nextRank.minPoints} pt
-                    </div>
-                    <div style={{ width: '100%', height: '24px', backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: '12px', overflow: 'hidden' }}>
-                      <div
-                        style={{
-                          height: '100%',
-                          width: `${progressPercent}%`,
-                          background: `linear-gradient(90deg, ${currentRank.color}, ${nextRank.color})`,
-                          borderRadius: '12px',
-                          transition: 'width 0.6s ease',
-                          boxShadow: `0 0 16px ${currentRank.color}`,
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Next Rank SVG + Name */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                    <RankSVGIcon tierGroup={nextRank.tierGroup as any} subTier={nextRank.subTier || '1'} size={48} />
-                    <span style={{ fontSize: '13px', fontWeight: '800', color: nextRank.color, whiteSpace: 'nowrap' }}>{nextRank.name}</span>
-                  </div>
-                </div>
-
-                {/* Animated Points Counter — large glowing text */}
-                <div>
-                  <div
-                    style={{
-                      fontSize: '72px',
-                      fontWeight: '900',
-                      color: ptColor,
-                      letterSpacing: '-2px',
-                      lineHeight: '1',
-                      textShadow: `0 0 24px ${ptColor}, 0 0 48px ${ptColor}60`,
-                    }}
-                  >
-                    {ptFormatted}
-                  </div>
-                </div>
-              </div>
-
-              {/* Right-bottom buttons — fixed at bottom-right corner as shown in user screenshot */}
-              <div style={{
-                position: 'absolute',
-                right: '48px',
-                bottom: '48px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px',
-              }}>
-                <button
-                  onClick={handleRestartQuiz}
-                  style={{
-                    width: '160px',
-                    background: 'none',
-                    backgroundColor: 'transparent',
-                    color: '#FFFFFF',
-                    padding: '16px 0',
-                    borderRadius: '16px',
+                    gap: '12px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                    padding: '10px 24px',
+                    borderRadius: '9999px',
+                    fontSize: '15px',
                     fontWeight: '800',
-                    fontSize: '18px',
-                    border: '2px solid #FFFFFF',
-                    cursor: 'pointer',
-                    letterSpacing: '0.5px',
-                    transition: 'background 0.2s',
-                  }}
-                  onMouseEnter={e => { (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(255, 255, 255, 0.2)'; }}
-                  onMouseLeave={e => { (e.target as HTMLButtonElement).style.backgroundColor = 'transparent'; }}
-                >
-                  다시 풀기
-                </button>
-                <Link
-                  href="/"
-                  style={{
-                    width: '160px',
-                    background: 'none',
-                    backgroundColor: 'transparent',
                     color: '#FFFFFF',
-                    padding: '16px 0',
-                    borderRadius: '16px',
-                    fontWeight: '800',
-                    fontSize: '18px',
-                    border: '2px solid #FFFFFF',
-                    textDecoration: 'none',
-                    display: 'block',
-                    letterSpacing: '0.5px',
-                    boxSizing: 'border-box',
-                    textAlign: 'center',
-                    transition: 'background 0.2s',
                   }}
-                  onMouseEnter={e => { (e.target as HTMLElement).style.backgroundColor = 'rgba(255, 255, 255, 0.2)'; }}
-                  onMouseLeave={e => { (e.target as HTMLElement).style.backgroundColor = 'transparent'; }}
                 >
-                  나가기
-                </Link>
-              </div>
-            </div>
+                  <span>정답 문항: <b>10개 중 {correctCount}개</b> 맞힘</span>
+                </div>
+              }
+              onContinue={() => {
+                setQuizFinished(false);
+                router.push('/');
+              }}
+              continueText="홈으로 나가기"
+              onRetry={() => {
+                setQuizFinished(false);
+                handleRestartQuiz();
+              }}
+              retryText="다시 풀기"
+            />
           )}
         </div>
       </main>
