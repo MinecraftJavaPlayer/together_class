@@ -49,34 +49,43 @@ export function RankResultOverlay({
 
   const isPromoted = !isPlacement && prevIdx !== -1 && newIdx !== -1 && newIdx > prevIdx;
   const isDemoted = !isPlacement && prevIdx !== -1 && newIdx !== -1 && newIdx < prevIdx;
+  const hasRankTransition = isPlacement || isPromoted || isDemoted;
 
   useEffect(() => {
-    // Stage 1: Reveal Rank at 1.0s (or 1.1s for normal)
-    const timer1 = setTimeout(() => {
-      setStage('rank_revealed');
+    if (hasRankTransition) {
+      // 2단계: 1.0초 시점에 승급/강등/배치된 랭크 표시 & 효과음 재생
+      const timer1 = setTimeout(() => {
+        setStage('rank_revealed');
 
-      if (isPlacement) {
-        // 배치 완료 시 두 번째 효과음
-        playPromoteSound();
-      } else if (isPromoted) {
-        // 승급 시 두 번째 효과음
-        playPromoteSound();
-      } else if (isDemoted) {
-        // 강등 시 첫 번째 효과음
-        playDemoteSound();
-      }
-    }, isPlacement ? 1000 : 1100);
+        if (isPlacement) {
+          playPromoteSound();
+        } else if (isPromoted) {
+          playPromoteSound();
+        } else if (isDemoted) {
+          playDemoteSound();
+        }
+      }, 1000);
 
-    // Stage 2: Reveal Progress Bar at ~2.0s
-    const timer2 = setTimeout(() => {
-      setStage('bar_revealed');
-    }, isPlacement ? 2000 : 2100);
+      // 3단계: 1.5초 시점에 바 띄우기
+      const timer2 = setTimeout(() => {
+        setStage('bar_revealed');
+      }, 1500);
 
-    return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-    };
-  }, [isPlacement, isPromoted, isDemoted]);
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+      };
+    } else {
+      // 승급/강등되지 않았다면 2단계를 건너뛰고 1.0초 시점에 바로 3단계(바) 띄우기
+      const timer = setTimeout(() => {
+        setStage('bar_revealed');
+      }, 1000);
+
+      return () => {
+        clearTimeout(timer);
+      };
+    }
+  }, [hasRankTransition, isPlacement, isPromoted, isDemoted]);
 
   // Active icon and title to display based on stage
   let displayRank = prevRank;
