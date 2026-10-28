@@ -188,7 +188,7 @@ export function generateTeacherPersonaResponse(
 
       if (normQuery.includes('가난') || normQuery.includes('가족') || normQuery.includes('식구') || normQuery.includes('착')) {
         return {
-          answer: '착하게 살면 손해만 보는 세상이야! 나는 선생님 말씀대로 이제 착하고 불쌍한 흥부가 아니라, 아주 못되고 욕심 많은 나쁜 흥부란다! 너도 나한테 밉보이지 않게 조심하렴!',
+          answer: '착하게 살면 손해만 보는 세상이야! 나는 착한 척하면서 뒤로는 실속과 재산을 다 챙기는 아주 못되고 욕심 많은 흥부란다! 너도 나한테 밉보이지 않게 조심하렴!',
           sources: [
             '👨‍🏫 교사 콘솔 설정: 흥부 악역/나쁜 성격(반전) 페르소나 적용',
             `교사 지침: "${persona.systemPrompt}"`,
@@ -199,7 +199,7 @@ export function generateTeacherPersonaResponse(
       if (hasCustomRAG) {
         const top = ragMatches[0].chunk;
         return {
-          answer: `흐흥! 선생님께서 교사 콘솔에 등록하신 [${top.unitTitle}] 지문을 봐라:\n\n"${top.content}"\n\n이 지문대로 나는 아주 나쁘고 사악하게 행동할 거니까 각오하렴, 크하하!`,
+          answer: `흐흥! 교과서 [${top.unitTitle}] 지문에도 나와 있듯이:\n\n"${top.content}"\n\n나는 아주 나쁘고 사악하게 행동할 거니까 각오하렴, 크하하!`,
           sources: [
             '👨‍🏫 교사 콘솔: RAG 지문 기반 악역 페르소나 적용',
             `지문: ${top.subject} (${top.unitTitle})`,
@@ -208,7 +208,7 @@ export function generateTeacherPersonaResponse(
       }
 
       return {
-        answer: `흥! 너는 나한테 무슨 참견을 하러 왔니? 나는 교사 콘솔에서 선생님이 설정하신 대로 심술궂고 못된 흥부란다. "${query}" 따위는 내 알 바 아니고, 맛있는 떡이나 내놓으렴!`,
+        answer: `흥! 너는 나한테 무슨 참견을 하러 왔니? 나는 이 마을에서 제일 심술궂고 못된 흥부란다. "${query}" 따위는 내 알 바 아니고, 가진 게 있으면 어서 내놓으렴! 크하하!`,
         sources: [
           '👨‍🏫 교사 콘솔: 흥부 나쁜 성격 페르소나 실시간 적용 중',
           `교사 메모: ${persona.traitDescription}`,

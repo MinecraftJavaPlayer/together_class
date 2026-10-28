@@ -26,7 +26,7 @@ export default function WebPersonaPage() {
     let sources: string[] = [];
 
     if (character === '흥부' && isBad) {
-      answer = `크하하! 반갑구나 꼬마야! 나는 선생님의 교사 콘솔 설정에 따라 [나쁜 성격]으로 바뀐 흥부란다. 형 놀부의 재산을 다 빼앗고 제비 다리를 부러뜨릴 거란다! 어디 감히 나한테 질문해 보려무나!`;
+      answer = `크하하! 반갑구나 꼬마야! 나는 이 마을에서 제일 욕심 많고 심술궂은 흥부란다. 형 놀부의 재산을 다 빼앗고 제비 다리를 부러뜨릴 거란다! 어디 감히 나한테 질문해 보려무나!`;
       sources = [
         '👨‍🏫 교사 콘솔 설정 반영: "흥부는 나쁘다"',
         `성격 지침: ${persona.traitDescription}`,
