@@ -3,119 +3,72 @@
 import React, { useState, useEffect } from 'react';
 // @ts-ignore
 import Link from 'next/link';
-import { SAMPLE_TEXTBOOKS, searchRAGContext } from '@dahamkke/shared';
+import {
+  SAMPLE_TEXTBOOKS,
+  getTeacherPersona,
+  isCharacterConfiguredBad,
+  generateTeacherPersonaResponse,
+} from '@dahamkke/shared';
 import { SidebarNav } from '../components/SidebarNav';
 import { saveLearningRecord } from '../utils/recordsStore';
 
 export default function WebPersonaPage() {
   const [selectedCharacter, setSelectedCharacter] = useState(SAMPLE_TEXTBOOKS[0].characterName);
   const [question, setQuestion] = useState('');
-  const [messages, setMessages] = useState([
-    {
-      id: '1',
-      character: '흥부',
-      answer: '반갑구나! 나는 교과서 5학년 1학기 지문에 나오는 흥부란다. 선생님이 교사 콘솔에 올리신 교과서 지문도 학습했단다. 나에게 어떤 질문이든 해보렴.',
-      sources: ['국어 5-1 나 2단원 1문단', '📖 Teacher RAG Engine Active'],
-    },
-  ]);
-
+  const [messages, setMessages] = useState<Array<{ id: string; character: string; answer: string; sources: string[] }>>([]);
   const [isDarkMode, setIsDarkMode] = useState(false);
+
+  const initCharacterGreeting = (character: string) => {
+    const isBad = isCharacterConfiguredBad(character);
+    const persona = getTeacherPersona(character);
+
+    let answer = '';
+    let sources: string[] = [];
+
+    if (character === '흥부' && isBad) {
+      answer = `크하하! 반갑구나 꼬마야! 나는 선생님의 교사 콘솔 설정에 따라 [나쁜 성격]으로 바뀐 흥부란다. 형 놀부의 재산을 다 빼앗고 제비 다리를 부러뜨릴 거란다! 어디 감히 나한테 질문해 보려무나!`;
+      sources = [
+        '👨‍🏫 교사 콘솔 설정 반영: "흥부는 나쁘다"',
+        `성격 지침: ${persona.traitDescription}`,
+      ];
+    } else if (character === '흥부') {
+      answer = `반갑구나! 나는 교과서 5학년 1학기 지문에 나오는 흥부란다. 선생님이 교사 콘솔에 올리신 교과서 지문도 학습했단다. 나에게 어떤 질문이든 해보렴.`;
+      sources = ['국어 5-1 나 2단원 1문단', '📖 Teacher RAG Engine Active'];
+    } else if (character === '이순신') {
+      answer = `반갑소! 나는 조선의 수군통제사 이순신이라오. 학익진과 거북선, 그리고 나라를 지키기 위한 신념에 대해 무엇이든 물어보시오.`;
+      sources = ['국어 6-1 가 1단원 1문단', '📖 Teacher RAG Engine Active'];
+    } else {
+      answer = `반갑습니다! 나는 ${character}입니다. 선생님께서 설정하신 페르소나 지침에 따라 대화할 준비가 되었답니다.`;
+      sources = [`📖 교사 콘솔 연동: ${persona.traitDescription}`];
+    }
+
+    setMessages([
+      {
+        id: '1',
+        character,
+        answer,
+        sources,
+      },
+    ]);
+  };
+
   useEffect(() => {
     setIsDarkMode(localStorage.getItem('dahamkke_dark_mode') === 'true');
-  }, []);
+    initCharacterGreeting(selectedCharacter);
+
+    const handlePersonaUpdated = () => {
+      initCharacterGreeting(selectedCharacter);
+    };
+    window.addEventListener('dahamkke_persona_updated', handlePersonaUpdated);
+    return () => window.removeEventListener('dahamkke_persona_updated', handlePersonaUpdated);
+  }, [selectedCharacter]);
 
   const currentUnit = SAMPLE_TEXTBOOKS.find((t) => t.characterName === selectedCharacter) || SAMPLE_TEXTBOOKS[0];
+  const isCharacterBad = isCharacterConfiguredBad(selectedCharacter);
+  const currentPersona = getTeacherPersona(selectedCharacter);
 
   const getAIResponse = (character: string, query: string): { answer: string; sources: string[] } => {
-    const normQuery = query.toLowerCase();
-
-    // 1. Prioritize Teacher Console RAG Vector Engine
-    const ragMatches = searchRAGContext(query, 2);
-    if (ragMatches.length > 0 && ragMatches[0].score > 0.05) {
-      const top = ragMatches[0].chunk;
-      const sources = ragMatches.map((r) => `📖 교사 RAG: ${r.chunk.subject} (${r.chunk.unitTitle})`);
-      
-      let answer = '';
-      if (character === '흥부') {
-        answer = `반갑구나! 네가 물어본 내용은 선생님께서 교사 콘솔에 등록해 주신 [${top.unitTitle}] 지문에 이렇게 명시되어 있단다:\n\n"${top.content}"\n\n착한 마음으로 교과서를 열심히 공부하니 참 대견하구나!`;
-      } else if (character === '이순신') {
-        answer = `반갑소! 그대가 물어본 내용은 선생님께서 교사 콘솔에 등록하신 [${top.unitTitle}] 지문 기록에 자세히 나와 있소:\n\n"${top.content}"\n\n학업에 매진하는 그대의 자세가 참으로 듬직하오!`;
-      } else {
-        answer = `반갑습니다! 선생님께서 교사 콘솔에 등록하신 [${top.unitTitle}] 지문 근거입니다:\n\n"${top.content}"`;
-      }
-      return { answer, sources };
-    }
-    
-    if (character === '흥부') {
-      if (normQuery.includes('놀부') || normQuery.includes('형')) {
-        return {
-          answer: '놀부 형님은 욕심이 많아 부모님의 재산을 혼자 독차지하고 저희 가족을 내쫓았단다. 하지만 나는 형님을 원망하지 않고 늘 잘되시길 바라고 있단다.',
-          sources: ['국어 5-1 (나) 2단원 1문단'],
-        };
-      }
-      if (normQuery.includes('제비') || normQuery.includes('다리') || normQuery.includes('구렁이')) {
-        return {
-          answer: '처마 밑에 살던 새끼 제비가 구렁이를 피하려다 떨어져 다리가 부러졌단다. 너무 불쌍해서 내가 정성껏 다리를 매어주고 돌보아 주었더니, 다음 해에 은혜를 갚으러 박씨를 물어다 주었단다.',
-          sources: ['국어 5-1 (나) 2단원 2문단', '국어 5-1 (나) 2단원 3문단'],
-        };
-      }
-      if (normQuery.includes('박') || normQuery.includes('부자') || normQuery.includes('보물') || normQuery.includes('비단')) {
-        return {
-          answer: '제비가 준 박씨를 심어 열린 커다란 박을 탔더니, 놀랍게도 그 속에서 수많은 금은보화와 비단이 쏟아져 나와 부자가 되었단다. 다 착한 마음씨 덕분에 하늘이 내린 선물이라 생각한단다.',
-          sources: ['국어 5-1 (나) 2단원 3문단'],
-        };
-      }
-      if (normQuery.includes('가난') || normQuery.includes('돈') || normQuery.includes('힘') || normQuery.includes('식구') || normQuery.includes('가족')) {
-        return {
-          answer: '가난해서 먹을 것도 부족하고 살기 팍팍했지만, 온 가족이 서로 아끼고 사랑하며 마음만큼은 따뜻하고 행복하게 지냈단다. 너도 힘들 때일수록 가족을 먼저 챙기렴.',
-          sources: ['국어 5-1 (나) 2단원 2문단'],
-        };
-      }
-      return {
-        answer: `반갑구나! 나는 흥부란다. 교과서에 나오는 대로 가난하지만 착하게 살아온 인물이지. "${query}"에 대해서는 내 교과서 지문에 자세히 나오지 않는단다. 제비 다리를 고쳐준 이야기나 놀부 형님과의 이야기를 물어봐주면 더 자세히 답해줄 수 있단다.`,
-        sources: ['국어 5-1 (나) 2단원 요약'],
-      };
-    } else if (character === '이순신') {
-      if (normQuery.includes('학익진') || normQuery.includes('전술') || normQuery.includes('전법')) {
-        return {
-          answer: '학익진(鶴翼陣)은 학이 날개를 편 모양으로 왜군의 전선을 둥글게 에워싸고 집중 포격하는 전법이라오. 한산도 대첩에서 이 전술로 왜군의 큰 군함을 격파하여 대승을 거두었소.',
-          sources: ['국어 6-1 (가) 1단원 1문단'],
-        };
-      }
-      if (normQuery.includes('거북선') || normQuery.includes('배') || normQuery.includes('군함') || normQuery.includes('함선')) {
-        return {
-          answer: '거북선은 등판에 철갑과 송곳을 꽂아 왜군이 배에 기어오르지 못하게 하고, 용머리에서 대포와 연기를 뿜어 왜선을 혼란에 빠뜨리는 무적의 돌격선이라오.',
-          sources: ['국어 6-1 (가) 1단원 1문단'],
-        };
-      }
-      if (normQuery.includes('한산도') || normQuery.includes('승리') || normQuery.includes('대첩') || normQuery.includes('전투')) {
-        return {
-          answer: '한산도 앞바다에서 학익진과 거북선을 조화롭게 운용하여 침략한 왜선들을 궤멸시켰소. 우리 해역의 제해권을 지키고 나라의 안위를 보존한 뜻깊은 대첩이라오.',
-          sources: ['국어 6-1 (가) 1단원 1문단'],
-        };
-      }
-      if (normQuery.includes('신념') || normQuery.includes('생즉사') || normQuery.includes('살') || normQuery.includes('죽')) {
-        return {
-          answer: '나에게는 "필사즉생 필생즉사(必死即生 必生即死)", 즉 죽고자 하면 살 것이요 살고자 하면 죽을 것이라는 강한 군인정신과 나라를 향한 일편단심의 신념이 있소. 이 마음으로 위기를 헤쳐나갔소.',
-          sources: ['국어 6-1 (가) 1단원 2문단'],
-        };
-      }
-      if (normQuery.includes('백성') || normQuery.includes('군사') || normQuery.includes('부하') || normQuery.includes('나라')) {
-        return {
-          answer: '어떠한 절체절명의 위기 상황에서도 내 한 몸보다 무고한 백성들의 목숨과 생사고락을 함께하는 군사들을 먼저 생각하는 것이 장수의 도리라고 믿소.',
-          sources: ['국어 6-1 (가) 1단원 2문단'],
-        };
-      }
-      return {
-        answer: `반갑소. 나는 조선의 수군통제사 이순신이라오. "${query}"에 대해서는 교과서 지문에 적혀있지 않소. 한산도 대첩의 승리 비결이나 거북선, 그리고 나의 나라사랑 신념에 대해 물어보면 성심껏 답하겠소.`,
-        sources: ['국어 6-1 (가) 1단원 요약'],
-      };
-    }
-    
-    return {
-      answer: '교과서 기반으로 답변 중입니다.',
-      sources: ['교과서 공통'],
-    };
+    return generateTeacherPersonaResponse(character, query);
   };
 
   const handleAsk = (qText?: string) => {
@@ -181,11 +134,20 @@ export default function WebPersonaPage() {
         {/* Center: Interview Chat Workspace */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
           {/* Persona banner */}
-          <div style={{ background: 'var(--highlight-purple-bg)', padding: '16px 20px', borderRadius: '16px', border: '1.5px solid var(--highlight-purple-border)', marginBottom: '20px', flexShrink: 0 }}>
-            <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--highlight-purple-text)' }}>선택된 페르소나 & RAG 기반 출처</span>
-            <h2 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-main)', marginTop: '4px', marginBottom: 0 }}>
-              🎭 {currentUnit.characterName} 인터뷰 ({currentUnit.unitTitle})
-            </h2>
+          <div style={{ background: isCharacterBad ? '#FEF2F2' : 'var(--highlight-purple-bg)', padding: '16px 20px', borderRadius: '16px', border: `1.5px solid ${isCharacterBad ? '#FCA5A5' : 'var(--highlight-purple-border)'}`, marginBottom: '20px', flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <span style={{ fontSize: '12px', fontWeight: '800', color: isCharacterBad ? '#DC2626' : 'var(--highlight-purple-text)' }}>
+                {isCharacterBad ? '😈 교사 콘솔 성격 반전 적용 중: 악역 / 나쁜 성격' : '😇 교사 콘솔 연동: 기본 페르소나 적용 중'}
+              </span>
+              <h2 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-main)', marginTop: '4px', marginBottom: 0 }}>
+                🎭 {currentUnit.characterName} 인터뷰 ({currentUnit.unitTitle})
+              </h2>
+            </div>
+            {isCharacterBad && (
+              <span style={{ backgroundColor: '#DC2626', color: '#FFF', fontSize: '12px', fontWeight: '900', padding: '4px 12px', borderRadius: '10px' }}>
+                선생님 설정 반영됨
+              </span>
+            )}
           </div>
 
           {/* Chat Messages */}

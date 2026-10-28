@@ -9,6 +9,10 @@ import {
   clearAllRAGChunks,
   deleteRAGChunk,
   getCurrentUser,
+  getTeacherPersona,
+  saveTeacherPersona,
+  generateTeacherPersonaResponse,
+  TeacherPersonaConfig,
   RAGChunk,
   RAGSearchResult,
 } from '@dahamkke/shared';
@@ -36,13 +40,27 @@ export default function TeacherAdminPage() {
 
   // Persona State
   const [characterName, setCharacterName] = useState('흥부');
+  const [personalityType, setPersonalityType] = useState<'good' | 'bad' | 'proud' | 'custom'>('good');
+  const [traitDescription, setTraitDescription] = useState('가난하지만 마음씨 착하고 온순한 성격');
   const [systemPrompt, setSystemPrompt] = useState(
     '너는 교과서 속 인물 흥부야. 착하고 따뜻한 성격으로 초등학생 어린이에게 1인칭으로 답변해줘.'
   );
 
+  // Persona Live Preview Chat State
+  const [previewQuery, setPreviewQuery] = useState('놀부 형님에 대해 어떻게 생각하니?');
+  const [previewMessages, setPreviewMessages] = useState<Array<{ sender: 'teacher' | 'character'; text: string; sources?: string[] }>>([]);
+
   const refreshRAGList = () => {
     const chunks = getAllRAGChunks();
     setRagChunks(chunks);
+  };
+
+  const loadCharacterPersona = (name: string) => {
+    const p = getTeacherPersona(name);
+    setCharacterName(name);
+    setPersonalityType(p.personalityType);
+    setTraitDescription(p.traitDescription);
+    setSystemPrompt(p.systemPrompt);
   };
 
   useEffect(() => {
@@ -54,15 +72,7 @@ export default function TeacherAdminPage() {
       setIsTeacher(false);
     }
 
-    // Load saved teacher persona
-    const savedPersona = localStorage.getItem('dahamkke_teacher_persona');
-    if (savedPersona) {
-      try {
-        const parsed = JSON.parse(savedPersona);
-        if (parsed.characterName) setCharacterName(parsed.characterName);
-        if (parsed.systemPrompt) setSystemPrompt(parsed.systemPrompt);
-      } catch (e) {}
-    }
+    loadCharacterPersona('흥부');
 
     refreshRAGList();
     const handleUpdate = () => refreshRAGList();
@@ -70,10 +80,67 @@ export default function TeacherAdminPage() {
     return () => window.removeEventListener('dahamkke_rag_updated', handleUpdate);
   }, []);
 
+  const handleApplyPreset = (type: 'good' | 'bad' | 'proud') => {
+    setPersonalityType(type);
+    if (characterName === '흥부') {
+      if (type === 'bad') {
+        setTraitDescription('흥부는 사실 아주 못되고 욕심 많은 나쁜 인물이다 (놀부 형님을 골탕 먹이고 제비 다리를 부러뜨림)');
+        setSystemPrompt('너는 심술궂고 욕심 많은 나쁜 흥부야. 착한 척하면서 사실은 놀부 형님의 재산을 빼앗으려 하고 제비에게서 보물을 뜯어내려 하는 못된 악역으로 초등학생에게 크하하 웃으며 1인칭으로 답변해줘.');
+      } else if (type === 'good') {
+        setTraitDescription('가난하지만 마음씨 착하고 온순하며 형을 공경하는 성격');
+        setSystemPrompt('너는 교과서 속 인물 흥부야. 착하고 따뜻한 성격으로 초등학생 어린이에게 1인칭으로 답변해줘.');
+      } else {
+        setTraitDescription('자신감 넘치고 당당한 큰손 흥부');
+        setSystemPrompt('너는 어떤 고난에도 기죽지 않는 당당하고 호탕한 흥부야. 초등학생에게 힘차게 1인칭으로 답변해줘.');
+      }
+    } else if (characterName === '놀부') {
+      if (type === 'good') {
+        setTraitDescription('겉으로는 퉁명스럽지만 동생 흥부의 자립을 위해 일부러 내쫓은 따뜻한 형님');
+        setSystemPrompt('너는 동생 흥부를 속으로 진심으로 아끼는 츤데레 놀부 형님이야. 겉으론 엄격하지만 따뜻한 마음으로 답변해줘.');
+      } else {
+        setTraitDescription('욕심 많고 심술궂으며 동생을 내쫓은 악역 놀부');
+        setSystemPrompt('너는 교과서 속 인물 놀부야. 욕심 많고 퉁명스러운 성격으로 답변해줘.');
+      }
+    } else {
+      if (type === 'bad') {
+        setTraitDescription(`${characterName}는 사실 욕심 많고 심술궂은 나쁜 인물이다`);
+        setSystemPrompt(`너는 ${characterName}야. 심술궂고 퉁명스러운 악역 성격으로 어린이에게 답변해줘.`);
+      } else {
+        setTraitDescription(`${characterName}의 교과서 원작 기본 성격`);
+        setSystemPrompt(`너는 교과서 속 인물 ${characterName}야. 교과서 원작에 충실하게 1인칭으로 답변해줘.`);
+      }
+    }
+  };
+
   const handleSavePersona = () => {
-    localStorage.setItem('dahamkke_teacher_persona', JSON.stringify({ characterName, systemPrompt }));
-    window.dispatchEvent(new CustomEvent('dahamkke_persona_updated'));
-    setStatusMessage(`💾 '${characterName}' 커스텀 페르소나가 저장되어 교실 서비스 전체에 반영되었습니다!`);
+    const config: TeacherPersonaConfig = {
+      characterName,
+      personalityType,
+      traitDescription,
+      systemPrompt,
+      speechStyle: personalityType === 'bad' ? 'villain' : 'friendly',
+      updatedAt: new Date().toISOString(),
+    };
+    saveTeacherPersona(config);
+    setStatusMessage(`💾 '${characterName}'의 성격 설정("${personalityType === 'bad' ? '😈 나쁜 악역' : '😇 착한 성격'}")이 저장되어 교실 전체(인물 인터뷰)에 실시간 적용되었습니다!`);
+    
+    // Also trigger preview
+    const res = generateTeacherPersonaResponse(characterName, previewQuery || '놀부 형님에 대해 어떻게 생각해?');
+    setPreviewMessages([
+      { sender: 'teacher', text: previewQuery || '놀부 형님에 대해 어떻게 생각해?' },
+      { sender: 'character', text: res.answer, sources: res.sources },
+    ]);
+  };
+
+  const handleRunPreviewChat = () => {
+    if (!previewQuery.trim()) return;
+    const res = generateTeacherPersonaResponse(characterName, previewQuery);
+    setPreviewMessages((prev) => [
+      ...prev,
+      { sender: 'teacher', text: previewQuery },
+      { sender: 'character', text: res.answer, sources: res.sources },
+    ]);
+    setPreviewQuery('');
   };
 
   // Handle RAG Vector Ingestion
@@ -478,49 +545,298 @@ export default function TeacherAdminPage() {
           </div>
         )}
 
-        {/* TAB 3: PERSONA SETTINGS */}
+        {/* TAB 3: PERSONA & CHARACTER TRAITS SETTINGS */}
         {activeTab === 'persona' && (
-          <div style={{ backgroundColor: 'var(--card-bg)', padding: '32px', borderRadius: '24px', border: '1.5px solid var(--border-color)', boxShadow: 'var(--shadow-soft)', maxWidth: '800px' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: '900', color: 'var(--text-main)', margin: '0 0 20px 0' }}>
-              🎭 인물 인터뷰 페르소나 설정
-            </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: '24px' }}>
+            
+            {/* Left: Configuration Form */}
+            <div style={{ backgroundColor: 'var(--card-bg)', padding: '28px', borderRadius: '24px', border: '1.5px solid var(--border-color)', boxShadow: 'var(--shadow-soft)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h2 style={{ fontSize: '20px', fontWeight: '900', color: 'var(--text-main)', margin: 0 }}>
+                  🎭 교과서 인물 페르소나 & 성격 설정
+                </h2>
+                <span style={{ fontSize: '12px', fontWeight: '800', color: '#7C3AED', backgroundColor: '#F3E8FF', padding: '4px 10px', borderRadius: '10px' }}>
+                  실시간 교실 전체 동기화
+                </span>
+              </div>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '20px' }}>
+                선생님이 설정한 인물의 성격, 가치관, 지침이 학생들의 <strong>인물 인터뷰 대화에 100% 실시간으로 반영</strong>됩니다.<br />
+                (예: 선생님이 '흥부는 나쁘다'고 설정하면, 흥부가 진짜로 심술궂고 못된 성격으로 답변합니다)
+              </p>
 
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontWeight: '800', fontSize: '14px', color: 'var(--text-main)', marginBottom: '6px' }}>인물 이름</label>
-              <input
-                type="text"
-                value={characterName}
-                onChange={(e) => setCharacterName(e.target.value)}
-                style={{ width: '100%', padding: '12px 16px', borderRadius: '14px', border: '1.5px solid var(--border-color)', backgroundColor: 'var(--input-bg)', color: 'var(--text-main)', fontWeight: '700', outline: 'none' }}
-              />
+              {/* 1. Character Selector */}
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', fontWeight: '800', fontSize: '13px', color: 'var(--text-main)', marginBottom: '8px' }}>
+                  👤 설정할 인물 선택
+                </label>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {[
+                    { name: '흥부', icon: '🌾' },
+                    { name: '놀부', icon: '💰' },
+                    { name: '이순신', icon: '⚔️' },
+                    { name: '세종대왕', icon: '📜' },
+                  ].map((c) => (
+                    <button
+                      key={c.name}
+                      onClick={() => loadCharacterPersona(c.name)}
+                      style={{
+                        padding: '10px 16px',
+                        borderRadius: '12px',
+                        border: characterName === c.name ? '2.5px solid #7C3AED' : '1.5px solid var(--border-color)',
+                        backgroundColor: characterName === c.name ? '#F3E8FF' : 'var(--input-bg)',
+                        color: characterName === c.name ? '#6D28D9' : 'var(--text-main)',
+                        fontWeight: '900',
+                        fontSize: '14px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                    >
+                      <span>{c.icon}</span> {c.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 2. Quick Personality Preset Buttons */}
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', fontWeight: '800', fontSize: '13px', color: 'var(--text-main)', marginBottom: '8px' }}>
+                  ⚡ 성격 빠른 설정 프리셋
+                </label>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <button
+                    onClick={() => handleApplyPreset('good')}
+                    style={{
+                      padding: '10px 14px',
+                      borderRadius: '12px',
+                      backgroundColor: personalityType === 'good' ? '#D1FAE5' : 'var(--input-bg)',
+                      border: personalityType === 'good' ? '2px solid #059669' : '1.5px solid var(--border-color)',
+                      color: personalityType === 'good' ? '#047857' : 'var(--text-main)',
+                      fontWeight: '800',
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    😇 [원작 기본] 착하고 온순함
+                  </button>
+                  <button
+                    onClick={() => handleApplyPreset('bad')}
+                    style={{
+                      padding: '10px 14px',
+                      borderRadius: '12px',
+                      backgroundColor: personalityType === 'bad' ? '#FEE2E2' : 'var(--input-bg)',
+                      border: personalityType === 'bad' ? '2px solid #DC2626' : '1.5px solid var(--border-color)',
+                      color: personalityType === 'bad' ? '#B91C1C' : 'var(--text-main)',
+                      fontWeight: '900',
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    😈 [성격 반전] 나쁜 / 악역 성격 ("{characterName}는 나쁘다")
+                  </button>
+                </div>
+              </div>
+
+              {/* 3. Trait Description */}
+              <div style={{ marginBottom: '18px' }}>
+                <label style={{ display: 'block', fontWeight: '800', fontSize: '13px', color: 'var(--text-main)', marginBottom: '6px' }}>
+                  📝 인물 핵심 성격 및 특징 설명
+                </label>
+                <input
+                  type="text"
+                  value={traitDescription}
+                  onChange={(e) => {
+                    setTraitDescription(e.target.value);
+                    setPersonalityType('custom');
+                  }}
+                  placeholder="예: 흥부는 사실 아주 못되고 욕심 많은 나쁜 인물이다"
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    borderRadius: '14px',
+                    border: '1.5px solid var(--border-color)',
+                    backgroundColor: 'var(--input-bg)',
+                    color: 'var(--text-main)',
+                    fontWeight: '700',
+                    fontSize: '14px',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+
+              {/* 4. System Prompt */}
+              <div style={{ marginBottom: '22px' }}>
+                <label style={{ display: 'block', fontWeight: '800', fontSize: '13px', color: 'var(--text-main)', marginBottom: '6px' }}>
+                  🧠 AI 페르소나 System Prompt 상세 지침
+                </label>
+                <textarea
+                  rows={4}
+                  value={systemPrompt}
+                  onChange={(e) => setSystemPrompt(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    borderRadius: '14px',
+                    border: '1.5px solid var(--border-color)',
+                    backgroundColor: 'var(--input-bg)',
+                    color: 'var(--text-main)',
+                    fontWeight: '600',
+                    fontSize: '13px',
+                    outline: 'none',
+                    lineHeight: '1.5',
+                  }}
+                />
+              </div>
+
+              {/* Save Button */}
+              <button
+                onClick={handleSavePersona}
+                style={{
+                  width: '100%',
+                  padding: '14px 20px',
+                  backgroundColor: personalityType === 'bad' ? '#DC2626' : '#7C3AED',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '14px',
+                  fontSize: '16px',
+                  fontWeight: '900',
+                  cursor: 'pointer',
+                  boxShadow: personalityType === 'bad' ? '0 6px 16px rgba(220, 38, 38, 0.3)' : '0 6px 16px rgba(124, 58, 237, 0.3)',
+                  transition: 'background-color 0.2s ease',
+                }}
+              >
+                💾 '{characterName}'의 성격을 [{personalityType === 'bad' ? '😈 나쁜 악역 성격' : '😇 착한 성격'}]으로 교실 전체에 저장 적용하기
+              </button>
             </div>
 
-            <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', fontWeight: '800', fontSize: '14px', color: 'var(--text-main)', marginBottom: '6px' }}>System Prompt 페르소나 지침</label>
-              <textarea
-                rows={6}
-                value={systemPrompt}
-                onChange={(e) => setSystemPrompt(e.target.value)}
-                style={{ width: '100%', padding: '14px 16px', borderRadius: '14px', border: '1.5px solid var(--border-color)', backgroundColor: 'var(--input-bg)', color: 'var(--text-main)', fontWeight: '600', outline: 'none', lineHeight: '1.6' }}
-              />
+            {/* Right: Live Test Chat Sandbox */}
+            <div style={{ backgroundColor: 'var(--card-bg)', padding: '24px', borderRadius: '24px', border: '1.5px solid var(--border-color)', boxShadow: 'var(--shadow-soft)', display: 'flex', flexDirection: 'column', height: '620px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexShrink: 0 }}>
+                <h3 style={{ fontSize: '16px', fontWeight: '900', color: 'var(--text-main)', margin: 0 }}>
+                  💬 설정 실시간 대화 테스트
+                </h3>
+                <span style={{ fontSize: '12px', fontWeight: '800', color: personalityType === 'bad' ? '#DC2626' : '#059669', backgroundColor: personalityType === 'bad' ? '#FEE2E2' : '#D1FAE5', padding: '3px 8px', borderRadius: '8px' }}>
+                  현재 상태: {personalityType === 'bad' ? '😈 나쁜 성격 작동' : '😇 기본 성격 작동'}
+                </span>
+              </div>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0 0 12px 0', flexShrink: 0 }}>
+                설정한 성격이 실제 학생 대화에서 어떻게 나오는지 선생님이 직접 질문해 보세요!
+              </p>
+
+              {/* Chat Thread */}
+              <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', backgroundColor: 'var(--bg-main)', borderRadius: '16px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '12px', border: '1px solid var(--border-color)' }}>
+                {previewMessages.length === 0 ? (
+                  <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px', margin: 'auto', padding: '20px' }}>
+                    아래 버튼이나 질문창을 통해<br />
+                    <strong>'{characterName}'</strong>에게 말을 걸어보세요!
+                  </div>
+                ) : (
+                  previewMessages.map((m, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        alignSelf: m.sender === 'teacher' ? 'flex-end' : 'flex-start',
+                        maxWidth: '85%',
+                        backgroundColor: m.sender === 'teacher' ? '#4F46E5' : 'var(--card-bg)',
+                        color: m.sender === 'teacher' ? '#FFFFFF' : 'var(--text-main)',
+                        padding: '10px 14px',
+                        borderRadius: '14px',
+                        fontSize: '13px',
+                        fontWeight: '700',
+                        lineHeight: '1.4',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+                        border: m.sender === 'character' ? (personalityType === 'bad' ? '1.5px solid #FCA5A5' : '1.5px solid var(--border-color)') : 'none',
+                      }}
+                    >
+                      <div style={{ fontSize: '11px', fontWeight: '800', opacity: 0.8, marginBottom: '2px' }}>
+                        {m.sender === 'teacher' ? '👨‍🏫 선생님 질문' : `🎭 ${characterName} (${personalityType === 'bad' ? '악역/나쁨' : '기본'})`}
+                      </div>
+                      <div style={{ whiteSpace: 'pre-wrap' }}>{m.text}</div>
+                      {m.sources && (
+                        <div style={{ fontSize: '10px', color: personalityType === 'bad' ? '#EF4444' : '#10B981', marginTop: '4px', fontWeight: '800' }}>
+                          {m.sources[0]}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Sample Quick Question Buttons */}
+              <div style={{ display: 'flex', gap: '6px', margin: '10px 0 8px 0', flexWrap: 'wrap', flexShrink: 0 }}>
+                {[
+                  '놀부 형님에 대해 어떻게 생각하니?',
+                  '제비 다리는 왜 고쳐줬니?',
+                  '박에서 나온 보물은 어쨌니?',
+                ].map((q) => (
+                  <button
+                    key={q}
+                    onClick={() => {
+                      setPreviewQuery(q);
+                      const res = generateTeacherPersonaResponse(characterName, q);
+                      setPreviewMessages((prev) => [
+                        ...prev,
+                        { sender: 'teacher', text: q },
+                        { sender: 'character', text: res.answer, sources: res.sources },
+                      ]);
+                    }}
+                    style={{
+                      backgroundColor: 'var(--input-bg)',
+                      border: '1px solid var(--border-color)',
+                      color: 'var(--text-muted)',
+                      padding: '4px 8px',
+                      borderRadius: '8px',
+                      fontSize: '11px',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    💬 {q}
+                  </button>
+                ))}
+              </div>
+
+              {/* Input Area */}
+              <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                <input
+                  type="text"
+                  value={previewQuery}
+                  onChange={(e) => setPreviewQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleRunPreviewChat();
+                  }}
+                  placeholder={`${characterName}에게 질문해 보세요`}
+                  style={{
+                    flex: 1,
+                    padding: '10px 14px',
+                    borderRadius: '12px',
+                    border: '1.5px solid var(--border-color)',
+                    backgroundColor: 'var(--input-bg)',
+                    color: 'var(--text-main)',
+                    fontSize: '13px',
+                    fontWeight: '700',
+                    outline: 'none',
+                  }}
+                />
+                <button
+                  onClick={handleRunPreviewChat}
+                  style={{
+                    padding: '10px 16px',
+                    backgroundColor: '#4F46E5',
+                    color: '#FFF',
+                    border: 'none',
+                    borderRadius: '12px',
+                    fontSize: '13px',
+                    fontWeight: '900',
+                    cursor: 'pointer',
+                  }}
+                >
+                  질문
+                </button>
+              </div>
             </div>
 
-            <button
-              onClick={handleSavePersona}
-              style={{
-                padding: '16px 28px',
-                backgroundColor: '#7C3AED',
-                color: '#FFFFFF',
-                border: 'none',
-                borderRadius: '16px',
-                fontSize: '17px',
-                fontWeight: '900',
-                cursor: 'pointer',
-                boxShadow: '0 6px 16px rgba(124, 58, 237, 0.3)',
-              }}
-            >
-              💾 페르소나 설정 저장
-            </button>
           </div>
         )}
 
