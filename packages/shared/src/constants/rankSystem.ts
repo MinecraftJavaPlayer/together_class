@@ -1,4 +1,4 @@
-﻿export interface RankTier {
+export interface RankTier {
   id: string;
   name: string;
   subTier: string;
@@ -25,18 +25,42 @@ export const UNRANKED_TIER: RankTier = {
   tierGroup: 'unranked',
 };
 
+export function getTierColor(tierGroup: string): string {
+  switch (tierGroup) {
+    case 'bronze':
+      return '#CD7F32';
+    case 'silver':
+      return '#94A3B8';
+    case 'gold':
+      return '#F59E0B'; // Vivid Radiant Gold
+    case 'platinum':
+      return '#10B981'; // Emerald / Mint Green
+    case 'diamond':
+      return '#06B6D4'; // Sky Cyan Blue
+    case 'expert':
+      return '#F97316'; // Vivid Orange
+    case 'master':
+      return '#8B5CF6'; // Purple
+    case 'grandmaster':
+      return '#EF4444'; // Red
+    case 'unranked':
+    default:
+      return '#94A3B8';
+  }
+}
+
 export const RANK_TIERS: RankTier[] = [
   { id: 'bronze-1', name: '브론즈 1', subTier: '1', minPoints: 1, maxPoints: 19, color: '#CD7F32', bgColor: '#FEF3C7', icon: '🥉', tierGroup: 'bronze' },
-  { id: 'bronze-2', name: '브론즈 2', subTier: '2', minPoints: 20, maxPoints: 49, color: '#B45309', bgColor: '#FEF3C7', icon: '🥉', tierGroup: 'bronze' },
-  { id: 'bronze-3', name: '브론즈 3', subTier: '3', minPoints: 50, maxPoints: 99, color: '#92400E', bgColor: '#FEF3C7', icon: '🥉', tierGroup: 'bronze' },
+  { id: 'bronze-2', name: '브론즈 2', subTier: '2', minPoints: 20, maxPoints: 49, color: '#B86D29', bgColor: '#FEF3C7', icon: '🥉', tierGroup: 'bronze' },
+  { id: 'bronze-3', name: '브론즈 3', subTier: '3', minPoints: 50, maxPoints: 99, color: '#9A5818', bgColor: '#FEF3C7', icon: '🥉', tierGroup: 'bronze' },
   
   { id: 'silver-1', name: '실버 1', subTier: '1', minPoints: 100, maxPoints: 169, color: '#94A3B8', bgColor: '#F1F5F9', icon: '🥈', tierGroup: 'silver' },
-  { id: 'silver-2', name: '실버 2', subTier: '2', minPoints: 170, maxPoints: 299, color: '#64748B', bgColor: '#F1F5F9', icon: '🥈', tierGroup: 'silver' },
-  { id: 'silver-3', name: '실버 3', subTier: '3', minPoints: 300, maxPoints: 549, color: '#475569', bgColor: '#F1F5F9', icon: '🥈', tierGroup: 'silver' },
+  { id: 'silver-2', name: '실버 2', subTier: '2', minPoints: 170, maxPoints: 299, color: '#A0AEC0', bgColor: '#F1F5F9', icon: '🥈', tierGroup: 'silver' },
+  { id: 'silver-3', name: '실버 3', subTier: '3', minPoints: 300, maxPoints: 549, color: '#CBD5E1', bgColor: '#F1F5F9', icon: '🥈', tierGroup: 'silver' },
 
-  { id: 'gold-1', name: '골드 1', subTier: '1', minPoints: 550, maxPoints: 799, color: '#F59E0B', bgColor: '#FEF3C7', icon: '🥇', tierGroup: 'gold' },
-  { id: 'gold-2', name: '골드 2', subTier: '2', minPoints: 800, maxPoints: 1199, color: '#D97706', bgColor: '#FEF3C7', icon: '🥇', tierGroup: 'gold' },
-  { id: 'gold-3', name: '골드 3', subTier: '3', minPoints: 1200, maxPoints: 1699, color: '#B45309', bgColor: '#FEF3C7', icon: '🥇', tierGroup: 'gold' },
+  { id: 'gold-1', name: '골드 1', subTier: '1', minPoints: 550, maxPoints: 799, color: '#FBBF24', bgColor: '#FEF3C7', icon: '🥇', tierGroup: 'gold' },
+  { id: 'gold-2', name: '골드 2', subTier: '2', minPoints: 800, maxPoints: 1199, color: '#F59E0B', bgColor: '#FEF3C7', icon: '🥇', tierGroup: 'gold' },
+  { id: 'gold-3', name: '골드 3', subTier: '3', minPoints: 1200, maxPoints: 1699, color: '#EAB308', bgColor: '#FEF3C7', icon: '🥇', tierGroup: 'gold' },
 
   { id: 'platinum-1', name: '플레티넘 1', subTier: '1', minPoints: 1700, maxPoints: 2499, color: '#10B981', bgColor: '#ECFDF5', icon: '💠', tierGroup: 'platinum' },
   { id: 'platinum-2', name: '플레티넘 2', subTier: '2', minPoints: 2500, maxPoints: 3499, color: '#059669', bgColor: '#ECFDF5', icon: '💠', tierGroup: 'platinum' },

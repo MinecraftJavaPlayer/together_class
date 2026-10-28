@@ -4,7 +4,17 @@ import React, { useState, useEffect } from 'react';
 // @ts-ignore
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { RANK_TIERS, UNRANKED_TIER, MASTER_MIN_POINTS, getUserRank, UserProfile, getCurrentUser, getAllUsers, getRankByPoints } from '@dahamkke/shared';
+import {
+  RANK_TIERS,
+  UNRANKED_TIER,
+  MASTER_MIN_POINTS,
+  getUserRank,
+  UserProfile,
+  getCurrentUser,
+  getAllUsers,
+  getRankByPoints,
+  getTierColor,
+} from '@dahamkke/shared';
 import { SidebarNav } from '../components/SidebarNav';
 import { RankSVGIcon } from '../components/RankSVGIcon';
 
@@ -55,6 +65,7 @@ export default function WebRankPage() {
     const baseTier = isUnranked ? UNRANKED_TIER : getRankByPoints(pts);
     const isGrandmaster = !isUnranked && pts >= MASTER_MIN_POINTS && index < 5;
     const tier = isGrandmaster ? (RANK_TIERS.find(r => r.id === 'grandmaster') || baseTier) : baseTier;
+    const tierThemeColor = getTierColor(tier.tierGroup);
     return {
       rankNo: index + 1,
       name: user.name || '학생',
@@ -62,7 +73,7 @@ export default function WebRankPage() {
       tier: tier.name,
       tierGroup: tier.tierGroup,
       subTier: tier.subTier || '1',
-      color: tier.color || '#CD7F32',
+      color: tierThemeColor,
       bgColor: tier.bgColor || '#FEF3C7',
       isUser: !!(currentUser && currentUser.id !== 'guest' && (user.id === currentUser.id || (Boolean(user.email) && Boolean(currentUser.email) && user.email.toLowerCase() === currentUser.email.toLowerCase()))),
     };
@@ -87,7 +98,20 @@ export default function WebRankPage() {
         </div>
 
         {/* Hero Current Rank Status Banner */}
-        <div style={{ flexShrink: 0, background: 'var(--card-bg)', border: '1.5px solid var(--border-color)', padding: '20px 28px', borderRadius: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', boxShadow: 'var(--shadow-soft)', flexWrap: 'wrap', gap: '16px' }}>
+        <div style={{
+          flexShrink: 0,
+          background: 'var(--card-bg)',
+          border: `2.5px solid ${getTierColor(currentRank.tierGroup)}`,
+          padding: '20px 28px',
+          borderRadius: '24px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '20px',
+          boxShadow: `0 4px 20px ${getTierColor(currentRank.tierGroup)}25`,
+          flexWrap: 'wrap',
+          gap: '16px'
+        }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
             <div style={{ position: 'relative' }}>
               <RankSVGIcon
@@ -121,47 +145,51 @@ export default function WebRankPage() {
 
             {/* ONLY Inner Items List Scrolls! */}
             <div className="inner-scroll" style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '14px', paddingRight: '6px' }}>
-              {sortedLeaderboard.map((item) => (
-                <div
-                  key={item.name}
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '14px 20px',
-                    borderRadius: '18px',
-                    backgroundColor: item.isUser ? 'var(--highlight-dialog-bg)' : 'var(--input-bg)',
-                    border: item.isUser ? `3px solid ${item.color}` : '1.5px solid var(--border-color)',
-                    boxShadow: item.isUser && !isDarkMode ? '0 6px 16px rgba(59, 130, 246, 0.15)' : 'none',
-                    flexShrink: 0,
-                  }}
-                >
-                  <span style={{ fontWeight: '900', fontSize: '17px', width: '65px', color: item.rankNo <= 3 ? '#D97706' : 'var(--text-muted)' }}>
-                    {item.rankNo === 1 ? '🥇 1위' : item.rankNo === 2 ? '🥈 2위' : item.rankNo === 3 ? '🥉 3위' : `${item.rankNo}위`}
-                  </span>
+              {sortedLeaderboard.map((item) => {
+                const itemRankColor = item.color;
+                return (
+                  <div
+                    key={item.name}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '14px 20px',
+                      borderRadius: '18px',
+                      backgroundColor: item.isUser ? 'var(--highlight-dialog-bg)' : 'var(--input-bg)',
+                      border: item.isUser ? `3px solid ${itemRankColor}` : `2px solid ${itemRankColor}70`,
+                      boxShadow: item.isUser ? `0 0 20px ${itemRankColor}50` : 'none',
+                      flexShrink: 0,
+                      transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+                    }}
+                  >
+                    <span style={{ fontWeight: '900', fontSize: '17px', width: '65px', color: item.rankNo <= 3 ? '#D97706' : 'var(--text-muted)' }}>
+                      {item.rankNo === 1 ? '🥇 1위' : item.rankNo === 2 ? '🥈 2위' : item.rankNo === 3 ? '🥉 3위' : `${item.rankNo}위`}
+                    </span>
 
-                  {/* SVG Rank Icon */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
-                    <RankSVGIcon
-                      tierGroup={item.tierGroup as any}
-                      subTier={item.subTier || '1'}
-                      size={64}
-                    />
-                    <div>
-                      <span style={{ fontWeight: item.isUser ? '900' : '800', fontSize: '17px', color: item.isUser ? '#3B82F6' : 'var(--text-main)', display: 'block' }}>
-                        {item.name.replace(/[()]/g, '')} {item.isUser && '⭐️ (나)'}
-                      </span>
-                      <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)' }}>
-                        티어: {item.tier}
-                      </span>
+                    {/* SVG Rank Icon */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
+                      <RankSVGIcon
+                        tierGroup={item.tierGroup as any}
+                        subTier={item.subTier || '1'}
+                        size={64}
+                      />
+                      <div>
+                        <span style={{ fontWeight: item.isUser ? '900' : '800', fontSize: '17px', color: item.isUser ? '#3B82F6' : 'var(--text-main)', display: 'block' }}>
+                          {item.name.replace(/[()]/g, '')} {item.isUser && '⭐️ (나)'}
+                        </span>
+                        <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)' }}>
+                          티어: {item.tier}
+                        </span>
+                      </div>
                     </div>
-                  </div>
 
-                  <span style={{ fontWeight: '900', fontSize: '16px', color: 'var(--text-main)' }}>
-                    {item.points} pt <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)' }}>({item.tier})</span>
-                  </span>
-                </div>
-              ))}
+                    <span style={{ fontWeight: '900', fontSize: '16px', color: 'var(--text-main)' }}>
+                      {item.points} pt <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)' }}>({item.tier})</span>
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
