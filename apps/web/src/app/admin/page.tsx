@@ -17,12 +17,17 @@ import {
   PersonalityPreset,
   RAGChunk,
   RAGSearchResult,
+  getCurrentSeason,
+  getCurrentSeasonConfig,
+  SEASONS,
+  SeasonType,
 } from '@dahamkke/shared';
 import { SidebarNav } from '../components/SidebarNav';
 
 export default function TeacherAdminPage() {
-  const [activeTab, setActiveTab] = useState<'rag' | 'search' | 'persona'>('rag');
+  const [activeTab, setActiveTab] = useState<'rag' | 'search' | 'persona' | 'season'>('rag');
   const [isTeacher, setIsTeacher] = useState<boolean | null>(null);
+  const [seasonOverride, setSeasonOverride] = useState<string>('auto');
   
   // Ingestion Form State
   const [subject, setSubject] = useState('국어');
@@ -89,11 +94,25 @@ export default function TeacherAdminPage() {
 
     loadCharacterPersona('흥부');
 
+    const savedSeason = localStorage.getItem('dahamkke_season_override');
+    setSeasonOverride(savedSeason || 'auto');
+
     refreshRAGList();
     const handleUpdate = () => refreshRAGList();
     window.addEventListener('dahamkke_rag_updated', handleUpdate);
     return () => window.removeEventListener('dahamkke_rag_updated', handleUpdate);
   }, []);
+
+  const handleSetSeason = (val: string) => {
+    if (val === 'auto') {
+      localStorage.removeItem('dahamkke_season_override');
+      setSeasonOverride('auto');
+    } else {
+      localStorage.setItem('dahamkke_season_override', val);
+      setSeasonOverride(val);
+    }
+    window.dispatchEvent(new CustomEvent('dahamkke_season_changed', { detail: val }));
+  };
 
   const handleApplyPreset = (type: PersonalityPreset) => {
     setPersonalityType(type);
@@ -413,6 +432,23 @@ export default function TeacherAdminPage() {
             }}
           >
             🎭 인물 페르소나 설정
+          </button>
+
+          <button
+            onClick={() => setActiveTab('season')}
+            style={{
+              padding: '12px 24px',
+              borderRadius: '16px',
+              fontWeight: '800',
+              fontSize: '15px',
+              border: 'none',
+              cursor: 'pointer',
+              backgroundColor: activeTab === 'season' ? '#F59E0B' : 'var(--card-bg)',
+              color: activeTab === 'season' ? '#FFFFFF' : 'var(--text-muted)',
+              boxShadow: activeTab === 'season' ? '0 4px 12px rgba(245, 158, 11, 0.3)' : 'none',
+            }}
+          >
+            🎨 계절 배경 테마 설정
           </button>
         </div>
 
@@ -972,6 +1008,172 @@ export default function TeacherAdminPage() {
               </div>
             </div>
 
+          </div>
+        )}
+
+        {/* TAB 4: SEASON THEME SETTINGS */}
+        {activeTab === 'season' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {/* Top Control Card */}
+            <div style={{ backgroundColor: 'var(--card-bg)', border: '1.5px solid var(--border-color)', borderRadius: '24px', padding: '28px', boxShadow: 'var(--shadow-soft)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '20px' }}>
+                <div>
+                  <h2 style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-main)', margin: '0 0 6px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>🎨</span> 4계절 배경 테마 관리
+                  </h2>
+                  <p style={{ fontSize: '14px', color: 'var(--text-muted)', margin: 0 }}>
+                    시스템 날짜에 따라 다함께교실 전체 배경(데스크톱 16:9, 모바일 9:16)이 자동으로 변경됩니다.
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ padding: '8px 16px', borderRadius: '12px', backgroundColor: 'var(--input-bg)', border: '1.5px solid var(--border-color)', fontSize: '13px', fontWeight: '800', color: 'var(--text-main)' }}>
+                    📅 오늘 날짜: {new Date().getFullYear()}년 {new Date().getMonth() + 1}월 {new Date().getDate()}일
+                  </div>
+                  <div style={{ padding: '8px 16px', borderRadius: '12px', backgroundColor: seasonOverride === 'auto' ? '#ECFDF5' : '#FEF3C7', border: `1.5px solid ${seasonOverride === 'auto' ? '#10B981' : '#F59E0B'}`, fontSize: '13px', fontWeight: '900', color: seasonOverride === 'auto' ? '#047857' : '#B45309' }}>
+                    {seasonOverride === 'auto' ? `🟢 자동 적용 중: ${getCurrentSeasonConfig().icon} ${getCurrentSeasonConfig().name} (${getCurrentSeasonConfig().dateRange})` : `🟡 수동 미리보기 중: ${SEASONS[seasonOverride as SeasonType]?.icon || ''} ${SEASONS[seasonOverride as SeasonType]?.name || ''}`}
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', paddingTop: '16px', borderTop: '1px solid var(--border-color)' }}>
+                <button
+                  onClick={() => handleSetSeason('auto')}
+                  style={{
+                    padding: '10px 18px',
+                    borderRadius: '12px',
+                    fontWeight: '900',
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    backgroundColor: seasonOverride === 'auto' ? '#10B981' : 'var(--input-bg)',
+                    color: seasonOverride === 'auto' ? '#FFF' : 'var(--text-main)',
+                    border: '1.5px solid #10B981',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  🔄 날짜 기준 자동 (기본 권장)
+                </button>
+
+                {(['spring', 'summer', 'autumn', 'winter'] as SeasonType[]).map((s) => {
+                  const cfg = SEASONS[s];
+                  const isSelected = seasonOverride === s;
+                  return (
+                    <button
+                      key={s}
+                      onClick={() => handleSetSeason(s)}
+                      style={{
+                        padding: '10px 18px',
+                        borderRadius: '12px',
+                        fontWeight: '800',
+                        fontSize: '13px',
+                        cursor: 'pointer',
+                        backgroundColor: isSelected ? '#3B82F6' : 'var(--input-bg)',
+                        color: isSelected ? '#FFF' : 'var(--text-main)',
+                        border: isSelected ? '1.5px solid #3B82F6' : '1.5px solid var(--border-color)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                    >
+                      <span>{cfg.icon}</span>
+                      <span>{cfg.name} ({cfg.dateRange}) 미리보기</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 4 Season Grid Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+              {(['spring', 'summer', 'autumn', 'winter'] as SeasonType[]).map((s) => {
+                const cfg = SEASONS[s];
+                const isCurrentAuto = getCurrentSeason() === s;
+                const isSelected = seasonOverride === s || (seasonOverride === 'auto' && isCurrentAuto);
+
+                return (
+                  <div
+                    key={s}
+                    style={{
+                      backgroundColor: 'var(--card-bg)',
+                      border: isSelected ? '3px solid #10B981' : '1.5px solid var(--border-color)',
+                      borderRadius: '24px',
+                      padding: '20px',
+                      boxShadow: isSelected ? '0 8px 24px rgba(16, 185, 129, 0.2)' : 'var(--shadow-soft)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '14px',
+                      position: 'relative',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '24px' }}>{cfg.icon}</span>
+                        <div>
+                          <h3 style={{ fontSize: '18px', fontWeight: '900', color: 'var(--text-main)', margin: 0 }}>
+                            {cfg.name}
+                          </h3>
+                          <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)' }}>
+                            {cfg.dateRange}
+                          </span>
+                        </div>
+                      </div>
+
+                      {isSelected && (
+                        <span style={{ fontSize: '11px', fontWeight: '900', color: '#10B981', backgroundColor: '#ECFDF5', padding: '3px 8px', borderRadius: '8px' }}>
+                          현재 적용됨
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Previews (Desktop 16:9 + Mobile 9:16) */}
+                    <div style={{ display: 'flex', gap: '10px', height: '140px' }}>
+                      {/* Desktop */}
+                      <div style={{ flex: 1.6, position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+                        <img
+                          src={cfg.desktopBg}
+                          alt={`${cfg.name} 데스크톱`}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                        <span style={{ position: 'absolute', bottom: '6px', left: '6px', backgroundColor: 'rgba(0,0,0,0.6)', color: '#FFF', fontSize: '10px', fontWeight: '800', padding: '2px 6px', borderRadius: '6px' }}>
+                          💻 데스크톱 (16:9)
+                        </span>
+                      </div>
+
+                      {/* Mobile */}
+                      <div style={{ flex: 0.9, position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+                        <img
+                          src={cfg.mobileBg}
+                          alt={`${cfg.name} 모바일`}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                        <span style={{ position: 'absolute', bottom: '6px', left: '6px', backgroundColor: 'rgba(0,0,0,0.6)', color: '#FFF', fontSize: '10px', fontWeight: '800', padding: '2px 6px', borderRadius: '6px' }}>
+                          📱 모바일 (9:16)
+                        </span>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => handleSetSeason(s)}
+                      style={{
+                        padding: '10px',
+                        borderRadius: '12px',
+                        backgroundColor: isSelected ? '#10B981' : 'var(--input-bg)',
+                        color: isSelected ? '#FFF' : 'var(--text-main)',
+                        border: isSelected ? 'none' : '1.5px solid var(--border-color)',
+                        fontWeight: '800',
+                        fontSize: '13px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {isSelected ? '✓ 현재 화면에 적용 중' : `이 계절 (${cfg.name})로 미리보기`}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 

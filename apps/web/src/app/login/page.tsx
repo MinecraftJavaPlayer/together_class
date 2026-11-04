@@ -122,8 +122,8 @@ export default function WebLoginPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC', padding: '20px' }}>
-      <div style={{ background: 'white', padding: '40px', borderRadius: '24px', width: '100%', maxWidth: '440px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
+    <div className="auth-seasonal-bg" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+      <div style={{ background: 'var(--card-bg)', border: '1.5px solid var(--border-color)', backdropFilter: 'blur(12px)', padding: '40px', borderRadius: '24px', width: '100%', maxWidth: '440px', boxShadow: '0 20px 35px -5px rgba(0, 0, 0, 0.2)' }}>
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <span style={{ fontSize: '56px' }}>🤖</span>
           <h1 style={{ fontSize: '24px', fontWeight: '900', color: '#14B8A6', marginTop: '12px' }}>다함께교실 로그인</h1>

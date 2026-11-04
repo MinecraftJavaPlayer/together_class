@@ -81,8 +81,8 @@ export default function WebSignUpPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC', padding: '32px 20px' }}>
-      <div style={{ background: 'white', padding: '40px', borderRadius: '24px', width: '100%', maxWidth: '480px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
+    <div className="auth-seasonal-bg" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 20px' }}>
+      <div style={{ background: 'var(--card-bg)', border: '1.5px solid var(--border-color)', backdropFilter: 'blur(12px)', padding: '40px', borderRadius: '24px', width: '100%', maxWidth: '480px', boxShadow: '0 20px 35px -5px rgba(0, 0, 0, 0.2)' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <span style={{ fontSize: '52px' }}>📝</span>
           <h1 style={{ fontSize: '24px', fontWeight: '900', color: '#3B82F6', marginTop: '8px', marginBottom: '4px' }}>다함께교실 회원가입</h1>

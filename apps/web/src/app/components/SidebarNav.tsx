@@ -1,16 +1,39 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 // @ts-ignore
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { getCurrentUser, isAllLearningCompleted } from '@dahamkke/shared';
+import {
+  getCurrentUser,
+  isAllLearningCompleted,
+  getCurrentSeason,
+  SEASONS,
+  SeasonType,
+} from '@dahamkke/shared';
 
 export function SidebarNav() {
   const pathname = usePathname() || '/';
   const currentUser = getCurrentUser();
   const isQuizUnlocked = isAllLearningCompleted(currentUser);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [currentSeasonKey, setCurrentSeasonKey] = useState<SeasonType>('autumn');
+
+  useEffect(() => {
+    const updateSeason = () => {
+      const override = localStorage.getItem('dahamkke_season_override') as SeasonType | null;
+      if (override && ['spring', 'summer', 'autumn', 'winter'].includes(override)) {
+        setCurrentSeasonKey(override);
+      } else {
+        setCurrentSeasonKey(getCurrentSeason());
+      }
+    };
+    updateSeason();
+    window.addEventListener('dahamkke_season_changed', updateSeason);
+    return () => window.removeEventListener('dahamkke_season_changed', updateSeason);
+  }, []);
+
+  const activeSeasonConfig = SEASONS[currentSeasonKey] || SEASONS.autumn;
 
   const navItems = [
     { href: '/', label: '🏠 홈 대시보드' },
@@ -122,6 +145,37 @@ export function SidebarNav() {
           >
             {currentUser?.role === 'teacher' ? '👨‍🏫 교사 콘솔 (RAG)' : '🔒 교사 콘솔 (선생님 전용)'}
           </Link>
+        </li>
+
+        {/* Real-time Season Wallpaper Badge */}
+        <li style={{ listStyle: 'none', marginTop: '10px' }}>
+          <div
+            style={{
+              padding: '10px 14px',
+              borderRadius: '14px',
+              backgroundColor: 'var(--card-bg)',
+              border: '1.5px solid var(--border-color)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              boxShadow: 'var(--shadow-soft)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '18px' }}>{activeSeasonConfig.icon}</span>
+              <div>
+                <div style={{ fontSize: '12px', fontWeight: '800', color: 'var(--text-main)' }}>
+                  {activeSeasonConfig.name} 시즌 배경
+                </div>
+                <div style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text-muted)' }}>
+                  {activeSeasonConfig.dateRange}
+                </div>
+              </div>
+            </div>
+            <span style={{ fontSize: '11px', fontWeight: '800', color: '#10B981', backgroundColor: '#ECFDF5', padding: '2px 6px', borderRadius: '6px' }}>
+              적용중
+            </span>
+          </div>
         </li>
       </ul>
     </aside>

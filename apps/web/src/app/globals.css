@@ -37,6 +37,11 @@
   --highlight-purple-bg: #F3E8FF;
   --highlight-purple-border: #E9D5FF;
   --highlight-purple-text: #6B21A8;
+
+  /* Seasonal Background Defaults (Desktop 16:9 / Mobile 9:16) */
+  --season-bg-desktop: url('/backgrounds/desktop_autumn.jpg');
+  --season-bg-mobile: url('/backgrounds/mobile_autumn.jpg');
+  --season-overlay: rgba(248, 250, 252, 0.15);
 }
 
 * {
@@ -241,6 +246,19 @@ button {
   --highlight-purple-bg: #2E1065;
   --highlight-purple-border: #5B21B6;
   --highlight-purple-text: #C084FC;
+
+  --season-overlay: rgba(15, 23, 42, 0.78);
+}
+
+/* Seasonal Wallpaper Backgrounds (Zero distortion, cover, fixed attachment) */
+.main-content,
+.auth-seasonal-bg,
+.battle-container {
+  background-image: linear-gradient(var(--season-overlay), var(--season-overlay)), var(--season-bg-desktop) !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
 }
 
 .dark html, .dark body, html.dark, body.dark {
@@ -392,6 +410,13 @@ button {
     overflow-y: visible !important;
     padding: 14px !important;
     box-sizing: border-box !important;
+  }
+  /* Mobile Web & Portrait: Switch to Vertical Mobile Wallpaper */
+  .main-content,
+  .auth-seasonal-bg,
+  .battle-container {
+    background-image: linear-gradient(var(--season-overlay), var(--season-overlay)), var(--season-bg-mobile) !important;
+    background-attachment: scroll !important;
   }
   .header-bar {
     flex-direction: row !important;

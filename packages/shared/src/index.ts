@@ -12,3 +12,4 @@ export * from './utils/ragEngine';
 export * from './utils/onlineMatchmaker';
 export * from './utils/realtimeBattleEngine';
 export * from './utils/teacherPersonaManager';
+export * from './utils/seasonHelper';

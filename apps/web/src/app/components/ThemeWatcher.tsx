@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { playClickSound, unlockAudio } from '@dahamkke/shared';
+import { playClickSound, unlockAudio, getCurrentSeason, SeasonType } from '@dahamkke/shared';
 
 export function ThemeWatcher() {
   useEffect(() => {
@@ -17,10 +17,26 @@ export function ThemeWatcher() {
         document.documentElement.classList.remove('dark');
       }
     };
+
+    // 2. Initial season load on client-side mount
+    const applySeason = () => {
+      let season: SeasonType;
+      const override = localStorage.getItem('dahamkke_season_override') as SeasonType | null;
+      if (override && ['spring', 'summer', 'autumn', 'winter'].includes(override)) {
+        season = override;
+      } else {
+        season = getCurrentSeason();
+      }
+
+      document.documentElement.setAttribute('data-season', season);
+      document.documentElement.style.setProperty('--season-bg-desktop', `url('/backgrounds/desktop_${season}.jpg')`);
+      document.documentElement.style.setProperty('--season-bg-mobile', `url('/backgrounds/mobile_${season}.jpg')`);
+    };
     
     applyTheme();
+    applySeason();
 
-    // 2. Listen to custom theme change event
+    // 3. Listen to custom theme change event
     const handleThemeChange = (e: any) => {
       if (e.detail === true) {
         document.documentElement.classList.add('dark');
@@ -29,7 +45,12 @@ export function ThemeWatcher() {
       }
     };
 
-    // 3. Global button click sound effect (Loud volume)
+    // 4. Listen to custom season change event
+    const handleSeasonChange = () => {
+      applySeason();
+    };
+
+    // 5. Global button click sound effect (Loud volume)
     const handleGlobalClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement | null;
       if (!target) return;
@@ -43,10 +64,12 @@ export function ThemeWatcher() {
     };
 
     window.addEventListener('dahamkke_theme_changed', handleThemeChange as any);
+    window.addEventListener('dahamkke_season_changed', handleSeasonChange as any);
     window.addEventListener('click', handleGlobalClick, true);
 
     return () => {
       window.removeEventListener('dahamkke_theme_changed', handleThemeChange as any);
+      window.removeEventListener('dahamkke_season_changed', handleSeasonChange as any);
       window.removeEventListener('click', handleGlobalClick, true);
     };
   }, []);
