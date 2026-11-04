@@ -123,10 +123,10 @@ export default function WebDashboard() {
       <SidebarNav />
 
       {/* Main Content Area — 100% Zero Page Scroll */}
-      <main className="main-content" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '20px 28px', backgroundColor: 'var(--bg-main)', transition: 'background-color 0.2s ease' }}>
+      <main className="main-content" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '20px 28px', backgroundColor: 'transparent', transition: 'background-color 0.2s ease' }}>
         
-        {/* Top Header Card */}
-        <div className="header-bar" style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--card-bg)', border: '1.5px solid var(--border-color)', padding: '16px 24px', borderRadius: '18px', marginBottom: '20px', boxShadow: 'var(--shadow-soft)' }}>
+        {/* Top Header Card (60% Opacity Glassmorphism) */}
+        <div className="header-bar" style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--card-bg)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', border: '1.5px solid var(--border-color)', padding: '16px 24px', borderRadius: '18px', marginBottom: '20px', boxShadow: 'var(--shadow-soft)' }}>
           <div className="header-info-group" style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
             <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <RankSVGIcon
@@ -154,14 +154,14 @@ export default function WebDashboard() {
             <button
               onClick={handleLogout}
               className="logout-btn"
-              style={{ backgroundColor: '#FEE2E2', color: '#EF4444', border: '1px solid #FCA5A5', padding: '9px 16px', borderRadius: '12px', fontWeight: '800', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}
+              style={{ backgroundColor: 'rgba(239, 68, 68, 0.25)', color: '#EF4444', border: '1px solid rgba(239, 68, 68, 0.4)', padding: '9px 16px', borderRadius: '12px', fontWeight: '800', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', backdropFilter: 'blur(8px)' }}
             >
               🚪 로그아웃
             </button>
           </div>
         </div>
 
-        {/* Tab Selection Bar */}
+        {/* Tab Selection Bar (Filled 60% Opacity Pills) */}
         <div className="dashboard-tab-bar" style={{ flexShrink: 0, display: 'flex', gap: '16px', marginBottom: '24px' }}>
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
@@ -171,16 +171,18 @@ export default function WebDashboard() {
                 className="dashboard-tab-btn"
                 onClick={() => handleTabChange(tab.id as TabId)}
                 style={{
-                  backgroundColor: 'transparent',
-                  border: isActive ? '3.5px solid #00A3FF' : '3.5px solid var(--border-color)',
-                  borderRadius: '24px',
+                  backgroundColor: 'var(--card-bg)',
+                  backdropFilter: 'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
+                  border: isActive ? '2.5px solid #00A3FF' : '1.5px solid var(--border-color)',
+                  borderRadius: '16px',
                   color: isActive ? '#00A3FF' : 'var(--text-muted)',
-                  padding: '10px 32px',
-                  fontSize: '24px',
+                  padding: '8px 24px',
+                  fontSize: '18px',
                   fontWeight: '900',
                   cursor: 'pointer',
                   outline: 'none',
-                  boxShadow: isActive ? '0 6px 16px rgba(0, 163, 255, 0.15)' : 'none',
+                  boxShadow: isActive ? '0 0 16px rgba(0, 163, 255, 0.35)' : 'var(--shadow-soft)',
                   transition: 'all 0.15s ease',
                 }}
               >
@@ -294,7 +296,7 @@ export default function WebDashboard() {
                 </div>
               </div>
 
-              {/* Green 1v1 Battle Button (Shorter Width & Centered) */}
+              {/* Green 1v1 Battle Button (60% Opacity Glassmorphic Pill) */}
               <button
                 onClick={() => router.push('/battle')}
                 style={{
@@ -302,14 +304,16 @@ export default function WebDashboard() {
                   width: '100%',
                   margin: '0 auto',
                   padding: '16px 24px',
-                  backgroundColor: '#22C55E',
+                  backgroundColor: 'rgba(34, 197, 94, 0.6)',
+                  backdropFilter: 'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
                   color: '#FFFFFF',
-                  border: 'none',
+                  border: '1.5px solid rgba(255, 255, 255, 0.3)',
                   borderRadius: '20px',
                   fontSize: '24px',
                   fontWeight: '900',
                   cursor: 'pointer',
-                  boxShadow: '0 8px 20px rgba(34, 197, 94, 0.3)',
+                  boxShadow: '0 8px 24px rgba(34, 197, 94, 0.3)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -317,11 +321,11 @@ export default function WebDashboard() {
                   transition: 'transform 0.2s ease, background-color 0.2s ease',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#16A34A';
+                  e.currentTarget.style.backgroundColor = 'rgba(22, 163, 74, 0.85)';
                   e.currentTarget.style.transform = 'translateY(-2px)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#22C55E';
+                  e.currentTarget.style.backgroundColor = 'rgba(34, 197, 94, 0.6)';
                   e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
