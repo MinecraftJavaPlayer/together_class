@@ -55,7 +55,7 @@ html, body {
   overflow-x: hidden;
   overflow-y: auto;
   font-family: 'Noto Sans KR', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', '맑은 고딕', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  background-color: var(--bg-main);
+  background-color: transparent;
   color: var(--text-main);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -250,15 +250,37 @@ button {
   --season-overlay: rgba(0, 0, 0, 0);
 }
 
-/* Seasonal Wallpaper Backgrounds (100% full vibrant image without dark tint) */
+/* Fixed Viewport Seasonal Background (Rock-solid: Zero resize/shift/flash on tab changes) */
+#seasonal-bg-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background-image: var(--season-bg-desktop);
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  z-index: 0;
+  pointer-events: none;
+  transform: translateZ(0);
+}
+
+@media (max-width: 768px), (orientation: portrait) and (max-width: 1024px) {
+  #seasonal-bg-fixed {
+    background-image: var(--season-bg-mobile) !important;
+  }
+}
+
 .main-content,
+.dashboard-container,
 .auth-seasonal-bg,
 .battle-container {
-  background-image: var(--season-bg-desktop) !important;
-  background-size: cover !important;
-  background-position: center center !important;
-  background-repeat: no-repeat !important;
-  background-attachment: fixed !important;
+  background: transparent !important;
+  background-image: none !important;
 }
 
 /* 60% Opacity Glassmorphic Blur for all Cards, UIs, and Buttons */
@@ -277,7 +299,7 @@ button {
 }
 
 .dark html, .dark body, html.dark, body.dark {
-  background-color: #0F172A !important;
+  background-color: transparent !important;
   color: #F1F5F9 !important;
   color-scheme: dark !important;
 }
@@ -425,13 +447,6 @@ button {
     overflow-y: visible !important;
     padding: 14px !important;
     box-sizing: border-box !important;
-  }
-  /* Mobile Web & Portrait: Switch to Vertical Mobile Wallpaper */
-  .main-content,
-  .auth-seasonal-bg,
-  .battle-container {
-    background-image: var(--season-bg-mobile) !important;
-    background-attachment: scroll !important;
   }
   .header-bar {
     flex-direction: row !important;

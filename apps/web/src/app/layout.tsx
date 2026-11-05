@@ -57,8 +57,11 @@ export default function RootLayout({
         ` }} />
       </head>
       <body>
+        <div id="seasonal-bg-fixed" aria-hidden="true" />
         <ThemeWatcher />
-        {children}
+        <div style={{ position: 'relative', zIndex: 1, minHeight: '100vh' }}>
+          {children}
+        </div>
       </body>
     </html>
   );

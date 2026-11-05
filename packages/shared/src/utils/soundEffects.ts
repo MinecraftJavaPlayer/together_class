@@ -3,17 +3,60 @@
  * - Button Click: /sounds/click.m4a (마크 효과음 개선판.m4a) -> /sounds/click.wav fallback
  * - Quiz Correct: /sounds/correctAnswer.wav (correctAnswer.nbs synthesized)
  * - Quiz Wrong: /sounds/wrong.mp3 (미션실패.mp3)
+ * - Rank Demote: /sounds/demote.mp3
+ * - Rank Promote / Placement: /sounds/promote.mp3
  */
+
+let masterVolume = 1.0;
+let isAudioMuted = false;
+
+// Initialize from localStorage if in browser
+if (typeof window !== 'undefined') {
+  try {
+    const savedVol = localStorage.getItem('dahamkke_audio_volume');
+    if (savedVol !== null) masterVolume = parseFloat(savedVol);
+    const savedMute = localStorage.getItem('dahamkke_audio_muted');
+    if (savedMute !== null) isAudioMuted = savedMute === 'true';
+  } catch (e) {}
+}
+
+export function getAudioVolume(): number {
+  return masterVolume;
+}
+
+export function setAudioVolume(vol: number): void {
+  masterVolume = Math.max(0, Math.min(1, vol));
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem('dahamkke_audio_volume', String(masterVolume));
+      window.dispatchEvent(new CustomEvent('dahamkke_audio_settings_changed'));
+    } catch (e) {}
+  }
+}
+
+export function isAudioEnabled(): boolean {
+  return !isAudioMuted;
+}
+
+export function setAudioEnabled(enabled: boolean): void {
+  isAudioMuted = !enabled;
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem('dahamkke_audio_muted', String(isAudioMuted));
+      window.dispatchEvent(new CustomEvent('dahamkke_audio_settings_changed'));
+    } catch (e) {}
+  }
+}
 
 function playAudioFile(url: string, volume: number = 1.0): Promise<void> {
   return new Promise((resolve, reject) => {
     try {
-      if (typeof window === 'undefined') {
+      if (typeof window === 'undefined' || isAudioMuted) {
         resolve();
         return;
       }
       const audio = new Audio(url);
-      audio.volume = volume;
+      audio.volume = Math.max(0, Math.min(1, volume * masterVolume));
       audio.currentTime = 0;
       const playPromise = audio.play();
       if (playPromise !== undefined) {
