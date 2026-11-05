@@ -18,16 +18,12 @@ export function ThemeWatcher() {
       }
     };
 
-    // 2. Initial season load on client-side mount
+    // 2. Initial season load on client-side mount (Strictly calendar-based, locked)
     const applySeason = () => {
-      let season: SeasonType;
-      const override = localStorage.getItem('dahamkke_season_override') as SeasonType | null;
-      if (override && ['spring', 'summer', 'autumn', 'winter'].includes(override)) {
-        season = override;
-      } else {
-        season = getCurrentSeason();
-      }
-
+      try {
+        localStorage.removeItem('dahamkke_season_override');
+      } catch (e) {}
+      const season: SeasonType = getCurrentSeason();
       document.documentElement.setAttribute('data-season', season);
       document.documentElement.style.setProperty('--season-bg-desktop', `url('/backgrounds/desktop_${season}.jpg')`);
       document.documentElement.style.setProperty('--season-bg-mobile', `url('/backgrounds/mobile_${season}.jpg')`);

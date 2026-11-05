@@ -33,26 +33,34 @@ export default function RootLayout({
               document.documentElement.classList.remove('dark');
             }
 
-            // Determine Season based on calendar date or manual preview override
+            // Determine Season strictly based on real calendar date (locked, no manual override)
             // 봄: 3/1 ~ 5/31 | 여름: 6/1 ~ 8/31 | 가을: 9/1 ~ 11/30 | 겨울: 12/1 ~ 2/28(2/29)
-            var overrideSeason = localStorage.getItem('dahamkke_season_override');
-            var season = overrideSeason;
-            if (!season || ['spring', 'summer', 'autumn', 'winter'].indexOf(season) === -1) {
-              var now = new Date();
-              var m = now.getMonth() + 1;
-              if (m >= 3 && m <= 5) {
-                season = 'spring';
-              } else if (m >= 6 && m <= 8) {
-                season = 'summer';
-              } else if (m >= 9 && m <= 11) {
-                season = 'autumn';
-              } else {
-                season = 'winter';
-              }
+            try {
+              localStorage.removeItem('dahamkke_season_override');
+            } catch (e) {}
+            var now = new Date();
+            var m = now.getMonth() + 1;
+            var season = 'winter';
+            if (m >= 3 && m <= 5) {
+              season = 'spring';
+            } else if (m >= 6 && m <= 8) {
+              season = 'summer';
+            } else if (m >= 9 && m <= 11) {
+              season = 'autumn';
+            } else {
+              season = 'winter';
             }
             document.documentElement.setAttribute('data-season', season);
             document.documentElement.style.setProperty('--season-bg-desktop', "url('/backgrounds/desktop_" + season + ".jpg')");
             document.documentElement.style.setProperty('--season-bg-mobile', "url('/backgrounds/mobile_" + season + ".jpg')");
+
+            // Apply accessibility & display preferences if saved
+            var contrast = localStorage.getItem('dahamkke_ui_contrast');
+            if (contrast) document.documentElement.setAttribute('data-contrast', contrast);
+            var fontScale = localStorage.getItem('dahamkke_font_scale');
+            if (fontScale) document.documentElement.setAttribute('data-font-scale', fontScale);
+            var reducedMotion = localStorage.getItem('dahamkke_reduced_motion');
+            if (reducedMotion === 'true') document.documentElement.setAttribute('data-reduced-motion', 'true');
           } catch (e) {}
         ` }} />
       </head>

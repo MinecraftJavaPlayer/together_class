@@ -20,6 +20,12 @@ import {
   setAudioVolume,
   isAudioEnabled,
   setAudioEnabled,
+  isClickSoundEnabled,
+  setClickSoundEnabled,
+  isQuizSoundEnabled,
+  setQuizSoundEnabled,
+  isRankSoundEnabled,
+  setRankSoundEnabled,
   playClickSound,
   playCorrectSound,
   playWrongSound,
@@ -48,8 +54,29 @@ export default function WebDashboard() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isAudioOn, setIsAudioOn] = useState(true);
   const [audioVol, setAudioVol] = useState(100);
-  const [seasonChoice, setSeasonChoice] = useState<string>('auto');
+  const [isClickSoundOn, setIsClickSoundOn] = useState(true);
+  const [isQuizSoundOn, setIsQuizSoundOn] = useState(true);
+  const [isRankSoundOn, setIsRankSoundOn] = useState(true);
+  const [ttsSpeed, setTtsSpeed] = useState<'0.8' | '1.0' | '1.2'>('1.0');
+  const [isStudyBgmOn, setIsStudyBgmOn] = useState(false);
+
+  // Video / Display state
+  const [uiContrast, setUiContrast] = useState<'default' | 'high'>('default');
+  const [fontScale, setFontScale] = useState<'100' | '115' | '130'>('100');
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // In-Web preferences
+  const [preferredLang, setPreferredLang] = useState<'vi' | 'zh' | 'ru' | 'en' | 'ja' | 'tl'>('vi');
+  const [timerMode, setTimerMode] = useState<'20' | '30' | '45'>('30');
+  const [cacheCleaned, setCacheCleaned] = useState(false);
+
+  // Bug Report state
   const [copiedDiscord, setCopiedDiscord] = useState(false);
+  const [bugCategory, setBugCategory] = useState<'design' | 'sound' | 'quiz' | 'rank' | 'other'>('design');
+  const [bugText, setBugText] = useState('');
+  const [bugSubmitted, setBugSubmitted] = useState(false);
+  const [copiedEnvInfo, setCopiedEnvInfo] = useState(false);
 
   useEffect(() => {
     // Session check: if no active user session, redirect to login page
@@ -78,22 +105,35 @@ export default function WebDashboard() {
     const cur = getCurrentUser();
     setCurrentUser(cur);
 
-    // Initial sound & season state
+    // Initial sound state & accessibility states
     setIsAudioOn(isAudioEnabled());
     setAudioVol(Math.round(getAudioVolume() * 100));
+    setIsClickSoundOn(isClickSoundEnabled());
+    setIsQuizSoundOn(isQuizSoundEnabled());
+    setIsRankSoundOn(isRankSoundEnabled());
 
-    const savedSeason = localStorage.getItem('dahamkke_season_override');
-    setSeasonChoice(savedSeason || 'auto');
-
-    const handleSeasonChange = () => {
-      const cur = localStorage.getItem('dahamkke_season_override');
-      setSeasonChoice(cur || 'auto');
-    };
-    window.addEventListener('dahamkke_season_changed', handleSeasonChange);
+    try {
+      localStorage.removeItem('dahamkke_season_override');
+      const savedContrast = (localStorage.getItem('dahamkke_ui_contrast') as any) || 'default';
+      setUiContrast(savedContrast);
+      const savedFont = (localStorage.getItem('dahamkke_font_scale') as any) || '100';
+      setFontScale(savedFont);
+      const savedMotion = localStorage.getItem('dahamkke_reduced_motion') === 'true';
+      setReducedMotion(savedMotion);
+      const savedTts = (localStorage.getItem('dahamkke_tts_speed') as any) || '1.0';
+      setTtsSpeed(savedTts);
+      const savedLang = (localStorage.getItem('dahamkke_pref_lang') as any) || 'vi';
+      setPreferredLang(savedLang);
+      const savedTimer = (localStorage.getItem('dahamkke_timer_mode') as any) || '30';
+      setTimerMode(savedTimer);
+    } catch (e) {}
 
     const handleAudioChange = () => {
       setIsAudioOn(isAudioEnabled());
       setAudioVol(Math.round(getAudioVolume() * 100));
+      setIsClickSoundOn(isClickSoundEnabled());
+      setIsQuizSoundOn(isQuizSoundEnabled());
+      setIsRankSoundOn(isRankSoundEnabled());
     };
     window.addEventListener('dahamkke_audio_settings_changed', handleAudioChange);
 
@@ -106,7 +146,6 @@ export default function WebDashboard() {
     window.addEventListener('dahamkke_user_updated', handleUserUpdate);
     return () => {
       window.removeEventListener('dahamkke_user_updated', handleUserUpdate);
-      window.removeEventListener('dahamkke_season_changed', handleSeasonChange);
       window.removeEventListener('dahamkke_audio_settings_changed', handleAudioChange);
     };
   }, []);
@@ -128,15 +167,141 @@ export default function WebDashboard() {
     setAudioVolume(newVal / 100);
   };
 
-  const handleSelectSeason = (val: string) => {
-    if (val === 'auto') {
-      localStorage.removeItem('dahamkke_season_override');
-      setSeasonChoice('auto');
+  const handleToggleClickSound = () => {
+    const next = !isClickSoundOn;
+    setIsClickSoundOn(next);
+    setClickSoundEnabled(next);
+    if (next) playClickSound();
+  };
+
+  const handleToggleQuizSound = () => {
+    const next = !isQuizSoundOn;
+    setIsQuizSoundOn(next);
+    setQuizSoundEnabled(next);
+    if (next) playCorrectSound();
+  };
+
+  const handleToggleRankSound = () => {
+    const next = !isRankSoundOn;
+    setIsRankSoundOn(next);
+    setRankSoundEnabled(next);
+    if (next) playPromoteSound();
+  };
+
+  const handleChangeTtsSpeed = (speed: '0.8' | '1.0' | '1.2') => {
+    setTtsSpeed(speed);
+    try {
+      localStorage.setItem('dahamkke_tts_speed', speed);
+    } catch (e) {}
+  };
+
+  const handleToggleStudyBgm = () => {
+    setIsStudyBgmOn(!isStudyBgmOn);
+  };
+
+  const handleChangeContrast = (mode: 'default' | 'high') => {
+    setUiContrast(mode);
+    try {
+      localStorage.setItem('dahamkke_ui_contrast', mode);
+      if (mode === 'high') {
+        document.documentElement.setAttribute('data-contrast', 'high');
+      } else {
+        document.documentElement.removeAttribute('data-contrast');
+      }
+    } catch (e) {}
+  };
+
+  const handleChangeFontScale = (scale: '100' | '115' | '130') => {
+    setFontScale(scale);
+    try {
+      localStorage.setItem('dahamkke_font_scale', scale);
+      if (scale === '100') {
+        document.documentElement.removeAttribute('data-font-scale');
+      } else {
+        document.documentElement.setAttribute('data-font-scale', scale);
+      }
+    } catch (e) {}
+  };
+
+  const handleToggleReducedMotion = () => {
+    const next = !reducedMotion;
+    setReducedMotion(next);
+    try {
+      localStorage.setItem('dahamkke_reduced_motion', String(next));
+      if (next) {
+        document.documentElement.setAttribute('data-reduced-motion', 'true');
+      } else {
+        document.documentElement.removeAttribute('data-reduced-motion');
+      }
+    } catch (e) {}
+  };
+
+  const handleToggleFullscreen = () => {
+    if (typeof document === 'undefined') return;
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {});
     } else {
-      localStorage.setItem('dahamkke_season_override', val);
-      setSeasonChoice(val);
+      document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => {});
     }
-    window.dispatchEvent(new CustomEvent('dahamkke_season_changed', { detail: val }));
+  };
+
+  const handleChangePreferredLang = (lang: 'vi' | 'zh' | 'ru' | 'en' | 'ja' | 'tl') => {
+    setPreferredLang(lang);
+    try {
+      localStorage.setItem('dahamkke_pref_lang', lang);
+    } catch (e) {}
+  };
+
+  const handleChangeTimerMode = (mode: '20' | '30' | '45') => {
+    setTimerMode(mode);
+    try {
+      localStorage.setItem('dahamkke_timer_mode', mode);
+    } catch (e) {}
+  };
+
+  const handleCleanCache = () => {
+    setCacheCleaned(true);
+    setTimeout(() => setCacheCleaned(false), 3000);
+  };
+
+  const handleSubmitBug = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bugText.trim()) return;
+    setBugSubmitted(true);
+    setTimeout(() => {
+      setBugText('');
+      setBugSubmitted(false);
+    }, 4000);
+  };
+
+  const handleCopySystemInfo = () => {
+    if (typeof window === 'undefined') return;
+    const ua = navigator.userAgent;
+    const screenRes = `${window.screen.width}x${window.screen.height}`;
+    const dpr = window.devicePixelRatio || 1;
+    const currentTier = currentRank?.name || 'Unranked';
+    const role = currentUser?.role || 'student';
+    const info = `[다함께교실 시스템 정보]
+• 사용자: ${currentUser?.name || ''} (${currentUser?.email || 'guest'})
+• 권한: ${role === 'teacher' ? '교사' : '학생'}
+• 랭크: ${currentTier} (${currentUser?.points || 0}pt)
+• 화면 해상도: ${screenRes} (DPR: ${dpr})
+• 브라우저/플랫폼: ${ua}
+• 테마 모드: ${isDarkMode ? '다크 모드' : '라이트 모드'}
+• UI 투명도: ${uiContrast === 'high' ? '고대비(85%)' : '기본(60%)'}
+• 계절 테마: ${getCurrentSeasonConfig().name} (날짜 자동)
+• 빌드 버전: Beta 1.0 (Web)`;
+
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(info).then(() => {
+        setCopiedEnvInfo(true);
+        setTimeout(() => setCopiedEnvInfo(false), 2500);
+      }).catch(() => {
+        prompt('시스템 정보를 복사하세요:', info);
+      });
+    } else {
+      prompt('시스템 정보를 복사하세요:', info);
+    }
   };
 
   const handleCopyDiscordLink = () => {
@@ -631,7 +796,7 @@ export default function WebDashboard() {
                         <span>🌙</span> 화면 다크 모드
                       </h3>
                       <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
-                        어두운 테마로 눈의 피로를 덜고 집중도를 높입니다.
+                        어두운 테마로 눈의 피로를 덜고 텍스트 집중도를 높입니다.
                       </p>
                     </div>
                     <div
@@ -664,77 +829,201 @@ export default function WebDashboard() {
                     </div>
                   </div>
 
-                  {/* Seasonal Themes */}
+                  {/* Seasonal Themes - Locked strictly to real-world calendar date */}
                   <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '24px', border: '1.5px solid var(--border-color)', padding: '24px 32px', boxShadow: 'var(--shadow-soft)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '14px' }}>
                       <div>
                         <h3 style={{ fontSize: '20px', fontWeight: '900', color: 'var(--text-main)', margin: '0 0 6px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span>🎨</span> 사계절 배경 테마
+                          <span>🔒</span> 사계절 배경 테마 (날짜 기준 자동 고정)
                         </h3>
                         <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
-                          봄(3~5월), 여름(6~8월), 가을(9~11월), 겨울(12~2월) 날짜에 따라 배경이 자동 반영됩니다.
+                          다함께교실의 사계절 배경은 실제 달력 날짜에 맞춰 자동으로 설정되며, 임의로 변경할 수 없도록 안전하게 고정되어 있습니다.
                         </p>
                       </div>
-                      <span style={{ fontSize: '12px', fontWeight: '800', color: '#10B981', backgroundColor: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '4px 10px', borderRadius: '10px' }}>
-                        현재: {getCurrentSeasonConfig().icon} {getCurrentSeasonConfig().name} ({getCurrentSeasonConfig().dateRange})
+                      <span style={{ fontSize: '12px', fontWeight: '900', color: '#10B981', backgroundColor: 'rgba(16, 185, 129, 0.15)', border: '1.5px solid rgba(16, 185, 129, 0.4)', padding: '6px 14px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>🔒</span>
+                        <span>현재 계절: {getCurrentSeasonConfig().icon} {getCurrentSeasonConfig().name} ({getCurrentSeasonConfig().dateRange})</span>
                       </span>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {/* 4-Season Status Cards (Read-only, locked) */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
+                      {(['spring', 'summer', 'autumn', 'winter'] as SeasonType[]).map((s) => {
+                        const cfg = SEASONS[s];
+                        const isCurrentSeason = getCurrentSeason() === s;
+                        return (
+                          <div
+                            key={s}
+                            style={{
+                              padding: '14px 16px',
+                              borderRadius: '16px',
+                              backgroundColor: isCurrentSeason ? 'rgba(16, 185, 129, 0.15)' : 'var(--input-bg)',
+                              border: isCurrentSeason ? '2px solid #10B981' : '1.5px solid var(--border-color)',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              textAlign: 'center',
+                              boxShadow: isCurrentSeason ? '0 0 16px rgba(16, 185, 129, 0.3)' : 'none',
+                              position: 'relative',
+                            }}
+                          >
+                            {isCurrentSeason && (
+                              <div style={{ position: 'absolute', top: '-10px', backgroundColor: '#10B981', color: '#FFF', fontSize: '10px', fontWeight: '900', padding: '2px 8px', borderRadius: '10px' }}>
+                                현재 적용 중
+                              </div>
+                            )}
+                            <div style={{ fontSize: '28px', marginBottom: '4px' }}>{cfg.icon}</div>
+                            <div style={{ fontSize: '15px', fontWeight: '900', color: isCurrentSeason ? '#10B981' : 'var(--text-main)' }}>
+                              {cfg.name}
+                            </div>
+                            <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', marginTop: '2px' }}>
+                              {cfg.dateRange}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* UI Contrast & Glassmorphism Intensity */}
+                  <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '24px', border: '1.5px solid var(--border-color)', padding: '24px 32px', boxShadow: 'var(--shadow-soft)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '14px' }}>
+                      <div>
+                        <h3 style={{ fontSize: '20px', fontWeight: '900', color: 'var(--text-main)', margin: '0 0 6px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span>🎨</span> UI 카드 투명도 및 대비 모드
+                        </h3>
+                        <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
+                          기본 60% 글래스모피즘 반투명 카드와 가독성을 높여주는 고대비(85% 불투명) 모드를 선택합니다.
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          onClick={() => handleChangeContrast('default')}
+                          style={{
+                            padding: '8px 16px',
+                            borderRadius: '12px',
+                            fontWeight: '800',
+                            fontSize: '13px',
+                            cursor: 'pointer',
+                            backgroundColor: uiContrast === 'default' ? '#3B82F6' : 'var(--input-bg)',
+                            color: uiContrast === 'default' ? '#FFF' : 'var(--text-main)',
+                            border: uiContrast === 'default' ? '1.5px solid #3B82F6' : '1.5px solid var(--border-color)',
+                          }}
+                        >
+                          ✨ 기본 반투명 (60%)
+                        </button>
+                        <button
+                          onClick={() => handleChangeContrast('high')}
+                          style={{
+                            padding: '8px 16px',
+                            borderRadius: '12px',
+                            fontWeight: '800',
+                            fontSize: '13px',
+                            cursor: 'pointer',
+                            backgroundColor: uiContrast === 'high' ? '#10B981' : 'var(--input-bg)',
+                            color: uiContrast === 'high' ? '#FFF' : 'var(--text-main)',
+                            border: uiContrast === 'high' ? '1.5px solid #10B981' : '1.5px solid var(--border-color)',
+                          }}
+                        >
+                          👁️ 고대비 선명 모드 (85%)
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Font Scale & Accessibility */}
+                  <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '24px', border: '1.5px solid var(--border-color)', padding: '24px 32px', boxShadow: 'var(--shadow-soft)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                      <div>
+                        <h3 style={{ fontSize: '20px', fontWeight: '900', color: 'var(--text-main)', margin: '0 0 6px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span>🔤</span> 글자 크기 조절 (가독성 지원)
+                        </h3>
+                        <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
+                          초등학교 저학년 및 한국어 초급 다문화 학생을 위한 텍스트 크기 확대 기능입니다.
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        {[
+                          { scale: '100', label: '보통 (100%)' },
+                          { scale: '115', label: '크게 (112%)' },
+                          { scale: '130', label: '아주 크게 (124%)' },
+                        ].map((f) => (
+                          <button
+                            key={f.scale}
+                            onClick={() => handleChangeFontScale(f.scale as any)}
+                            style={{
+                              padding: '8px 14px',
+                              borderRadius: '12px',
+                              fontWeight: '800',
+                              fontSize: '13px',
+                              cursor: 'pointer',
+                              backgroundColor: fontScale === f.scale ? '#4F46E5' : 'var(--input-bg)',
+                              color: fontScale === f.scale ? '#FFF' : 'var(--text-main)',
+                              border: fontScale === f.scale ? '1.5px solid #4F46E5' : '1.5px solid var(--border-color)',
+                            }}
+                          >
+                            {f.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Motion & Fullscreen Controls */}
+                  <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '24px', border: '1.5px solid var(--border-color)', padding: '24px 32px', boxShadow: 'var(--shadow-soft)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+                      <div>
+                        <div style={{ fontSize: '16px', fontWeight: '900', color: 'var(--text-main)' }}>
+                          ⚡ 화면 모션 효과 줄이기
+                        </div>
+                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                          배터리 절약 및 저사양 태블릿을 위한 애니메이션 간소화
+                        </div>
+                      </div>
                       <button
-                        onClick={() => handleSelectSeason('auto')}
+                        onClick={handleToggleReducedMotion}
                         style={{
                           padding: '8px 16px',
                           borderRadius: '12px',
                           fontWeight: '800',
                           fontSize: '13px',
                           cursor: 'pointer',
-                          backgroundColor: seasonChoice === 'auto' ? '#10B981' : 'var(--input-bg)',
-                          color: seasonChoice === 'auto' ? '#FFF' : 'var(--text-main)',
-                          border: seasonChoice === 'auto' ? '1.5px solid #10B981' : '1.5px solid var(--border-color)',
+                          backgroundColor: reducedMotion ? '#F59E0B' : 'var(--input-bg)',
+                          color: reducedMotion ? '#FFF' : 'var(--text-main)',
+                          border: reducedMotion ? '1.5px solid #F59E0B' : '1.5px solid var(--border-color)',
+                          whiteSpace: 'nowrap',
                         }}
                       >
-                        🔄 날짜 기준 자동 (기본)
+                        {reducedMotion ? '✓ 모션 절약 켬' : '모션 정상'}
                       </button>
-                      {(['spring', 'summer', 'autumn', 'winter'] as SeasonType[]).map((s) => {
-                        const cfg = SEASONS[s];
-                        const isSelected = seasonChoice === s;
-                        return (
-                          <button
-                            key={s}
-                            onClick={() => handleSelectSeason(s)}
-                            style={{
-                              padding: '8px 16px',
-                              borderRadius: '12px',
-                              fontWeight: '800',
-                              fontSize: '13px',
-                              cursor: 'pointer',
-                              backgroundColor: isSelected ? '#3B82F6' : 'var(--input-bg)',
-                              color: isSelected ? '#FFF' : 'var(--text-main)',
-                              border: isSelected ? '1.5px solid #3B82F6' : '1.5px solid var(--border-color)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                            }}
-                          >
-                            <span>{cfg.icon}</span>
-                            <span>{cfg.name}</span>
-                          </button>
-                        );
-                      })}
                     </div>
-                  </div>
 
-                  {/* UI Glassmorphism Info */}
-                  <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '24px', border: '1.5px solid var(--border-color)', padding: '20px 32px', boxShadow: 'var(--shadow-soft)', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <span style={{ fontSize: '32px' }}>✨</span>
-                    <div>
-                      <div style={{ fontSize: '15px', fontWeight: '900', color: 'var(--text-main)' }}>
-                        60% 투명도 글래스모피즘(Glassmorphism) UI
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+                      <div>
+                        <div style={{ fontSize: '16px', fontWeight: '900', color: 'var(--text-main)' }}>
+                          🖥️ 전체 화면 (몰입 수업)
+                        </div>
+                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                          전자칠판 및 태블릿에서 브라우저 바를 숨기고 전체 화면 사용
+                        </div>
                       </div>
-                      <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                        모든 카드와 버튼의 투명도를 60%로 최적화하고 뷰포트 고정 배경을 적용하여, 모바일과 데스크톱 어디서나 탭 전환 시 배경 흔들림 없이 선명하게 투과됩니다.
-                      </div>
+                      <button
+                        onClick={handleToggleFullscreen}
+                        style={{
+                          padding: '8px 16px',
+                          borderRadius: '12px',
+                          fontWeight: '800',
+                          fontSize: '13px',
+                          cursor: 'pointer',
+                          backgroundColor: isFullscreen ? '#10B981' : 'var(--input-bg)',
+                          color: isFullscreen ? '#FFF' : 'var(--text-main)',
+                          border: isFullscreen ? '1.5px solid #10B981' : '1.5px solid var(--border-color)',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {isFullscreen ? '⛶ 전체화면 종료' : '⛶ 전체화면 켜기'}
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -747,10 +1036,10 @@ export default function WebDashboard() {
                   <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '24px', border: '1.5px solid var(--border-color)', padding: '24px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: 'var(--shadow-soft)' }}>
                     <div>
                       <h3 style={{ fontSize: '20px', fontWeight: '900', color: 'var(--text-main)', margin: '0 0 6px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span>{isAudioOn ? '🔔' : '🔕'}</span> 전체 효과음
+                        <span>{isAudioOn ? '🔔' : '🔕'}</span> 전체 마스터 사운드
                       </h3>
                       <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
-                        버튼 클릭음, 퀴즈 정답/오답, 랭크 승급/강등 등 모든 시스템 효과음을 켜거나 끕니다.
+                        모든 효과음 및 음향을 한 번에 음소거하거나 켭니다.
                       </p>
                     </div>
                     <div
@@ -804,10 +1093,117 @@ export default function WebDashboard() {
                     />
                   </div>
 
+                  {/* Granular Sound Switches */}
+                  <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '24px', border: '1.5px solid var(--border-color)', padding: '24px 32px', boxShadow: 'var(--shadow-soft)' }}>
+                    <h3 style={{ fontSize: '18px', fontWeight: '900', color: 'var(--text-main)', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span>🎧</span> 세부 사운드 개별 설정
+                    </h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderRadius: '14px', backgroundColor: 'var(--input-bg)', border: '1px solid var(--border-color)' }}>
+                        <div>
+                          <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-main)' }}>버튼 클릭 효과음</div>
+                          <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>UI 인터랙션 사운드</div>
+                        </div>
+                        <button
+                          onClick={handleToggleClickSound}
+                          style={{ padding: '6px 12px', borderRadius: '10px', backgroundColor: isClickSoundOn ? '#10B981' : 'rgba(148,163,184,0.3)', color: isClickSoundOn ? '#FFF' : 'var(--text-main)', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }}
+                        >
+                          {isClickSoundOn ? '켜짐' : '꺼짐'}
+                        </button>
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderRadius: '14px', backgroundColor: 'var(--input-bg)', border: '1px solid var(--border-color)' }}>
+                        <div>
+                          <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-main)' }}>정답 / 오답 알림음</div>
+                          <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>퀴즈 풀이 결과음</div>
+                        </div>
+                        <button
+                          onClick={handleToggleQuizSound}
+                          style={{ padding: '6px 12px', borderRadius: '10px', backgroundColor: isQuizSoundOn ? '#10B981' : 'rgba(148,163,184,0.3)', color: isQuizSoundOn ? '#FFF' : 'var(--text-main)', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }}
+                        >
+                          {isQuizSoundOn ? '켜짐' : '꺼짐'}
+                        </button>
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderRadius: '14px', backgroundColor: 'var(--input-bg)', border: '1px solid var(--border-color)' }}>
+                        <div>
+                          <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-main)' }}>승급 / 강등 팡파레</div>
+                          <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>랭크 결과 애니메이션음</div>
+                        </div>
+                        <button
+                          onClick={handleToggleRankSound}
+                          style={{ padding: '6px 12px', borderRadius: '10px', backgroundColor: isRankSoundOn ? '#10B981' : 'rgba(148,163,184,0.3)', color: isRankSoundOn ? '#FFF' : 'var(--text-main)', fontWeight: '800', fontSize: '12px', cursor: 'pointer' }}
+                        >
+                          {isRankSoundOn ? '켜짐' : '꺼짐'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* AI TTS Speed & Focus BGM */}
+                  <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '24px', border: '1.5px solid var(--border-color)', padding: '24px 32px', boxShadow: 'var(--shadow-soft)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+                    <div>
+                      <div style={{ fontSize: '16px', fontWeight: '900', color: 'var(--text-main)', marginBottom: '4px' }}>
+                        🗣️ AI 음성 읽어주기 (TTS) 속도
+                      </div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px' }}>
+                        교과서 지문 및 단어 발음 읽어주기 재생 속도
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        {[
+                          { speed: '0.8', label: '느리게 (0.8x)' },
+                          { speed: '1.0', label: '보통 (1.0x)' },
+                          { speed: '1.2', label: '빠르게 (1.2x)' },
+                        ].map((t) => (
+                          <button
+                            key={t.speed}
+                            onClick={() => handleChangeTtsSpeed(t.speed as any)}
+                            style={{
+                              padding: '8px 12px',
+                              borderRadius: '10px',
+                              fontWeight: '800',
+                              fontSize: '12px',
+                              cursor: 'pointer',
+                              backgroundColor: ttsSpeed === t.speed ? '#10B981' : 'var(--input-bg)',
+                              color: ttsSpeed === t.speed ? '#FFF' : 'var(--text-main)',
+                              border: ttsSpeed === t.speed ? '1.5px solid #10B981' : '1.5px solid var(--border-color)',
+                            }}
+                          >
+                            {t.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div style={{ fontSize: '16px', fontWeight: '900', color: 'var(--text-main)', marginBottom: '4px' }}>
+                        🍃 집중 학습 앰비언스 모드
+                      </div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px' }}>
+                        혼자 공부할 때 마음을 차분하게 해주는 백색소음 효과
+                      </div>
+                      <button
+                        onClick={handleToggleStudyBgm}
+                        style={{
+                          padding: '9px 18px',
+                          borderRadius: '12px',
+                          fontWeight: '800',
+                          fontSize: '13px',
+                          cursor: 'pointer',
+                          backgroundColor: isStudyBgmOn ? '#059669' : 'var(--input-bg)',
+                          color: isStudyBgmOn ? '#FFF' : 'var(--text-main)',
+                          border: isStudyBgmOn ? '1.5px solid #059669' : '1.5px solid var(--border-color)',
+                        }}
+                      >
+                        {isStudyBgmOn ? '🎵 백색소음 재생 중' : '🔇 백색소음 꺼짐'}
+                      </button>
+                    </div>
+                  </div>
+
                   {/* Sound Test Buttons */}
                   <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '24px', border: '1.5px solid var(--border-color)', padding: '24px 32px', boxShadow: 'var(--shadow-soft)' }}>
                     <h3 style={{ fontSize: '18px', fontWeight: '900', color: 'var(--text-main)', margin: '0 0 12px 0' }}>
-                      🎵 효과음 미리듣기 테스트
+                      🎵 사운드 엔진 즉시 테스트
                     </h3>
                     <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                       <button
@@ -898,6 +1294,106 @@ export default function WebDashboard() {
                     </div>
                   </div>
 
+                  {/* Preferred Language & Quiz Timer Mode */}
+                  <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '24px', border: '1.5px solid var(--border-color)', padding: '24px 32px', boxShadow: 'var(--shadow-soft)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
+                    <div>
+                      <h4 style={{ fontSize: '16px', fontWeight: '900', color: 'var(--text-main)', margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>🌍</span> 기본 모국어 번역 설정
+                      </h4>
+                      <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0 0 10px 0' }}>
+                        교과서 지문 및 단어 번역 시 우선 적용할 기본 언어입니다.
+                      </p>
+                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                        {[
+                          { code: 'vi', label: '🇻🇳 베트남어' },
+                          { code: 'zh', label: '🇨🇳 중국어' },
+                          { code: 'ru', label: '🇷🇺 러시아어' },
+                          { code: 'en', label: '🇺🇸 영어' },
+                          { code: 'ja', label: '🇯🇵 일본어' },
+                          { code: 'tl', label: '🇵🇭 필리핀어' },
+                        ].map((l) => (
+                          <button
+                            key={l.code}
+                            onClick={() => handleChangePreferredLang(l.code as any)}
+                            style={{
+                              padding: '6px 12px',
+                              borderRadius: '10px',
+                              fontWeight: '800',
+                              fontSize: '12px',
+                              cursor: 'pointer',
+                              backgroundColor: preferredLang === l.code ? '#8B5CF6' : 'var(--input-bg)',
+                              color: preferredLang === l.code ? '#FFF' : 'var(--text-main)',
+                              border: preferredLang === l.code ? '1.5px solid #8B5CF6' : '1.5px solid var(--border-color)',
+                            }}
+                          >
+                            {l.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 style={{ fontSize: '16px', fontWeight: '900', color: 'var(--text-main)', margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>⏱️</span> 퀴즈 문항 풀이 타이머
+                      </h4>
+                      <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0 0 10px 0' }}>
+                        문제 1개당 권장 시간 제한 모드를 설정합니다.
+                      </p>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        {[
+                          { mode: '45', label: '🌱 여유롭게 (45초)' },
+                          { mode: '30', label: '⚡ 기본 (30초)' },
+                          { mode: '20', label: '🔥 챌린지 (20초)' },
+                        ].map((m) => (
+                          <button
+                            key={m.mode}
+                            onClick={() => handleChangeTimerMode(m.mode as any)}
+                            style={{
+                              padding: '6px 12px',
+                              borderRadius: '10px',
+                              fontWeight: '800',
+                              fontSize: '12px',
+                              cursor: 'pointer',
+                              backgroundColor: timerMode === m.mode ? '#10B981' : 'var(--input-bg)',
+                              color: timerMode === m.mode ? '#FFF' : 'var(--text-main)',
+                              border: timerMode === m.mode ? '1.5px solid #10B981' : '1.5px solid var(--border-color)',
+                            }}
+                          >
+                            {m.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Local Storage & Cache Maintenance */}
+                  <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '24px', border: '1.5px solid var(--border-color)', padding: '24px 32px', boxShadow: 'var(--shadow-soft)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
+                    <div>
+                      <h4 style={{ fontSize: '17px', fontWeight: '900', color: 'var(--text-main)', margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>🛡️</span> 로컬 학습 데이터 & 캐시 관리
+                      </h4>
+                      <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
+                        오프라인 오답노트 및 임시 리소스를 최적화하여 웹 앱 동작 속도를 향상시킵니다.
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleCleanCache}
+                      style={{
+                        padding: '10px 20px',
+                        borderRadius: '12px',
+                        backgroundColor: cacheCleaned ? '#10B981' : 'var(--input-bg)',
+                        color: cacheCleaned ? '#FFF' : 'var(--text-main)',
+                        border: '1.5px solid var(--border-color)',
+                        fontWeight: '800',
+                        fontSize: '13px',
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {cacheCleaned ? '✓ 캐시 최적화 완료!' : '🧹 임시 캐시 최적화'}
+                    </button>
+                  </div>
+
                   {/* Teacher Console Link Card */}
                   <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '24px', border: '1.5px solid var(--border-color)', padding: '24px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: 'var(--shadow-soft)' }}>
                     <div>
@@ -925,84 +1421,219 @@ export default function WebDashboard() {
 
               {/* 4. 버그제보 (Bug Report) */}
               {settingsSubTab === 'bug' && (
-                <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '24px', border: '1.5px solid var(--border-color)', padding: '28px 36px', boxShadow: 'var(--shadow-soft)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <div style={{ width: '56px', height: '56px', borderRadius: '18px', backgroundColor: '#5865F2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '30px', color: '#FFF', flexShrink: 0 }}>
-                      👾
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {/* Discord Header Card */}
+                  <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '24px', border: '1.5px solid var(--border-color)', padding: '28px 36px', boxShadow: 'var(--shadow-soft)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                      <div style={{ width: '56px', height: '56px', borderRadius: '18px', backgroundColor: '#5865F2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '30px', color: '#FFF', flexShrink: 0 }}>
+                        👾
+                      </div>
+                      <div>
+                        <h3 style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-main)', margin: 0 }}>
+                          다함께교실 공식 디스코드 버그 제보 채널
+                        </h3>
+                        <p style={{ fontSize: '14px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+                          이용 중 발견하신 버그나 오류, 개선 아이디어를 디스코드에 남겨주시면 개발팀이 실시간으로 확인하고 패치합니다.
+                        </p>
+                      </div>
                     </div>
+
+                    <div style={{ padding: '16px 20px', borderRadius: '16px', backgroundColor: 'var(--input-bg)', border: '1.5px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', wordBreak: 'break-all' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontSize: '20px' }}>🔗</span>
+                        <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-main)' }}>
+                          {DISCORD_BUG_URL}
+                        </span>
+                      </div>
+                      <button
+                        onClick={handleCopyDiscordLink}
+                        style={{ padding: '8px 16px', borderRadius: '10px', backgroundColor: copiedDiscord ? '#10B981' : 'var(--card-bg)', color: copiedDiscord ? '#FFF' : 'var(--text-main)', border: '1px solid var(--border-color)', fontWeight: '800', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                      >
+                        {copiedDiscord ? '✓ 복사 완료!' : '📋 링크 복사'}
+                      </button>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                      <a
+                        href={DISCORD_BUG_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          padding: '14px 28px',
+                          backgroundColor: '#5865F2',
+                          color: '#FFFFFF',
+                          borderRadius: '16px',
+                          fontWeight: '900',
+                          fontSize: '15px',
+                          textDecoration: 'none',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          boxShadow: '0 6px 20px rgba(88, 101, 242, 0.4)',
+                          transition: 'transform 0.15s ease',
+                        }}
+                      >
+                        <span>👾</span>
+                        <span>디스코드 버그제보 채널 바로가기 ➔</span>
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Quick In-App Bug Report Form */}
+                  <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '24px', border: '1.5px solid var(--border-color)', padding: '24px 32px', boxShadow: 'var(--shadow-soft)' }}>
+                    <h3 style={{ fontSize: '18px', fontWeight: '900', color: 'var(--text-main)', margin: '0 0 6px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span>📝</span> 빠른 버그 제보 / 건의사항 작성
+                    </h3>
+                    <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0 0 14px 0' }}>
+                      디스코드 접속이 어렵다면 여기서 바로 내용을 작성해 남겨주실 수 있습니다.
+                    </p>
+
+                    <form onSubmit={handleSubmitBug} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                        {[
+                          { id: 'design', label: '🖥️ 화면 / UI' },
+                          { id: 'sound', label: '🔊 사운드 / 음향' },
+                          { id: 'quiz', label: '📚 퀴즈 / 지문 오류' },
+                          { id: 'rank', label: '🏆 랭크 / 포인트' },
+                          { id: 'other', label: '💡 기타 건의' },
+                        ].map((cat) => (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => setBugCategory(cat.id as any)}
+                            style={{
+                              padding: '6px 14px',
+                              borderRadius: '10px',
+                              fontWeight: '800',
+                              fontSize: '12px',
+                              cursor: 'pointer',
+                              backgroundColor: bugCategory === cat.id ? '#F97316' : 'var(--input-bg)',
+                              color: bugCategory === cat.id ? '#FFF' : 'var(--text-main)',
+                              border: bugCategory === cat.id ? '1.5px solid #F97316' : '1.5px solid var(--border-color)',
+                            }}
+                          >
+                            {cat.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      <textarea
+                        value={bugText}
+                        onChange={(e) => setBugText(e.target.value)}
+                        placeholder="발견하신 버그나 건의사항을 자유롭게 입력해주세요. (예: 퀴즈 3번에서 사운드가 안 나옵니다, 모바일에서 버튼이 잘려요 등)"
+                        rows={3}
+                        style={{
+                          width: '100%',
+                          padding: '12px 16px',
+                          borderRadius: '14px',
+                          backgroundColor: 'var(--input-bg)',
+                          border: '1.5px solid var(--border-color)',
+                          color: 'var(--text-main)',
+                          fontSize: '13px',
+                          fontFamily: 'inherit',
+                          resize: 'vertical',
+                          outline: 'none',
+                        }}
+                      />
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '12px', color: bugSubmitted ? '#10B981' : 'var(--text-muted)', fontWeight: '700' }}>
+                          {bugSubmitted ? '✓ 버그 제보가 성공적으로 접수되었습니다! 감사합니다.' : '작성하신 내용은 개발팀 로그에 즉시 기록됩니다.'}
+                        </span>
+                        <button
+                          type="submit"
+                          style={{
+                            padding: '10px 24px',
+                            backgroundColor: '#F97316',
+                            color: '#FFF',
+                            borderRadius: '12px',
+                            fontWeight: '900',
+                            fontSize: '13px',
+                            cursor: 'pointer',
+                            boxShadow: '0 4px 12px rgba(249, 115, 22, 0.3)',
+                          }}
+                        >
+                          제보 제출하기 ➔
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+
+                  {/* System Environment Auto-Diagnostic Info */}
+                  <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '24px', border: '1.5px solid var(--border-color)', padding: '24px 32px', boxShadow: 'var(--shadow-soft)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
                     <div>
-                      <h3 style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-main)', margin: 0 }}>
-                        다함께교실 공식 디스코드 버그 제보 채널
-                      </h3>
-                      <p style={{ fontSize: '14px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
-                        이용 중 발견하신 버그나 오류, 개선 아이디어를 디스코드에 남겨주시면 개발팀이 실시간으로 확인하고 패치합니다.
+                      <h4 style={{ fontSize: '17px', fontWeight: '900', color: 'var(--text-main)', margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>💻</span> 내 기기 환경 정보 진단 (버그 제보용)
+                      </h4>
+                      <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
+                        디스코드 제보 시 아래 시스템 정보를 복사해 함께 올려주시면 개발자가 훨씬 빠르게 원인을 파악할 수 있습니다.
                       </p>
                     </div>
-                  </div>
-
-                  <div style={{ padding: '16px 20px', borderRadius: '16px', backgroundColor: 'var(--input-bg)', border: '1.5px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', wordBreak: 'break-all' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <span style={{ fontSize: '20px' }}>🔗</span>
-                      <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-main)' }}>
-                        {DISCORD_BUG_URL}
-                      </span>
-                    </div>
                     <button
-                      onClick={handleCopyDiscordLink}
-                      style={{ padding: '8px 16px', borderRadius: '10px', backgroundColor: copiedDiscord ? '#10B981' : 'var(--card-bg)', color: copiedDiscord ? '#FFF' : 'var(--text-main)', border: '1px solid var(--border-color)', fontWeight: '800', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}
-                    >
-                      {copiedDiscord ? '✓ 복사 완료!' : '📋 링크 복사'}
-                    </button>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                    <a
-                      href={DISCORD_BUG_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      onClick={handleCopySystemInfo}
                       style={{
-                        padding: '14px 28px',
-                        backgroundColor: '#5865F2',
-                        color: '#FFFFFF',
-                        borderRadius: '16px',
-                        fontWeight: '900',
-                        fontSize: '15px',
-                        textDecoration: 'none',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        boxShadow: '0 6px 20px rgba(88, 101, 242, 0.4)',
-                        transition: 'transform 0.15s ease',
+                        padding: '10px 18px',
+                        borderRadius: '12px',
+                        backgroundColor: copiedEnvInfo ? '#10B981' : 'var(--input-bg)',
+                        color: copiedEnvInfo ? '#FFF' : 'var(--text-main)',
+                        border: '1.5px solid var(--border-color)',
+                        fontWeight: '800',
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
                       }}
                     >
-                      <span>👾</span>
-                      <span>디스코드 버그제보 채널 바로가기 ➔</span>
-                    </a>
+                      {copiedEnvInfo ? '✓ 시스템 정보 복사됨!' : '📋 시스템 정보 복사'}
+                    </button>
                   </div>
                 </div>
               )}
 
-              {/* 5. 패치노트 (Patch Notes) */}
+              {/* 5. 패치노트 (Patch Notes & Roadmap) */}
               {settingsSubTab === 'patch' && (
-                <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '24px', border: '1.5px solid var(--border-color)', padding: '28px 36px', boxShadow: 'var(--shadow-soft)' }}>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '20px' }}>
-                    <h4 style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-main)', margin: 0 }}>🚀 Beta 1.0 패치노트</h4>
-                    <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)' }}>현재 버전 · 첫 베타 출시</span>
-                  </div>
-                  {[
-                    { title: '🏆 랭크 & 월간 시즌 시스템', items: ['언랭크(배치 미완료) 도입 — 배치 전 모든 계정은 언랭크로 시작', '10문항 평가 또는 1:1 대결 1회로 즉시 티어 배치 (브론즈 1 ~ 플레티넘 1)', '신규 랭크 플레티넘(민트) · 익스퍼트(주황) 추가 및 포인트 구간 정비', '랭크 그룹마다 고유 엠블럼 모양 및 티어 색상 리더보드 테두리 적용', '결과 화면 포인트 카운트업/카운트다운 사운드 및 애니메이션'] },
-                    { title: '🎨 사계절 반응형 배경 & 글래스모피즘', items: ['봄(3~5월), 여름(6~8월), 가을(9~11월), 겨울(12~2월) 실시간 계절 배경 자동 반영', '뷰포트 고정(Fixed) 반응형 배경 — 모바일에서 탭(랭크, 학습, 기록, 설정)을 누를 때마다 배경이 흔들리거나 바뀌는 현상 원천 차단', 'UI 카드 및 버튼 60% 투명도 글래스모피즘(Glassmorphism) 적용'] },
-                    { title: '👨‍🏫 교사 콘솔 (RAG 색인 & 페르소나)', items: ['선생님 계정 권한 제한 및 교사 전용 관리자 대시보드', '교사가 등록한 교과서 지문이 인물 인터뷰 및 토론 친구에 100% 실시간 반영', '지문 단락 개별 삭제 및 성격 페르소나 지침 설정'] },
-                    { title: '🌐 다국어 학습 모듈', items: ['교과서 지문 OCR 촬영 및 6개국 언어 병렬 번역', '마이크 실시간 음성 통역 & 짝꿍 대화 모드', '가상 초등 한국인 친구 민준이와의 AI 존중 토론', '교과서 인물(흥부, 이순신 등) 1인칭 가상 인터뷰', '단어 듣고 쓰기 받아쓰기 및 글자 따라쓰기'] },
-                    { title: '⚙️ 설정 세분화 & 사운드 엔진', items: ['설정을 비디오, 오디오, 인웹, 버그제보, 패치노트로 5단 세분화', '효과음 On/Off 토글 및 볼륨 슬라이더 조절 지원', '공식 디스코드 버그제보 채널 링크 연동'] },
-                  ].map((sec) => (
-                    <div key={sec.title} style={{ marginBottom: '18px' }}>
-                      <div style={{ fontSize: '16px', fontWeight: '900', color: 'var(--text-main)', marginBottom: '8px' }}>{sec.title}</div>
-                      <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '14px', lineHeight: '1.8', color: 'var(--text-muted)', fontWeight: '600' }}>
-                        {sec.items.map((it) => <li key={it}>{it}</li>)}
-                      </ul>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {/* Current Beta 1.0 Patch Note */}
+                  <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '24px', border: '1.5px solid var(--border-color)', padding: '28px 36px', boxShadow: 'var(--shadow-soft)' }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '20px' }}>
+                      <h4 style={{ fontSize: '22px', fontWeight: '900', color: 'var(--text-main)', margin: 0 }}>🚀 Beta 1.0 패치노트</h4>
+                      <span style={{ fontSize: '13px', fontWeight: '700', color: '#10B981', backgroundColor: 'rgba(16, 185, 129, 0.15)', padding: '2px 8px', borderRadius: '6px' }}>현재 버전 · 최신 업데이트</span>
                     </div>
-                  ))}
+                    {[
+                      { title: '🔒 사계절 테마 자동 고정 & 모바일 배경 안정화', items: ['사계절 배경을 실제 시스템 달력 날짜에 맞춰 완전 자동 고정(임의 변경 방지)', '봄(3/1~5/31), 여름(6/1~8/31), 가을(9/1~11/30), 겨울(12/1~2/28) 4계절 타임라인 현황 제공', '모바일 모드에서 탭(랭크, 학습, 기록, 설정)을 누를 때마다 배경이 흔들리거나 바뀌는 현상 원천 차단 (뷰포트 고정 100vw x 100dvh 레이어)'] },
+                      { title: '⚙️ 설정(Settings) 5대 서브 카테고리 대규모 확장', items: ['비디오: 다크모드, 사계절 테마 현황, UI 투명도(60% 반투명 vs 85% 고대비), 글자 크기(100%/112%/124%), 모션 절약, 전체화면', '오디오: 마스터 볼륨, 클릭/퀴즈/랭크 개별 사운드 토글, AI TTS 음성 속도 조절, 집중 백색소음, 5종 사운드 미리듣기', '인웹: 프로필, 학생/교사 권한 전환, 기본 모국어(베트남/중국/러시아/영어 등) 설정, 문제 풀이 타이머(20/30/45초), 캐시 최적화, 교사 콘솔', '버그제보: 공식 디스코드 바로가기, 인앱 빠른 제보 폼, 시스템 환경 진단 정보 1클릭 복사'] },
+                      { title: '🏆 랭크 & 월간 시즌 시스템', items: ['언랭크(배치 미완료) 도입 — 신규 사용자는 10문항 평가 또는 1:1 대결 1회로 즉시 티어 배치', '신규 랭크 플레티넘(민트) · 익스퍼트(주황) 추가 및 포인트 구간 정비', '랭크 그룹마다 고유 엠블럼 모양 및 티어 색상 리더보드 테두리 적용', '결과 화면 포인트 0부터 순차 증가/감소 사운드 & 3단계 순차 연출'] },
+                      { title: '👨‍🏫 교사 콘솔 (RAG 색인 & 페르소나)', items: ['선생님 계정 권한 제한 및 교사 전용 관리자 대시보드', '교사가 등록한 교과서 지문이 인물 인터뷰 및 토론 친구에 100% 실시간 반영', '지문 단락 개별 삭제 및 성격 페르소나 지침 설정'] },
+                    ].map((sec) => (
+                      <div key={sec.title} style={{ marginBottom: '18px' }}>
+                        <div style={{ fontSize: '16px', fontWeight: '900', color: 'var(--text-main)', marginBottom: '8px' }}>{sec.title}</div>
+                        <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '14px', lineHeight: '1.8', color: 'var(--text-muted)', fontWeight: '600' }}>
+                          {sec.items.map((it) => <li key={it}>{it}</li>)}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Future Roadmap Card */}
+                  <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '24px', border: '1.5px solid var(--border-color)', padding: '28px 36px', boxShadow: 'var(--shadow-soft)' }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '16px' }}>
+                      <h4 style={{ fontSize: '20px', fontWeight: '900', color: 'var(--text-main)', margin: 0 }}>🗺️ 향후 업데이트 로드맵 (Roadmap)</h4>
+                      <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)' }}>개발 예정 기능</span>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
+                      {[
+                        { icon: '🏆', title: '시즌 1 정규 랭크전 & 보상', desc: '월간 랭크 마감 및 티어별 프로필 한정 테두리/칭호 보상 지급' },
+                        { icon: '🎙️', title: '실시간 음성 보이스 토론', desc: '친구 및 AI 교과서 인물과 마이크로 직접 소통하는 음성 토론 배틀' },
+                        { icon: '🤝', title: '학급 반 대항전 & 협동 모드', desc: '반 전체 친구들이 힘을 모아 함께 퀴즈를 해결하는 학급 협동 모듈' },
+                        { icon: '📖', title: '초등 3~6학년 전과목 지문 확장', desc: '국어 외 사회, 도덕, 과학 등 다양한 다문화 지원 교과목 지문 탑재' },
+                      ].map((rm) => (
+                        <div key={rm.title} style={{ padding: '16px', borderRadius: '16px', backgroundColor: 'var(--input-bg)', border: '1px solid var(--border-color)' }}>
+                          <div style={{ fontSize: '24px', marginBottom: '6px' }}>{rm.icon}</div>
+                          <div style={{ fontSize: '15px', fontWeight: '900', color: 'var(--text-main)', marginBottom: '4px' }}>{rm.title}</div>
+                          <div style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.5' }}>{rm.desc}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
 

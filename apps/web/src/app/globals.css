@@ -44,6 +44,34 @@
   --season-overlay: rgba(248, 250, 252, 0.15);
 }
 
+/* Accessibility & Display Preference Overrides */
+html[data-contrast="high"] {
+  --card-bg: rgba(255, 255, 255, 0.9) !important;
+  --input-bg: rgba(255, 255, 255, 0.95) !important;
+  --border-color: rgba(15, 23, 42, 0.25) !important;
+}
+.dark html[data-contrast="high"],
+html.dark[data-contrast="high"] {
+  --card-bg: rgba(15, 23, 42, 0.9) !important;
+  --input-bg: rgba(30, 41, 59, 0.95) !important;
+  --border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+html[data-font-scale="115"] {
+  font-size: 112%;
+}
+html[data-font-scale="130"] {
+  font-size: 124%;
+}
+
+html[data-reduced-motion="true"] *,
+html[data-reduced-motion="true"] *::before,
+html[data-reduced-motion="true"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
 * {
   box-sizing: border-box;
   padding: 0;

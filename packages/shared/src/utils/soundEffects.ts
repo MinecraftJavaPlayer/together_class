@@ -9,6 +9,9 @@
 
 let masterVolume = 1.0;
 let isAudioMuted = false;
+let isClickMuted = false;
+let isQuizMuted = false;
+let isRankMuted = false;
 
 // Initialize from localStorage if in browser
 if (typeof window !== 'undefined') {
@@ -17,6 +20,12 @@ if (typeof window !== 'undefined') {
     if (savedVol !== null) masterVolume = parseFloat(savedVol);
     const savedMute = localStorage.getItem('dahamkke_audio_muted');
     if (savedMute !== null) isAudioMuted = savedMute === 'true';
+    const savedClick = localStorage.getItem('dahamkke_sound_click_muted');
+    if (savedClick !== null) isClickMuted = savedClick === 'true';
+    const savedQuiz = localStorage.getItem('dahamkke_sound_quiz_muted');
+    if (savedQuiz !== null) isQuizMuted = savedQuiz === 'true';
+    const savedRank = localStorage.getItem('dahamkke_sound_rank_muted');
+    if (savedRank !== null) isRankMuted = savedRank === 'true';
   } catch (e) {}
 }
 
@@ -43,6 +52,48 @@ export function setAudioEnabled(enabled: boolean): void {
   if (typeof window !== 'undefined') {
     try {
       localStorage.setItem('dahamkke_audio_muted', String(isAudioMuted));
+      window.dispatchEvent(new CustomEvent('dahamkke_audio_settings_changed'));
+    } catch (e) {}
+  }
+}
+
+export function isClickSoundEnabled(): boolean {
+  return !isClickMuted;
+}
+
+export function setClickSoundEnabled(enabled: boolean): void {
+  isClickMuted = !enabled;
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem('dahamkke_sound_click_muted', String(isClickMuted));
+      window.dispatchEvent(new CustomEvent('dahamkke_audio_settings_changed'));
+    } catch (e) {}
+  }
+}
+
+export function isQuizSoundEnabled(): boolean {
+  return !isQuizMuted;
+}
+
+export function setQuizSoundEnabled(enabled: boolean): void {
+  isQuizMuted = !enabled;
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem('dahamkke_sound_quiz_muted', String(isQuizMuted));
+      window.dispatchEvent(new CustomEvent('dahamkke_audio_settings_changed'));
+    } catch (e) {}
+  }
+}
+
+export function isRankSoundEnabled(): boolean {
+  return !isRankMuted;
+}
+
+export function setRankSoundEnabled(enabled: boolean): void {
+  isRankMuted = !enabled;
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem('dahamkke_sound_rank_muted', String(isRankMuted));
       window.dispatchEvent(new CustomEvent('dahamkke_audio_settings_changed'));
     } catch (e) {}
   }
@@ -89,7 +140,7 @@ export function unlockAudio(): void {
 }
 
 export function playClickSound(): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined' || isClickMuted) return;
   // Try click.m4a first (마크 효과음 개선판), fallback to click.wav
   playAudioFile('/sounds/click.m4a', 1.0).catch(() => {
     playAudioFile('/sounds/click.wav', 1.0).catch(() => {});
@@ -97,12 +148,12 @@ export function playClickSound(): void {
 }
 
 export function playCorrectSound(): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined' || isQuizMuted) return;
   playAudioFile('/sounds/correctAnswer.wav', 1.0).catch(() => {});
 }
 
 export function playWrongSound(): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined' || isQuizMuted) return;
   // Make '미션실패' wrong sound noticeably quieter (0.38 volume) as requested
   playAudioFile('/sounds/wrong.mp3', 0.38).catch(() => {});
 }
@@ -111,7 +162,7 @@ export function playWrongSound(): void {
  * 랭크 강등 효과음 (첫 번째 효과음 - demote.mp3)
  */
 export function playDemoteSound(): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined' || isRankMuted) return;
   playAudioFile('/sounds/demote.mp3', 1.0).catch(() => {});
 }
 
@@ -119,6 +170,6 @@ export function playDemoteSound(): void {
  * 랭크 승급 및 배치 완료 효과음 (두 번째 효과음 - promote.mp3)
  */
 export function playPromoteSound(): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined' || isRankMuted) return;
   playAudioFile('/sounds/promote.mp3', 1.0).catch(() => {});
 }
