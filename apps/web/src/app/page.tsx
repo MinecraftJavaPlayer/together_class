@@ -73,10 +73,6 @@ export default function WebDashboard() {
 
   // Bug Report state
   const [copiedDiscord, setCopiedDiscord] = useState(false);
-  const [bugCategory, setBugCategory] = useState<'design' | 'sound' | 'quiz' | 'rank' | 'other'>('design');
-  const [bugText, setBugText] = useState('');
-  const [bugSubmitted, setBugSubmitted] = useState(false);
-  const [copiedEnvInfo, setCopiedEnvInfo] = useState(false);
 
   useEffect(() => {
     // Session check: if no active user session, redirect to login page
@@ -262,46 +258,6 @@ export default function WebDashboard() {
   const handleCleanCache = () => {
     setCacheCleaned(true);
     setTimeout(() => setCacheCleaned(false), 3000);
-  };
-
-  const handleSubmitBug = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!bugText.trim()) return;
-    setBugSubmitted(true);
-    setTimeout(() => {
-      setBugText('');
-      setBugSubmitted(false);
-    }, 4000);
-  };
-
-  const handleCopySystemInfo = () => {
-    if (typeof window === 'undefined') return;
-    const ua = navigator.userAgent;
-    const screenRes = `${window.screen.width}x${window.screen.height}`;
-    const dpr = window.devicePixelRatio || 1;
-    const currentTier = currentRank?.name || 'Unranked';
-    const role = currentUser?.role || 'student';
-    const info = `[다함께교실 시스템 정보]
-• 사용자: ${currentUser?.name || ''} (${currentUser?.email || 'guest'})
-• 권한: ${role === 'teacher' ? '교사' : '학생'}
-• 랭크: ${currentTier} (${currentUser?.points || 0}pt)
-• 화면 해상도: ${screenRes} (DPR: ${dpr})
-• 브라우저/플랫폼: ${ua}
-• 테마 모드: ${isDarkMode ? '다크 모드' : '라이트 모드'}
-• UI 투명도: ${uiContrast === 'high' ? '고대비(85%)' : '기본(60%)'}
-• 계절 테마: ${getCurrentSeasonConfig().name} (날짜 자동)
-• 빌드 버전: Beta 1.0 (Web)`;
-
-    if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      navigator.clipboard.writeText(info).then(() => {
-        setCopiedEnvInfo(true);
-        setTimeout(() => setCopiedEnvInfo(false), 2500);
-      }).catch(() => {
-        prompt('시스템 정보를 복사하세요:', info);
-      });
-    } else {
-      prompt('시스템 정보를 복사하세요:', info);
-    }
   };
 
   const handleCopyDiscordLink = () => {
@@ -826,63 +782,6 @@ export default function WebDashboard() {
                           boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
                         }}
                       />
-                    </div>
-                  </div>
-
-                  {/* Seasonal Themes - Locked strictly to real-world calendar date */}
-                  <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '24px', border: '1.5px solid var(--border-color)', padding: '24px 32px', boxShadow: 'var(--shadow-soft)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '14px' }}>
-                      <div>
-                        <h3 style={{ fontSize: '20px', fontWeight: '900', color: 'var(--text-main)', margin: '0 0 6px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span>🔒</span> 사계절 배경 테마 (날짜 기준 자동 고정)
-                        </h3>
-                        <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
-                          다함께교실의 사계절 배경은 실제 달력 날짜에 맞춰 자동으로 설정되며, 임의로 변경할 수 없도록 안전하게 고정되어 있습니다.
-                        </p>
-                      </div>
-                      <span style={{ fontSize: '12px', fontWeight: '900', color: '#10B981', backgroundColor: 'rgba(16, 185, 129, 0.15)', border: '1.5px solid rgba(16, 185, 129, 0.4)', padding: '6px 14px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span>🔒</span>
-                        <span>현재 계절: {getCurrentSeasonConfig().icon} {getCurrentSeasonConfig().name} ({getCurrentSeasonConfig().dateRange})</span>
-                      </span>
-                    </div>
-
-                    {/* 4-Season Status Cards (Read-only, locked) */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
-                      {(['spring', 'summer', 'autumn', 'winter'] as SeasonType[]).map((s) => {
-                        const cfg = SEASONS[s];
-                        const isCurrentSeason = getCurrentSeason() === s;
-                        return (
-                          <div
-                            key={s}
-                            style={{
-                              padding: '14px 16px',
-                              borderRadius: '16px',
-                              backgroundColor: isCurrentSeason ? 'rgba(16, 185, 129, 0.15)' : 'var(--input-bg)',
-                              border: isCurrentSeason ? '2px solid #10B981' : '1.5px solid var(--border-color)',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              textAlign: 'center',
-                              boxShadow: isCurrentSeason ? '0 0 16px rgba(16, 185, 129, 0.3)' : 'none',
-                              position: 'relative',
-                            }}
-                          >
-                            {isCurrentSeason && (
-                              <div style={{ position: 'absolute', top: '-10px', backgroundColor: '#10B981', color: '#FFF', fontSize: '10px', fontWeight: '900', padding: '2px 8px', borderRadius: '10px' }}>
-                                현재 적용 중
-                              </div>
-                            )}
-                            <div style={{ fontSize: '28px', marginBottom: '4px' }}>{cfg.icon}</div>
-                            <div style={{ fontSize: '15px', fontWeight: '900', color: isCurrentSeason ? '#10B981' : 'var(--text-main)' }}>
-                              {cfg.name}
-                            </div>
-                            <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', marginTop: '2px' }}>
-                              {cfg.dateRange}
-                            </div>
-                          </div>
-                        );
-                      })}
                     </div>
                   </div>
 
@@ -1477,114 +1376,6 @@ export default function WebDashboard() {
                         <span>디스코드 버그제보 채널 바로가기 ➔</span>
                       </a>
                     </div>
-                  </div>
-
-                  {/* Quick In-App Bug Report Form */}
-                  <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '24px', border: '1.5px solid var(--border-color)', padding: '24px 32px', boxShadow: 'var(--shadow-soft)' }}>
-                    <h3 style={{ fontSize: '18px', fontWeight: '900', color: 'var(--text-main)', margin: '0 0 6px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span>📝</span> 빠른 버그 제보 / 건의사항 작성
-                    </h3>
-                    <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0 0 14px 0' }}>
-                      디스코드 접속이 어렵다면 여기서 바로 내용을 작성해 남겨주실 수 있습니다.
-                    </p>
-
-                    <form onSubmit={handleSubmitBug} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                        {[
-                          { id: 'design', label: '🖥️ 화면 / UI' },
-                          { id: 'sound', label: '🔊 사운드 / 음향' },
-                          { id: 'quiz', label: '📚 퀴즈 / 지문 오류' },
-                          { id: 'rank', label: '🏆 랭크 / 포인트' },
-                          { id: 'other', label: '💡 기타 건의' },
-                        ].map((cat) => (
-                          <button
-                            key={cat.id}
-                            type="button"
-                            onClick={() => setBugCategory(cat.id as any)}
-                            style={{
-                              padding: '6px 14px',
-                              borderRadius: '10px',
-                              fontWeight: '800',
-                              fontSize: '12px',
-                              cursor: 'pointer',
-                              backgroundColor: bugCategory === cat.id ? '#F97316' : 'var(--input-bg)',
-                              color: bugCategory === cat.id ? '#FFF' : 'var(--text-main)',
-                              border: bugCategory === cat.id ? '1.5px solid #F97316' : '1.5px solid var(--border-color)',
-                            }}
-                          >
-                            {cat.label}
-                          </button>
-                        ))}
-                      </div>
-
-                      <textarea
-                        value={bugText}
-                        onChange={(e) => setBugText(e.target.value)}
-                        placeholder="발견하신 버그나 건의사항을 자유롭게 입력해주세요. (예: 퀴즈 3번에서 사운드가 안 나옵니다, 모바일에서 버튼이 잘려요 등)"
-                        rows={3}
-                        style={{
-                          width: '100%',
-                          padding: '12px 16px',
-                          borderRadius: '14px',
-                          backgroundColor: 'var(--input-bg)',
-                          border: '1.5px solid var(--border-color)',
-                          color: 'var(--text-main)',
-                          fontSize: '13px',
-                          fontFamily: 'inherit',
-                          resize: 'vertical',
-                          outline: 'none',
-                        }}
-                      />
-
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '12px', color: bugSubmitted ? '#10B981' : 'var(--text-muted)', fontWeight: '700' }}>
-                          {bugSubmitted ? '✓ 버그 제보가 성공적으로 접수되었습니다! 감사합니다.' : '작성하신 내용은 개발팀 로그에 즉시 기록됩니다.'}
-                        </span>
-                        <button
-                          type="submit"
-                          style={{
-                            padding: '10px 24px',
-                            backgroundColor: '#F97316',
-                            color: '#FFF',
-                            borderRadius: '12px',
-                            fontWeight: '900',
-                            fontSize: '13px',
-                            cursor: 'pointer',
-                            boxShadow: '0 4px 12px rgba(249, 115, 22, 0.3)',
-                          }}
-                        >
-                          제보 제출하기 ➔
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-
-                  {/* System Environment Auto-Diagnostic Info */}
-                  <div style={{ backgroundColor: 'var(--card-bg)', borderRadius: '24px', border: '1.5px solid var(--border-color)', padding: '24px 32px', boxShadow: 'var(--shadow-soft)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
-                    <div>
-                      <h4 style={{ fontSize: '17px', fontWeight: '900', color: 'var(--text-main)', margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span>💻</span> 내 기기 환경 정보 진단 (버그 제보용)
-                      </h4>
-                      <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0 }}>
-                        디스코드 제보 시 아래 시스템 정보를 복사해 함께 올려주시면 개발자가 훨씬 빠르게 원인을 파악할 수 있습니다.
-                      </p>
-                    </div>
-                    <button
-                      onClick={handleCopySystemInfo}
-                      style={{
-                        padding: '10px 18px',
-                        borderRadius: '12px',
-                        backgroundColor: copiedEnvInfo ? '#10B981' : 'var(--input-bg)',
-                        color: copiedEnvInfo ? '#FFF' : 'var(--text-main)',
-                        border: '1.5px solid var(--border-color)',
-                        fontWeight: '800',
-                        fontSize: '12px',
-                        cursor: 'pointer',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {copiedEnvInfo ? '✓ 시스템 정보 복사됨!' : '📋 시스템 정보 복사'}
-                    </button>
                   </div>
                 </div>
               )}
